@@ -67,6 +67,7 @@ export struct MainPage {
 
           NewsList({ newsList: this.newsList ?? [], listScroller: this.listScroller, navStuck: this.navPathStuck })
         }
+        .expandSafeArea()
         .onReachStart(() => {
           this.isNewsListSticky.isSticky = false
         })
@@ -76,11 +77,13 @@ export struct MainPage {
         .width('100%')
         .height('100%')
       }
+      .expandSafeArea()
       .onRefreshing(async () => {
         await this.reloadAllData()
         this.isLoading = false
       })
     }
+    // .expandSafeArea()
     .width('100%')
     .height('100%')
   }

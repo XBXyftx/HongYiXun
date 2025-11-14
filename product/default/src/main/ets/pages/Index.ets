@@ -65,7 +65,6 @@ struct Main {
    */
   @Monitor('breakPointState.value')
   getNavMode() {
-    // logger.info(`${Main_LOG_TAG}this.breakPointState.getCurrentBreakPointType() = ${this.breakPointState.getCurrentBreakPointType()}`)
       if (this.breakPointState.getCurrentBreakPointType() === BREAK_POINT_ENUM.xs ||
         this.breakPointState.getCurrentBreakPointType() === BREAK_POINT_ENUM.sm ||
         this.breakPointState.getCurrentBreakPointType() === BREAK_POINT_ENUM.md
@@ -107,19 +106,15 @@ struct Main {
         ]
       })
       .title('NowInOpenHarmony')
-      // .hideNavBar(true)
       .backgroundColor(Color.Transparent)
-      .padding(10)
+      .expandSafeArea()
       .navDestination(this.NavDestMap)
       .hideToolBar(true)
       .height('100%')
       .width('100%')
       .hideBackButton(true)
-      // .hideNavBar(true)
       .hideTitleBar(true)
-      // .titleMode(NavigationTitleMode.Mini)
       .mode(this.navMod)
-      .navBarWidth('40%')
 
       ColorModChoseButton()
         .position({ right: this.deviceType === DEVICE_TYPES.PHONE ? 20 : 30, bottom: 160 })
@@ -127,5 +122,6 @@ struct Main {
       FontSizeAdjustButton()
         .position({ right: this.deviceType === DEVICE_TYPES.PHONE ? 20 : 30, bottom: 100 })
     }
+    .expandSafeArea()
   }
 }
