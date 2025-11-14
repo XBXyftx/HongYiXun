@@ -65,7 +65,7 @@ struct Main {
    */
   @Monitor('breakPointState.value')
   getNavMode() {
-    logger.info(`${Main_LOG_TAG}this.breakPointState.getCurrentBreakPointType() = ${this.breakPointState.getCurrentBreakPointType()}`)
+    // logger.info(`${Main_LOG_TAG}this.breakPointState.getCurrentBreakPointType() = ${this.breakPointState.getCurrentBreakPointType()}`)
       if (this.breakPointState.getCurrentBreakPointType() === BREAK_POINT_ENUM.xs ||
         this.breakPointState.getCurrentBreakPointType() === BREAK_POINT_ENUM.sm ||
         this.breakPointState.getCurrentBreakPointType() === BREAK_POINT_ENUM.md

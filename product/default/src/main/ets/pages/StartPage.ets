@@ -27,7 +27,6 @@ struct StarPage {
   uiRouter: Router = this.getUIContext().getRouter()
   @Local winWidth: number = 0
   @Local fontsize: number = 0
-  @Local breakPointState: BreakpointState = BreakpointState.of()
 
   async aboutToAppear(): Promise<void> {
     window.getLastWindow(this.getUIContext().getHostContext())
@@ -78,7 +77,7 @@ struct StarPage {
   build() {
 
     Column() {
-      if (this.breakPointState.getCurrentBreakPointType() === BREAK_POINT_ENUM.xs || BREAK_POINT_ENUM.sm || BREAK_POINT_ENUM.md){
+      if (this.winWidth<=840){
         Image($r('app.media.logo'))
           .width('40%')
           .margin({ bottom: 100 })
@@ -89,7 +88,7 @@ struct StarPage {
           .borderRadius(20)
       }else {
         Image($r('app.media.logo'))
-          .width('10%')
+          .width('20%')
           .margin({ bottom: 100 })
           .shadow({
             color:Color.White,

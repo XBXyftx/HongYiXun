@@ -45,13 +45,13 @@ export struct MainPage {
   }
 
   async reloadAllData() {
-    this.getUIContext().getPromptAction().showToast({ message: '刷新数据' })
+    promptAction.openToast({ message: '刷新数据' })
     if (await newsManager.updateNewsListToDB() && await newsManager.updateNewsSwiperToDB()) {
       this.newsList = await newsManager.getNewsArticleListFromDB()
       this.newsSwiperData = await newsManager.getNewsSwiperDataFromDB()
       return true
     }
-    this.getUIContext().getPromptAction().showToast({ message: '获取新数据失败请稍后再试。' })
+    promptAction.openToast({ message: '获取新数据失败请稍后再试。' })
     return false
   }
 
