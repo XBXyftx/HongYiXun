@@ -14,7 +14,7 @@
  */
 import { IS_STICKY, NAV_PATH_STUCK, NewsArticle, NewsListHeaderIsSticky } from "common"
 import { NewsList, newsManager, NewsSwiper } from "feature"
-import { AppStorageV2 } from "@kit.ArkUI"
+import { AppStorageV2, promptAction } from "@kit.ArkUI"
 
 const MainPage_TAG = 'MainPage: '
 
@@ -32,17 +32,15 @@ export struct MainPage {
   async aboutToAppear(): Promise<void> {
     this.newsList = await newsManager.getNewsArticleListFromDB()
     if (!this.newsList) {
-      this.getUIContext().getPromptAction().showToast({ message: `当前数据库新闻数据为空,请连接后端服务以更新数据` })
+      promptAction.openToast({ message: `当前数据库新闻数据为空,请连接后端服务以更新数据` })
     } else if (this.newsList) {
-      this.getUIContext().getPromptAction().showToast({ message: `从数据库查询到${this.newsList.length}条新闻数据` })
+      promptAction.openToast({ message: `从数据库查询到${this.newsList.length}条新闻数据` })
     }
     this.newsSwiperData = await newsManager.getNewsSwiperDataFromDB()
     if (!this.newsSwiperData) {
-      this.getUIContext().getPromptAction().showToast({ message: `当前数据库轮播图数据为空,请连接后端服务以更新数据` })
+      promptAction.openToast({ message: `当前数据库轮播图数据为空,请连接后端服务以更新数据` })
     } else if (this.newsSwiperData) {
-      this.getUIContext()
-        .getPromptAction()
-        .showToast({ message: `从数据库查询到${this.newsSwiperData.length}条轮播图数据` })
+      promptAction.openToast({ message: `从数据库查询到${this.newsSwiperData.length}条轮播图数据` })
     }
   }
 

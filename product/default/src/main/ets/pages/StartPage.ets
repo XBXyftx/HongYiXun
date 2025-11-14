@@ -14,6 +14,8 @@
  */
 import { AppStorageV2, promptAction, Router, window } from "@kit.ArkUI"
 import {
+  BreakpointState,
+  BREAK_POINT_ENUM,
   logger, NewsArticle, NewsListAPI, ServerHealthAPI, WINDOW_WIDTH, WinWidth
 } from "common"
 
@@ -25,6 +27,7 @@ struct StarPage {
   uiRouter: Router = this.getUIContext().getRouter()
   @Local winWidth: number = 0
   @Local fontsize: number = 0
+  @Local breakPointState: BreakpointState = BreakpointState.of()
 
   async aboutToAppear(): Promise<void> {
     window.getLastWindow(this.getUIContext().getHostContext())
@@ -75,19 +78,32 @@ struct StarPage {
   build() {
 
     Column() {
-      Image($r('app.media.logo'))
-        .width('20%')
-        .margin({ bottom: 100 })
-      Text('Welcome To')
-        .fontSize((this.fontsize * 0.8))
-        .fontColor('#ff00be53')
-      Text('NowInOpenHarmony')
+      if (this.breakPointState.getCurrentBreakPointType() === BREAK_POINT_ENUM.xs || BREAK_POINT_ENUM.sm || BREAK_POINT_ENUM.md){
+        Image($r('app.media.logo'))
+          .width('40%')
+          .margin({ bottom: 100 })
+          .shadow({
+            color:Color.White,
+            radius:50
+          })
+          .borderRadius(20)
+      }else {
+        Image($r('app.media.logo'))
+          .width('10%')
+          .margin({ bottom: 100 })
+          .shadow({
+            color:Color.White,
+            radius:50
+          })
+          .borderRadius(20)
+      }
+      Text('鸿易讯')
         .fontSize(this.fontsize)
         .fontColor('#ff00be53')
         .fontWeight(700)
     }
     .expandSafeArea()
-    .backgroundColor('#062872')
+    .backgroundColor(Color.Black)
     .justifyContent(FlexAlign.Center)
     .width('100%')
     .height('100%')

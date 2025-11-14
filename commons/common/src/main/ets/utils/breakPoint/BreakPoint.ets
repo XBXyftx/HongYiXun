@@ -35,9 +35,9 @@ export class BreakpointSystem {
   ]
 
   /** 使用Set存储状态观察者（自动去重）[1](@ref)*/
-  private _states: Set<BreakpointState<Object>>
+  private _states: Set<BreakpointState>
 
-  public get states(): Set<BreakpointState<Object>> {
+  public get states(): Set<BreakpointState> {
     return this._states
   }
 
@@ -56,13 +56,13 @@ export class BreakpointSystem {
   }
 
   /** 注册状态观察者 */
-  public attach(state: BreakpointState<Object>): void {
+  public attach(state: BreakpointState): void {
     logger.info(`${BREAK_POINT_SYSTEM_LOG_TAG}注册状态观察者`)
     this._states.add(state)  // 添加新观察者到集合
   }
 
   /** 注销状态观察者 */
-  public detach(state: BreakpointState<Object>): void {
+  public detach(state: BreakpointState): void {
     this._states.delete(state)  // 从集合中移除观察者
   }
 
@@ -120,27 +120,4 @@ export class BreakpointSystem {
     logger.info(BREAK_POINT_SYSTEM_LOG_TAG+'断点状态对象全部关闭')
   }
 }
-
-// /**
-//  * 获取当前设备断点系统的包装类
-//  * 调用getBreakPointSystem获取当前断点系统
-//  */
-// export class GetBreakPointSystem{
-//   uiContext:UIContext
-//
-//
-//   private breakPointSystem:BreakpointSystem=BreakpointSystem.getInstance(this.uiContext)
-//   /**
-//    * 获取当前断点系统
-//    * @returns 当前断点系统
-//    */
-//   getBreakPointSystem(uiContext:UIContext){
-//     return this.breakPointSystem
-//   }
-//   constructor(uiContext: UIContext) {
-//     this.uiContext = uiContext
-//   }
-// }
-
-// export const breakpointSystem = BreakpointSystem.getInstance()
 

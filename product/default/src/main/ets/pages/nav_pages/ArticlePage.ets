@@ -52,7 +52,7 @@ export struct ArticlePage {
         [$r('app.color.index_page_background_4'), 1]
       ]
     })
-    .borderRadius(20)
+    // .borderRadius(20)
     .onReady((navDestinationContext: NavDestinationContext) => {
       this.article = navDestinationContext.pathInfo.param as NewsArticle
     })

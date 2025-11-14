@@ -14,7 +14,7 @@
  */
 import { AppStorageV2, mediaquery } from '@kit.ArkUI'
 import {
-  BreakpointEnum,
+  BREAK_POINT_ENUM as BREAK_POINT_ENUM,
   BreakpointState,
   BreakpointSystem,
   DEVICE_TYPES,
@@ -37,14 +37,7 @@ struct Main {
   @Local navMod: NavigationMode = NavigationMode.Stack
   @Local deviceType: DEVICE_TYPES =
     deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
-  @Local breakPointState: BreakpointState<string> = BreakpointState.of<string>({
-    xs: 'xs',
-    sm: 'sm',
-    xl: 'xl',
-    xxl: 'xxl',
-    md: 'md',
-    lg: 'lg'
-  })
+  @Local breakPointState: BreakpointState = BreakpointState.of()
 
   /**
    * 启动页跳转至主页面入场动画
@@ -73,9 +66,9 @@ struct Main {
   @Monitor('breakPointState.value')
   getNavMode() {
     logger.info(`${Main_LOG_TAG}this.breakPointState.getCurrentBreakPointType() = ${this.breakPointState.getCurrentBreakPointType()}`)
-      if (this.breakPointState.getCurrentBreakPointType() === BreakpointEnum.xs ||
-        this.breakPointState.getCurrentBreakPointType() === BreakpointEnum.sm ||
-        this.breakPointState.getCurrentBreakPointType() === BreakpointEnum.md
+      if (this.breakPointState.getCurrentBreakPointType() === BREAK_POINT_ENUM.xs ||
+        this.breakPointState.getCurrentBreakPointType() === BREAK_POINT_ENUM.sm ||
+        this.breakPointState.getCurrentBreakPointType() === BREAK_POINT_ENUM.md
       ) {
         this.navMod = NavigationMode.Stack
       } else {
@@ -122,7 +115,9 @@ struct Main {
       .height('100%')
       .width('100%')
       .hideBackButton(true)
-      .titleMode(NavigationTitleMode.Mini)
+      // .hideNavBar(true)
+      .hideTitleBar(true)
+      // .titleMode(NavigationTitleMode.Mini)
       .mode(this.navMod)
       .navBarWidth('40%')
 
