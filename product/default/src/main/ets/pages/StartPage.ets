@@ -85,7 +85,7 @@ struct StarPage {
             color:Color.White,
             radius:50
           })
-          .borderRadius(20)
+          .borderRadius(35)
       }else {
         Image($r('app.media.logo'))
           .width('20%')
