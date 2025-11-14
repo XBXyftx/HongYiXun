@@ -43,16 +43,10 @@ export struct ArticlePage {
       }
       .width('100%')
     }
-    .linearGradient({
-      angle: 20,
-      colors: [
-        [$r('app.color.index_page_background_1'), 0],
-        [$r('app.color.index_page_background_2'), 0.4],
-        [$r('app.color.index_page_background_3'), 0.7],
-        [$r('app.color.index_page_background_4'), 1]
-      ]
-    })
-    // .borderRadius(20)
+    .hideTitleBar(true)
+    .hideBackButton(true)
+    .hideToolBar(true)
+    .borderRadius(8)
     .onReady((navDestinationContext: NavDestinationContext) => {
       this.article = navDestinationContext.pathInfo.param as NewsArticle
     })
