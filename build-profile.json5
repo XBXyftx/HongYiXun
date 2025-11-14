@@ -1,0 +1,94 @@
+/**
+ * Copyright (c) 2025 XBXyftx
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+{
+  "app": {
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\ASUS\\.ohos\\config\\default_HongYiXun_zBkXs_UaeBh1WiCxFpWOIfYMVEz3Y-I55x8d7A8x514=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001BDDB2F7377E3A229270A7318DFE0DE44BD77C7675DB059516B0FB35BD3BC58B6A90EFFEB3DAE3C3",
+          "profile": "C:\\Users\\ASUS\\.ohos\\config\\default_HongYiXun_zBkXs_UaeBh1WiCxFpWOIfYMVEz3Y-I55x8d7A8x514=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\ASUS\\.ohos\\config\\default_HongYiXun_zBkXs_UaeBh1WiCxFpWOIfYMVEz3Y-I55x8d7A8x514=.p12",
+          "storePassword": "0000001B3C6A7499BC5CD0A2859093649C911F82879EEF9C82577A039745D700D699CA0239119FE2F703C2"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "default",
+        "targetSdkVersion": "5.1.0(18)",
+        "compatibleSdkVersion": "5.1.0(18)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        }
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug"
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "default",
+      "srcPath": "./product/default",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "common",
+      "srcPath": "./commons/common",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "feature",
+      "srcPath": "./features/feature",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default"
+          ]
+        }
+      ]
+    }
+  ]
+}

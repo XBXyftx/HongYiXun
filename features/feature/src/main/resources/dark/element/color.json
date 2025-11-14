@@ -1,0 +1,108 @@
+{
+  "color": [
+    {
+      "name": "start_window_background",
+      "value": "#062872"
+    },
+    {
+      "name": "index_page_background_1",
+      "value": "#FF03788C"
+    },
+    {
+      "name": "index_page_background_2",
+      "value": "#FF048D8D"
+    },
+    {
+      "name": "index_page_background_3",
+      "value": "#B9028C5C"
+    },
+    {
+      "name": "index_page_background_4",
+      "value": "#FF069B18"
+    },
+    {
+      "name": "color_change_button_background",
+      "value": "#FFFFFFFF"
+    },
+    {
+      "name": "color_change_button_font",
+      "value": "#FF000000"
+    },
+    {
+      "name": "color_change_button_svg",
+      "value": "#FFA7A7A7"
+    },
+    {
+      "name": "news_list_header_font",
+      "value": "#FFFFFFFF"
+    },
+    {
+      "name": "news_list_header_bg",
+      "value": "#FF00317A"
+    },
+    {
+      "name": "news_list_divider",
+      "value": "#FFFFFFFF"
+    },
+    {
+      "name": "news_list_item_bg",
+      "value": "#B2303030"
+    },
+    {
+      "name": "news_list_item_border",
+      "value": "#FF000000"
+    },
+    {
+      "name": "back_to_top",
+      "value": "#FFFFFFFF"
+    },
+    {
+      "name": "article_info_builder_bg",
+      "value": "#CD000000"
+    },
+    {
+      "name": "font_adjust_dialog_bg",
+      "value": "#FF2D2D2D"
+    },
+    {
+      "name": "font_adjust_dialog_title",
+      "value": "#FFFFFFFF"
+    },
+    {
+      "name": "font_adjust_dialog_text",
+      "value": "#FFCCCCCC"
+    },
+    {
+      "name": "font_adjust_dialog_border",
+      "value": "#FF555555"
+    },
+    {
+      "name": "font_adjust_cancel_bg",
+      "value": "#00000000"
+    },
+    {
+      "name": "font_adjust_cancel_text",
+      "value": "#FF999999"
+    },
+    {
+      "name": "font_adjust_confirm_bg",
+      "value": "#FF0A59F7"
+    },
+    {
+      "name": "font_adjust_confirm_text",
+      "value": "#FFFFFFFF"
+    },
+    {
+      "name": "font_adjust_sheet_bg",
+      "value": "#FF1C1C1C"
+    },
+    {
+      "name": "font_adjust_slider_track",
+      "value": "#FF404040"
+    },
+    {
+      "name": "font_adjust_slider_selected",
+      "value": "#FF0A59F7"
+    }
+  ]
+}
