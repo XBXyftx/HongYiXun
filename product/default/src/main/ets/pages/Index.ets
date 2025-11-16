@@ -96,16 +96,6 @@ struct Main {
       Navigation(this.navPathStuck) {
         MainPage()
       }
-      .linearGradient({
-        angle: 20,
-        colors: [
-          [$r('app.color.index_page_background_1'), 0],
-          [$r('app.color.index_page_background_2'), 0.4],
-          [$r('app.color.index_page_background_3'), 0.7],
-          [$r('app.color.index_page_background_4'), 1]
-        ]
-      })
-      .title('NowInOpenHarmony')
       .backgroundColor(Color.Transparent)
       .expandSafeArea()
       .navDestination(this.NavDestMap)

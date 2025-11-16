@@ -10,3 +10,5 @@
 /.clang-tidy
 **/.test
 /.appanalyzer
+# MegaLLM Configuration
+.claude/settings.local.json
