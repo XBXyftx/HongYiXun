@@ -14,8 +14,6 @@
  */
 import { AppStorageV2, promptAction, Router, window } from "@kit.ArkUI"
 import {
-  BreakpointState,
-  BREAK_POINT_ENUM,
   logger,
   NewsArticle,
   NewsListAPI,

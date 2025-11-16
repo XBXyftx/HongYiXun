@@ -105,28 +105,20 @@ struct Main {
   }
 
   build() {
-    Stack() {
-      Navigation(this.navPathStuck) {
-        MainPage()
-      }
-      .splitPlaceholder(this.placeholder)
-      .backgroundColor(Color.Transparent)
-      .expandSafeArea()
-      .navDestination(this.NavDestMap)
-      .hideToolBar(true)
-      .height('100%')
-      .width('100%')
-      .navBarWidth('40%')
-      .hideBackButton(true)
-      .hideTitleBar(true)
-      .mode(this.navMod)
-
-      ColorModChoseButton()
-        .position({ right: this.deviceType === DEVICE_TYPES.PHONE ? 20 : 30, bottom: 160 })
-
-      FontSizeAdjustButton()
-        .position({ right: this.deviceType === DEVICE_TYPES.PHONE ? 20 : 30, bottom: 100 })
+    Navigation(this.navPathStuck) {
+      MainPage()
     }
+    .splitPlaceholder(this.placeholder)
+    .backgroundColor(Color.Transparent)
+    .expandSafeArea()
+    .navDestination(this.NavDestMap)
+    .hideToolBar(true)
+    .height('100%')
+    .width('100%')
+    .navBarWidth('40%')
+    .hideBackButton(true)
+    .hideTitleBar(true)
+    .mode(this.navMod)
     .expandSafeArea()
   }
 }

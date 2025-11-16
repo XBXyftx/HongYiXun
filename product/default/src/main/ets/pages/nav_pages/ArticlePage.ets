@@ -14,7 +14,7 @@
  */
 import { AppStorageV2 } from '@kit.ArkUI'
 import { DEVICE_TYPES, GET_USER_CONFIG, NewsArticle, UserConfigViewModel } from 'common'
-import { NewsArticleView } from 'feature'
+import { ColorModChoseButton, FontSizeAdjustButton, NewsArticleView } from 'feature'
 import { deviceInfo } from '@kit.BasicServicesKit'
 
 @ComponentV2
@@ -31,17 +31,31 @@ export struct ArticlePage {
   @Local deviceType: DEVICE_TYPES =
     deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
 
+  @Builder
+  ArticleContentBuilder() {
+    Column() {
+      Column() {
+        NewsArticleView({ article: this.article, baseFontSize: this.userConfig.fontSize })
+          .width('100%')
+      }
+      .width(this.deviceType === DEVICE_TYPES.PHONE ? '100%' : '90%')
+      .height('100%')
+    }
+    .width('100%')
+  }
+
   build() {
     NavDestination() {
-      Column() {
-        Column() {
-          NewsArticleView({ article: this.article, baseFontSize: this.userConfig.fontSize })
-            .width('100%')
-        }
-        .width(this.deviceType === DEVICE_TYPES.PHONE ? '100%' : '90%')
-        .height('100%')
+      Stack() {
+        this.ArticleContentBuilder()
+
+        ColorModChoseButton()
+          .position({ right: this.deviceType === DEVICE_TYPES.PHONE ? 20 : 30, bottom: 160 })
+
+        FontSizeAdjustButton()
+          .position({ right: this.deviceType === DEVICE_TYPES.PHONE ? 20 : 30, bottom: 100 })
       }
-      .width('100%')
+
     }
     .hideTitleBar(true)
     .hideBackButton(true)
