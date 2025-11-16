@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AppStorageV2, mediaquery } from '@kit.ArkUI'
+import { AppStorageV2, ComponentContent, mediaquery } from '@kit.ArkUI'
 import {
   BREAK_POINT_ENUM as BREAK_POINT_ENUM,
   BreakpointState,
@@ -29,6 +29,18 @@ import { ArticlePage } from './nav_pages/ArticlePage'
 
 const Main_LOG_TAG = 'Main: '
 
+@Builder
+function PlaceholderPage() {
+  Column() {
+    Image($r('app.media.logo'))
+      .width('20%')
+      .borderRadius(20)
+  }
+  .justifyContent(FlexAlign.Center)
+  .width("100%")
+  .height("100%")
+}
+
 @Entry
 @ComponentV2
 struct Main {
@@ -38,6 +50,7 @@ struct Main {
   @Local deviceType: DEVICE_TYPES =
     deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
   @Local breakPointState: BreakpointState = BreakpointState.of()
+  placeholder = new ComponentContent(this.getUIContext(), wrapBuilder(PlaceholderPage))
 
   /**
    * 启动页跳转至主页面入场动画
@@ -65,14 +78,14 @@ struct Main {
    */
   @Monitor('breakPointState.value')
   getNavMode() {
-      if (this.breakPointState.getCurrentBreakPointType() === BREAK_POINT_ENUM.xs ||
-        this.breakPointState.getCurrentBreakPointType() === BREAK_POINT_ENUM.sm ||
-        this.breakPointState.getCurrentBreakPointType() === BREAK_POINT_ENUM.md
-      ) {
-        this.navMod = NavigationMode.Stack
-      } else {
-        this.navMod = NavigationMode.Split
-      }
+    if (this.breakPointState.getCurrentBreakPointType() === BREAK_POINT_ENUM.xs ||
+      this.breakPointState.getCurrentBreakPointType() === BREAK_POINT_ENUM.sm ||
+      this.breakPointState.getCurrentBreakPointType() === BREAK_POINT_ENUM.md
+    ) {
+      this.navMod = NavigationMode.Stack
+    } else {
+      this.navMod = NavigationMode.Split
+    }
   }
 
   @Builder
@@ -96,12 +109,14 @@ struct Main {
       Navigation(this.navPathStuck) {
         MainPage()
       }
+      .splitPlaceholder(this.placeholder)
       .backgroundColor(Color.Transparent)
       .expandSafeArea()
       .navDestination(this.NavDestMap)
       .hideToolBar(true)
       .height('100%')
       .width('100%')
+      .navBarWidth('40%')
       .hideBackButton(true)
       .hideTitleBar(true)
       .mode(this.navMod)

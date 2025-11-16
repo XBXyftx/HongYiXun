@@ -23,6 +23,14 @@
     {
       "name": "color_change_button_background",
       "value": "#FF000000"
+    },
+    {
+      "name": "brand",
+      "value": "#FF3042FF"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#99000000"
     }
 
   ]

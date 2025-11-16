@@ -19,6 +19,14 @@
     {
       "name": "index_page_background_4",
       "value": "#FF069B18"
+    },
+    {
+      "name": "brand",
+      "value": "#FF00FFFF"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#99FFFFFF"
     }
   ]
 }

@@ -16,7 +16,12 @@ import { AppStorageV2, promptAction, Router, window } from "@kit.ArkUI"
 import {
   BreakpointState,
   BREAK_POINT_ENUM,
-  logger, NewsArticle, NewsListAPI, ServerHealthAPI, WINDOW_WIDTH, WinWidth
+  logger,
+  NewsArticle,
+  NewsListAPI,
+  ServerHealthAPI,
+  WINDOW_WIDTH,
+  WinWidth
 } from "common"
 
 const START_PAGE_TAGE = 'StartPage:  '
@@ -74,27 +79,28 @@ struct StarPage {
     this.fontsize = (Math.floor((this.winWidth) / num)) + 20
   }
 
+
   build() {
 
     Column() {
-      if (this.winWidth<=840){
+      if (this.winWidth <= 840) {
         Image($r('app.media.logo'))
           .width('40%')
           .margin({ bottom: 100 })
           .shadow({
-            color:Color.White,
-            radius:50
+            color: Color.White,
+            radius: 50
           })
           .borderRadius(35)
-      }else {
+      } else {
         Image($r('app.media.logo'))
           .width('20%')
           .margin({ bottom: 100 })
           .shadow({
-            color:Color.White,
-            radius:50
+            color: Color.White,
+            radius: 50
           })
-          .borderRadius(20)
+          .borderRadius(70)
       }
       Text('鸿易讯')
         .fontSize(this.fontsize)

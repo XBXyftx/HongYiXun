@@ -20,26 +20,66 @@ const MainPage_TAG = 'MainPage: '
 @Preview
 @ComponentV2
 export struct MainPage {
+  @Local currentTabIndex: number = 0
+
+  @Builder
+  tabBarBuilder(title: string, targetIndex: number, selectedIcon: Resource, normalIcon: Resource) {
+    Column() {
+      Image(this.currentTabIndex === targetIndex ? selectedIcon : normalIcon)
+        .width(24)
+        .height(24)
+        .objectFit(ImageFit.Contain)
+      Text(title)
+        .fontSize(16)
+        .fontWeight(this.currentTabIndex === targetIndex ? FontWeight.Medium : FontWeight.Regular)
+        .fontColor(this.currentTabIndex === targetIndex ? $r('app.color.brand') : $r('app.color.text_secondary'))
+        .margin({ top: 4 })
+    }
+    .width('100%')
+    .height('100%')
+    .justifyContent(FlexAlign.Center)
+    .alignItems(HorizontalAlign.Center)
+  }
 
   build() {
     NavDestination() {
-      Tabs(){
+      Tabs({ index: $$this.currentTabIndex }) {
         // 新闻子页
-        TabContent(){
+        TabContent() {
           NewsListTabContent()
         }
-        .tabBar()
-        // todo:AI问答子页面
-        TabContent(){
+        .tabBar(this.tabBarBuilder('新闻', 0, $rawfile('TabBarNews.svg'), $rawfile('TabBarNewsSelected.svg')))
 
+        // AI问答子页面
+        TabContent() {
+          Column() {
+            Text('AI问答')
+              .fontSize(16)
+          }
+          .width('100%')
+          .height('100%')
+          .justifyContent(FlexAlign.Center)
         }
-        // todo:我的子页面
-        TabContent(){
+        .tabBar(this.tabBarBuilder('鸿小易', 1, $rawfile('TabBarAI.svg'), $rawfile('TabBarAISelected.svg')))
 
+        // 我的子页面
+        TabContent() {
+          Column() {
+            Text('我的')
+              .fontSize(16)
+          }
+          .width('100%')
+          .height('100%')
+          .justifyContent(FlexAlign.Center)
         }
+        .tabBar(this.tabBarBuilder('我的', 2, $rawfile('TabBarSelf.svg'), $rawfile('TabBarSelfSelected.svg')))
       }
-      .width('100%')
-      .height('100%')
+      .barMode(BarMode.Fixed)
+      .barPosition(BarPosition.End)
+      .animationDuration(300)
+      .onChange((index: number) => {
+        this.currentTabIndex = index
+      })
     }
     .linearGradient({
       angle: 20,
