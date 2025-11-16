@@ -13,21 +13,33 @@
  * limitations under the License.
  */
 
+import { NewsListTabContent } from "../tab_contents/NewsListTabContent"
+
 const MainPage_TAG = 'MainPage: '
 
 @Preview
 @ComponentV2
 export struct MainPage {
 
-
-
-
-
-
-
   build() {
     NavDestination() {
+      Tabs(){
+        // 新闻子页
+        TabContent(){
+          NewsListTabContent()
+        }
+        .tabBar()
+        // todo:AI问答子页面
+        TabContent(){
 
+        }
+        // todo:我的子页面
+        TabContent(){
+
+        }
+      }
+      .width('100%')
+      .height('100%')
     }
     .linearGradient({
       angle: 20,
@@ -38,7 +50,5 @@ export struct MainPage {
         [$r('app.color.index_page_background_4'), 1]
       ]
     })
-    .width('100%')
-    .height('100%')
   }
 }
