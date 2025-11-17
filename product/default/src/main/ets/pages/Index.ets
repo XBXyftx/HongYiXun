@@ -21,13 +21,12 @@ import {
   logger,
   NAV_DESTS,
   NAV_PATH_STUCK,
+  LOG_TAG
 } from 'common'
 import { ColorModChoseButton, FontSizeAdjustButton } from 'feature'
 import { MainPage } from './nav_pages/MainPage'
 import { deviceInfo } from '@kit.BasicServicesKit'
 import { ArticlePage } from './nav_pages/ArticlePage'
-
-const Main_LOG_TAG = 'Main: '
 
 @Builder
 function PlaceholderPage() {
@@ -68,7 +67,7 @@ struct Main {
     const mediaQueryListener: mediaquery.MediaQueryListener =
       this.getUIContext().getMediaQuery().matchMediaSync('(orientation: landscape)')
     mediaQueryListener.on('change', () => {
-      logger.info(`${Main_LOG_TAG}横竖屏发生变化`)
+      logger.info(`${LOG_TAG.INDEX_PAGE}横竖屏发生变化`)
       this.getNavMode()
     })
   }

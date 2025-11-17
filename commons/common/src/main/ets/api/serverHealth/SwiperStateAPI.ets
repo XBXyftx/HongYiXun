@@ -17,8 +17,7 @@ import { logger } from "../../utils"
 import { axiosHttp } from "../http/AxiosHttp"
 import { BusinessError } from "@kit.BasicServicesKit"
 import { promptAction } from "@kit.ArkUI"
-
-const SwiperStateAPI_LOG_TAG = 'SwiperStateAPI: '
+import { LOG_TAG } from '../../modules/enums';
 
 export class NewsSwiperStateAPI {
   /**
@@ -30,21 +29,21 @@ export class NewsSwiperStateAPI {
       const res = await axiosHttp.request<SwiperState>({
         url: '/api/banner/status',
       })
-      logger.info(SwiperStateAPI_LOG_TAG + JSON.stringify(res))
+      logger.info(LOG_TAG.SWIPER_STATE_API + JSON.stringify(res))
       if (res.cache_status.status === CACHE_STATUS.preparing) {
 
-        logger.warn(`${SwiperStateAPI_LOG_TAG}轮播图尚未准备完毕`)
+        logger.warn(`${LOG_TAG.SWIPER_STATE_API}轮播图尚未准备完毕`)
         return false
       } else if (res.cache_status.status === CACHE_STATUS.error) {
         promptAction.showToast({ message: `轮播图服务内部出现异常${res.cache_status.error_message}` })
-        logger.error(`${SwiperStateAPI_LOG_TAG}轮播图服务内部出现异常${res.cache_status.error_message}`)
+        logger.error(`${LOG_TAG.SWIPER_STATE_API}轮播图服务内部出现异常${res.cache_status.error_message}`)
         return false
       } else if (res.cache_status.status === CACHE_STATUS.ready) {
         return true
       }
     } catch (e) {
       let err = e as BusinessError
-      logger.error(`${SwiperStateAPI_LOG_TAG}${err.message}`)
+      logger.error(`${LOG_TAG.SWIPER_STATE_API}${err.message}`)
       return false
     }
     return false

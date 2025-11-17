@@ -16,8 +16,7 @@ import { axiosHttp } from '../http/AxiosHttp'
 import { ServerStatus, SystemStatus } from '../../modules/server/ServerHelth'
 import { logger } from '../../utils/logger/logger'
 import { BusinessError } from '@kit.BasicServicesKit'
-
-const ServerHealthAPI_TAG = 'ServerHealthAPI: '
+import { LOG_TAG } from '../../modules/enums';
 
 export class ServerHealthAPI {
   /**
@@ -29,10 +28,10 @@ export class ServerHealthAPI {
       const res = await axiosHttp.request<SystemStatus>({
         url: '/api/health',
       })
-      logger.info(ServerHealthAPI_TAG + JSON.stringify(res))
+      logger.info(LOG_TAG.SERVER_HEALTH_API + JSON.stringify(res))
       if (res.status === ServerStatus.preparing) {
 
-        logger.warn(`${ServerHealthAPI_TAG}res.status = ${res.status}`)
+        logger.warn(`${LOG_TAG.SERVER_HEALTH_API}res.status = ${res.status}`)
         return false
       }else if (res.status === ServerStatus.healthy){
         return true
@@ -40,7 +39,7 @@ export class ServerHealthAPI {
 
     } catch (e) {
       let err = e as BusinessError
-      logger.error(`${ServerHealthAPI_TAG}${err.message}`)
+      logger.error(`${LOG_TAG.SERVER_HEALTH_API}${err.message}`)
       return false
     }
     return false

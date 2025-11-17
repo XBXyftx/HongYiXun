@@ -16,8 +16,8 @@ import { common } from '@kit.AbilityKit';
 import { preferences } from '@kit.ArkData';
 import { logger } from '../../utils';
 import { promptAction } from '@kit.ArkUI';
+import { LOG_TAG } from '../../modules/enums';
 
-const PreferenceDB_LOG_TAG = 'PreferenceDB: '
 /**
  * 用户首选项数据持久化接口
  */
@@ -28,7 +28,7 @@ class PreferenceDB {
     const option: preferences.Options = { name: 'jyt' };
     this.dataPreference = preferences.getPreferencesSync(context, option);
     this.dataPreference.on("change", (key: string) => {
-      logger.warn(`${PreferenceDB_LOG_TAG}The key ${key} changed`);
+      logger.warn(`${LOG_TAG.PREFERENCE_DB}The key ${key} changed`);
     });
     if (this.dataPreference) {
       return true
@@ -39,7 +39,7 @@ class PreferenceDB {
   release(): void {
     if (this.dataPreference) {
       this.dataPreference.off("change", (key: string) => {
-        logger.warn(`${PreferenceDB_LOG_TAG}UnSubscribe the key ${key}`);
+        logger.warn(`${LOG_TAG.PREFERENCE_DB}UnSubscribe the key ${key}`);
       });
     }
   }
@@ -47,7 +47,7 @@ class PreferenceDB {
   hasData(key: string): boolean {
     if (this.dataPreference) {
       const dataExist: boolean = this.dataPreference.hasSync(key);
-      logger.info(`${PreferenceDB_LOG_TAG}Has ${key} data: ${dataExist}`);
+      logger.info(`${LOG_TAG.PREFERENCE_DB}Has ${key} data: ${dataExist}`);
       return dataExist;
     }
     return false;
@@ -55,7 +55,7 @@ class PreferenceDB {
 
   pushData(key: string, value: Object): void {
     if (this.dataPreference) {
-      logger.warn(`${PreferenceDB_LOG_TAG}push data: key=${key},value=${value}`)
+      logger.warn(`${LOG_TAG.PREFERENCE_DB}push data: key=${key},value=${value}`)
       this.dataPreference.putSync(key, value);
       this.dataPreference.flush();
     }
@@ -64,7 +64,7 @@ class PreferenceDB {
   deleteData(key: string): void {
     if (this.dataPreference) {
       this.dataPreference.deleteSync(key);
-      logger.warn(`${PreferenceDB_LOG_TAG}Delete data ${key}`);
+      logger.warn(`${LOG_TAG.PREFERENCE_DB}Delete data ${key}`);
     }
   }
 
@@ -72,13 +72,13 @@ class PreferenceDB {
     try {
       if (this.dataPreference) {
         const obj: preferences.ValueType = this.dataPreference.getSync(key, 'default');
-        logger.warn(`${PreferenceDB_LOG_TAG}Get data ${key}: ${JSON.stringify(obj)}`);
+        logger.warn(`${LOG_TAG.PREFERENCE_DB}Get data ${key}: ${JSON.stringify(obj)}`);
         return obj as T;
       }
       return null;
     }catch (e){
-      promptAction.openToast({message:`${PreferenceDB_LOG_TAG}获取数据异常，异常信息为${JSON.stringify(e)}`})
-      logger.error(`${PreferenceDB_LOG_TAG}获取数据异常，异常信息为${JSON.stringify(e)}`)
+      promptAction.openToast({message:`${LOG_TAG.PREFERENCE_DB}获取数据异常，异常信息为${JSON.stringify(e)}`})
+      logger.error(`${LOG_TAG.PREFERENCE_DB}获取数据异常，异常信息为${JSON.stringify(e)}`)
     }
     return null
   }

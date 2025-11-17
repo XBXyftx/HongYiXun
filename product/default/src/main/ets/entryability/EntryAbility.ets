@@ -18,10 +18,9 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 import { AppStorageV2, window } from '@kit.ArkUI';
 import { appInit } from '../init/AppInit';
 import { userConfigManager } from 'feature';
-import { WINDOW_WIDTH, WinWidth } from 'common';
+import { WINDOW_WIDTH, WinWidth, LOG_TAG } from 'common';
 
 const DOMAIN = 0x0000;
-const EntryAbility_LOG_TAG = 'EntryAbility: '
 
 export default class EntryAbility extends UIAbility {
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {

@@ -17,8 +17,7 @@ import { logger } from "../../utils"
 import { AppStorageV2, promptAction } from "@kit.ArkUI"
 import { SERVE_BASE_ADDRESS } from "../../modules/constants"
 import { GetUIContext } from "../../modules/context/GetUIContext"
-
-export const AXIOS_HTTP_LOG_TAG = 'AxiosHttp:  '
+import { LOG_TAG } from '../../modules/enums';
 
 /**
  * axios请求实例
@@ -42,14 +41,14 @@ export const axiosInstance = axios.create({
 axiosInstance.interceptors.response.use((res: AxiosResponse) => {
 
   if (res.status === 200) {
-    logger.warn(AXIOS_HTTP_LOG_TAG + 'Req Success' + JSON.stringify(res.data))
+    logger.warn(LOG_TAG.AXIOS_HTTP + 'Req Success' + JSON.stringify(res.data))
     return res.data
   }
-  logger.error(AXIOS_HTTP_LOG_TAG + 'ReqCode Error' + JSON.stringify(res.data))
+  logger.error(LOG_TAG.AXIOS_HTTP + 'ReqCode Error' + JSON.stringify(res.data))
   promptAction.showToast({ message: 'ReqCode Error' + JSON.stringify(res.data)})
   return Promise.reject(res.data)
 }, (err: AxiosError) => {
-  logger.error(AXIOS_HTTP_LOG_TAG + 'AxiosReq Error' + err.message + ' URL = ' + err.config?.url)
+  logger.error(LOG_TAG.AXIOS_HTTP + 'AxiosReq Error' + err.message + ' URL = ' + err.config?.url)
   promptAction.showToast({ message: 'AxiosReq Error' + err.message })
   return Promise.reject(err)
 })
@@ -62,7 +61,7 @@ class AxiosHttp {
    * req:请求体参数类型 - get不需要传>
    */
   request<res, req = Object>(config: AxiosRequestConfig<req>) {
-    logger.debug(AXIOS_HTTP_LOG_TAG + '进入AxiosHttp.request' + ` URL = ${config.url}`)
+    logger.debug(LOG_TAG.AXIOS_HTTP + '进入AxiosHttp.request' + ` URL = ${config.url}`)
     return axiosInstance<null, res, req>(config)
   }
 }

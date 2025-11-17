@@ -12,13 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DEFAULT_COLOR_MODE, DEVICE_TYPES, GET_USER_CONFIG, logger, UserConfigViewModel } from "common"
+import { DEFAULT_COLOR_MODE, DEVICE_TYPES, GET_USER_CONFIG, logger, LOG_TAG, UserConfigViewModel } from "common"
 import { AppStorageV2 } from "@kit.ArkUI"
 import { colorModManager } from "../../managers/ColorModManager"
 import { ConfigurationConstant } from "@kit.AbilityKit"
 import { deviceInfo } from "@kit.BasicServicesKit"
-
-const ColorModChoseButton_LOG_TAG = 'ColorModChoseButton: '
 
 /**
  * 颜色模式切换按钮
@@ -35,19 +33,19 @@ export struct ColorModChoseButton {
   }
 
   changeColorMode() {
-    logger.debug(`${ColorModChoseButton_LOG_TAG}颜色切换触发`)
+    logger.debug(`${LOG_TAG.COLOR_MOD_CHOSE_BUTTON}颜色切换触发`)
     if (this.appColorMode === 2) {
       this.appColorMode = 0
       colorModManager.setLightMod()
-      logger.info(`${ColorModChoseButton_LOG_TAG}点击生效，切换为浅色模式`)
+      logger.info(`${LOG_TAG.COLOR_MOD_CHOSE_BUTTON}点击生效，切换为浅色模式`)
     } else if (this.appColorMode === 0) {
       this.appColorMode = 1
       colorModManager.setDarkMod()
-      logger.info(`${ColorModChoseButton_LOG_TAG}点击生效，切换为深色模式`)
+      logger.info(`${LOG_TAG.COLOR_MOD_CHOSE_BUTTON}点击生效，切换为深色模式`)
     } else if (this.appColorMode === 1) {
       this.appColorMode = 2
       colorModManager.setDefaultColorMode()
-      logger.info(`${ColorModChoseButton_LOG_TAG}点击生效，切换为跟随系统模式`)
+      logger.info(`${LOG_TAG.COLOR_MOD_CHOSE_BUTTON}点击生效，切换为跟随系统模式`)
     }
   }
 

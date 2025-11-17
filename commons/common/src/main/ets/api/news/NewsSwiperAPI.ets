@@ -16,8 +16,8 @@ import { NewsSwiperResModule } from "../../modules/news/NewsSwiperModules"
 import { logger } from "../../utils"
 import { axiosHttp } from "../http/AxiosHttp"
 import { BusinessError } from "@kit.BasicServicesKit"
+import { LOG_TAG } from '../../modules/enums';
 
-const NewsSwiperAPI_LOG_TAG = 'NewsSwiperAPI: '
 export class NewsSwiperAPI{
   /**
    * 获取轮播图数据
@@ -28,11 +28,11 @@ export class NewsSwiperAPI{
       const res = await axiosHttp.request<NewsSwiperResModule>({
         url:'/api/banner/mobile'
       })
-      logger.info(`${NewsSwiperAPI_LOG_TAG}${JSON.stringify(res)}`)
+      logger.info(`${LOG_TAG.NEWS_SWIPER_API}${JSON.stringify(res)}`)
       return res.images
     }catch (e){
       let err = e as BusinessError
-      logger.error(`${NewsSwiperAPI_LOG_TAG}${err.message}`)
+      logger.error(`${LOG_TAG.NEWS_SWIPER_API}${err.message}`)
       return null
     }
   }

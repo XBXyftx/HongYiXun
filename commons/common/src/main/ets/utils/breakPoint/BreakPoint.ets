@@ -16,8 +16,8 @@
 import { Breakpoint, BreakpointType } from "../../modules/breakPoint/BreakPointSystem"
 import { BreakpointState } from "../../modules/breakPoint/BreakpointState"
 import { logger } from ".."
+import { LOG_TAG } from "../../modules/enums"
 
-const BREAK_POINT_SYSTEM_LOG_TAG = 'BreakpointSystem:  '
 /**
  * 断点系统核心类（单例模式）
  * 负责管理设备断点状态及监听逻辑
@@ -57,7 +57,7 @@ export class BreakpointSystem {
 
   /** 注册状态观察者 */
   public attach(state: BreakpointState): void {
-    logger.info(`${BREAK_POINT_SYSTEM_LOG_TAG}注册状态观察者`)
+    logger.info(`${LOG_TAG.BREAK_POINT_SYSTEM}注册状态观察者`)
     this._states.add(state)  // 添加新观察者到集合
   }
 
@@ -87,26 +87,26 @@ export class BreakpointSystem {
 
       // 初始化匹配状态检查
       if (breakpoint.mediaQueryListener.matches) {
-        logger.warn(`${BREAK_POINT_SYSTEM_LOG_TAG}初始化匹配成功breakpoint.name=${breakpoint.name}`)
+        logger.warn(`${LOG_TAG.BREAK_POINT_SYSTEM}初始化匹配成功breakpoint.name=${breakpoint.name}`)
         this.updateAllState(breakpoint.name)
       }
 
       // 注册尺寸变化监听回调
       breakpoint.mediaQueryListener.on('change', (mediaQueryResult) => {
-        logger.warn(`${BREAK_POINT_SYSTEM_LOG_TAG}触发断点状态变化回调`)
+        logger.warn(`${LOG_TAG.BREAK_POINT_SYSTEM}触发断点状态变化回调`)
         if (mediaQueryResult.matches) {
-          logger.warn(`${BREAK_POINT_SYSTEM_LOG_TAG}匹配成功breakpoint.name=${breakpoint.name}`)
+          logger.warn(`${LOG_TAG.BREAK_POINT_SYSTEM}匹配成功breakpoint.name=${breakpoint.name}`)
           this.updateAllState(breakpoint.name)  // 触发状态更新
         }
       })
-      logger.info(BREAK_POINT_SYSTEM_LOG_TAG+`第${index}个断点状态对象启动完成`)
+      logger.info(LOG_TAG.BREAK_POINT_SYSTEM+`第${index}个断点状态对象启动完成`)
     })
   }
 
   /** 更新所有观察者状态 */
   private updateAllState(type: BreakpointType): void {
     this._states.forEach(state => state.update(type))  // 遍历执行更新
-    logger.info(BREAK_POINT_SYSTEM_LOG_TAG+'全部断点状态更新完成')
+    logger.info(LOG_TAG.BREAK_POINT_SYSTEM+'全部断点状态更新完成')
   }
 
   /** 停止监听并清理资源 */
@@ -117,7 +117,7 @@ export class BreakpointSystem {
       }
     })
     this._states.clear()  // 清空观察者集合
-    logger.info(BREAK_POINT_SYSTEM_LOG_TAG+'断点状态对象全部关闭')
+    logger.info(LOG_TAG.BREAK_POINT_SYSTEM+'断点状态对象全部关闭')
   }
 }
 

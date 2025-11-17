@@ -18,6 +18,7 @@ import {
   DEVICE_TYPES,
   IS_STICKY,
   logger,
+  LOG_TAG,
   NAV_PATH_STUCK,
   NewsArticle,
   NewsListHeaderIsSticky,
@@ -27,8 +28,6 @@ import {
 } from "common"
 import { AppStorageV2, curves } from "@kit.ArkUI"
 import { deviceInfo } from "@kit.BasicServicesKit"
-
-const NewsList_LOG_TAG = 'NewsList: '
 
 @ComponentV2
 export struct NewsList {
@@ -48,7 +47,7 @@ export struct NewsList {
 
   @Monitor('newsList')
   resetDataSource() {
-    logger.info('捕获到newsList变化' + this.newsList.length)
+    logger.info(`${LOG_TAG.NEWS_LIST}捕获到newsList变化${this.newsList.length}`)
     this.newsListDataSource.resetData(this.newsList)
   }
 

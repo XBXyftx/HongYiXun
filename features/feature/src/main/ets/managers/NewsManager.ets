@@ -18,6 +18,7 @@ import {
   kvDatabase,
   KV_DB_KEYS,
   logger,
+  LOG_TAG,
   NewsArticle,
   NewsListAPI,
   NewsSwiperAPI,
@@ -28,8 +29,6 @@ import { common } from "@kit.AbilityKit"
 import { distributedKVStore } from "@kit.ArkData"
 import { promptAction } from "@kit.ArkUI"
 import { BusinessError } from "@kit.BasicServicesKit"
-
-const NewsManager_LOG_TAG = 'NewsManager: '
 
 export class NewsManager {
   /**
@@ -47,10 +46,10 @@ export class NewsManager {
     const res = await kvDatabase.getKVStoreById(APP_KV_DB_ID)
     if (res) {
       this.appKVDb = res
-      logger.info(`${NewsManager_LOG_TAG}init: 获取appKVDb成功`)
+      logger.info(`${LOG_TAG.NEWS_MANAGER}init: 获取appKVDb成功`)
       return true
     }
-    logger.error(`${NewsManager_LOG_TAG}初始化失败`)
+    logger.error(`${LOG_TAG.NEWS_MANAGER}初始化失败`)
     return false
   }
 
@@ -63,21 +62,21 @@ export class NewsManager {
     if (await ServerHealthAPI.isServerReady()) {
       const news: NewsArticle[] | null = (await NewsListAPI.getAllNews())
       if (news && this.appKVDb) {
-        logger.info(`${NewsManager_LOG_TAG}成功获取最新新闻，总条数: ${news.length}`)
+        logger.info(`${LOG_TAG.NEWS_MANAGER}成功获取最新新闻，总条数: ${news.length}`)
         try {
           this.appKVDb.put(KV_DB_KEYS.NEWS_ARTICLE_LIST, JSON.stringify(news))
-          logger.info(`${NewsManager_LOG_TAG}数据库写入成功，无异常`)
+          logger.info(`${LOG_TAG.NEWS_MANAGER}数据库写入成功，无异常`)
           return true
         } catch (e) {
           let err = e as BusinessError
-          logger.error(`${NewsManager_LOG_TAG}更新数据库NewsArticle数据发生异常，异常信息: ${err.message}`)
+          logger.error(`${LOG_TAG.NEWS_MANAGER}更新数据库NewsArticle数据发生异常，异常信息: ${err.message}`)
           return false
         }
       }
-      logger.error(`${NewsManager_LOG_TAG}获取新闻失败,新闻数据或键值数据库为空。`)
+      logger.error(`${LOG_TAG.NEWS_MANAGER}获取新闻失败,新闻数据或键值数据库为空。`)
       return false
     }
-    logger.error(`${NewsManager_LOG_TAG}获取新闻失败，后端服务状态异常，返回false`)
+    logger.error(`${LOG_TAG.NEWS_MANAGER}获取新闻失败，后端服务状态异常，返回false`)
     return false
   }
 
@@ -85,12 +84,12 @@ export class NewsManager {
     if (this.appKVDb) {
       try {
         const res: string = (await this.appKVDb.get(KV_DB_KEYS.NEWS_ARTICLE_LIST)) as string
-        logger.info(`${NewsManager_LOG_TAG}读取到数据库新闻列表数据: ${res}`)
+        logger.info(`${LOG_TAG.NEWS_MANAGER}读取到数据库新闻列表数据: ${res}`)
         const newsArticleList = JSON.parse(res) as NewsArticle[]
         return newsArticleList
       } catch (e) {
         let err = e as BusinessError
-        logger.error(`${NewsManager_LOG_TAG}尝试获取数据库新闻列表数据发生异常，异常信息: ${err.message}`)
+        logger.error(`${LOG_TAG.NEWS_MANAGER}尝试获取数据库新闻列表数据发生异常，异常信息: ${err.message}`)
         return null
       }
     }
@@ -101,21 +100,21 @@ export class NewsManager {
     if (await NewsSwiperStateAPI.isSwiperServerReady()) {
       let swiperData: ResourceStr[] | null = await NewsSwiperAPI.getNewsSwiperImgData()
       if (swiperData && this.appKVDb) {
-        logger.info(`${NewsManager_LOG_TAG}成功获取最新轮播图数据，总条数: ${swiperData.length}`)
+        logger.info(`${LOG_TAG.NEWS_MANAGER}成功获取最新轮播图数据，总条数: ${swiperData.length}`)
         try {
           this.appKVDb.put(KV_DB_KEYS.NEWS_SWIPER, JSON.stringify(swiperData))
-          logger.info(`${NewsManager_LOG_TAG}轮播图数据库写入成功，无异常`)
+          logger.info(`${LOG_TAG.NEWS_MANAGER}轮播图数据库写入成功，无异常`)
           return true
         } catch (e) {
           let err = e as BusinessError
-          logger.error(`${NewsManager_LOG_TAG}更新数据库NewsSwiper数据发生异常，异常信息: ${err.message}`)
+          logger.error(`${LOG_TAG.NEWS_MANAGER}更新数据库NewsSwiper数据发生异常，异常信息: ${err.message}`)
           return false
         }
       }
-      logger.error(`${NewsManager_LOG_TAG}获取到的轮播图数据或键值数据库为空`)
+      logger.error(`${LOG_TAG.NEWS_MANAGER}获取到的轮播图数据或键值数据库为空`)
       return false
     }
-    logger.error(`${NewsManager_LOG_TAG}获取轮播图数据失败，后端轮播图服务状态异常`)
+    logger.error(`${LOG_TAG.NEWS_MANAGER}获取轮播图数据失败，后端轮播图服务状态异常`)
     return false
   }
 
@@ -123,12 +122,12 @@ export class NewsManager {
     if (this.appKVDb) {
       try {
         const res: string = (await this.appKVDb.get(KV_DB_KEYS.NEWS_SWIPER)) as string
-        logger.info(`${NewsManager_LOG_TAG}读取到数据库轮播图数据列表数据: ${res}`)
+        logger.info(`${LOG_TAG.NEWS_MANAGER}读取到数据库轮播图数据列表数据: ${res}`)
         const newsSwiperData = JSON.parse(res) as ResourceStr[]
         return newsSwiperData
       } catch (e) {
         let err = e as BusinessError
-        logger.error(`${NewsManager_LOG_TAG}尝试获取数据库轮播图数据发生异常，异常信息: ${err.message}`)
+        logger.error(`${LOG_TAG.NEWS_MANAGER}尝试获取数据库轮播图数据发生异常，异常信息: ${err.message}`)
         return null
       }
     }

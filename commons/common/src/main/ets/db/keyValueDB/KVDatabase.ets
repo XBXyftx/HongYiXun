@@ -16,8 +16,7 @@ import { distributedKVStore } from "@kit.ArkData";
 import { BusinessError } from "@kit.BasicServicesKit";
 import { logger } from "../../utils/logger/logger";
 import { common } from '@kit.AbilityKit';
-
-const KVDatabase_LOG_TAG = 'KVDatabase: '
+import { LOG_TAG } from '../../modules/enums';
 
 /**
  * 键值型数据库管理接口
@@ -42,17 +41,17 @@ export class KVDatabase {
     try {
       // 创建KVManager实例
       this.kvManager = distributedKVStore.createKVManager(kvManagerConfig);
-      console.info(KVDatabase_LOG_TAG + 'Succeeded in creating KVManager.');
+      console.info(LOG_TAG.KV_DATABASE + 'Succeeded in creating KVManager.');
       // 继续创建获取数据库
       if (this.kvManager !== undefined) {
-        logger.info(KVDatabase_LOG_TAG+'数据库管理对象创建成功。')
+        logger.info(LOG_TAG.KV_DATABASE+'数据库管理对象创建成功。')
         return true
       }
-      logger.error(KVDatabase_LOG_TAG + '数据库管理对象创建失败')
+      logger.error(LOG_TAG.KV_DATABASE + '数据库管理对象创建失败')
       return false
     } catch (e) {
       let error = e as BusinessError;
-      logger.error(KVDatabase_LOG_TAG + `Failed to create KVManager. Code:${error.code},message:${error.message}`);
+      logger.error(LOG_TAG.KV_DATABASE + `Failed to create KVManager. Code:${error.code},message:${error.message}`);
       return false
     }
   }
@@ -72,15 +71,15 @@ export class KVDatabase {
         }
         const kVStore:distributedKVStore.SingleKVStore = await this.kvManager.getKVStore(storeId,options)
         if (kVStore) {
-          logger.info(`${KVDatabase_LOG_TAG}成功获取storeId:${storeId}数据库实例对象`)
+          logger.info(`${LOG_TAG.KV_DATABASE}成功获取storeId:${storeId}数据库实例对象`)
           this.kvManager.on('distributedDataServiceDie',()=>{
-            logger.warn(`${KVDatabase_LOG_TAG}数据库服务订阅发生变更`)
+            logger.warn(`${LOG_TAG.KV_DATABASE}数据库服务订阅发生变更`)
           })
           return kVStore
         }
       }catch (e){
         let err = e as BusinessError
-        logger.error(`${KVDatabase_LOG_TAG}获取KV数据库实例对象异常，异常信息: ${err.message}`)
+        logger.error(`${LOG_TAG.KV_DATABASE}获取KV数据库实例对象异常，异常信息: ${err.message}`)
       }
     }
     return null

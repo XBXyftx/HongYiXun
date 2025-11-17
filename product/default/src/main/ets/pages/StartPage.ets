@@ -19,10 +19,9 @@ import {
   NewsListAPI,
   ServerHealthAPI,
   WINDOW_WIDTH,
-  WinWidth
+  WinWidth,
+  LOG_TAG
 } from "common"
-
-const START_PAGE_TAGE = 'StartPage:  '
 
 @Entry
 @ComponentV2
@@ -35,31 +34,31 @@ struct StarPage {
     window.getLastWindow(this.getUIContext().getHostContext())
     const width: number = (AppStorageV2.connect(WinWidth, WINDOW_WIDTH)?.value) ?? 350
     this.winWidth = this.getUIContext().px2vp(width)
-    logger.debug(`${START_PAGE_TAGE}winWidth: ${this.winWidth}`)
+    logger.debug(`${LOG_TAG.START_PAGE}winWidth: ${this.winWidth}`)
     this.updateFontSize()
     let isServerReady: boolean = false
     setTimeout(() => {
-      logger.debug(START_PAGE_TAGE + '延时跳转')
+      logger.debug(LOG_TAG.START_PAGE + '延时跳转')
       this.uiRouter.pushUrl({ url: "pages/Index", recoverable: false })
       // 为了能触发路由动画特此使用push
-      logger.debug(START_PAGE_TAGE + '清理启动页')
+      logger.debug(LOG_TAG.START_PAGE + '清理启动页')
       this.uiRouter.clear()
     }, 2000)
     await ServerHealthAPI.isServerReady().then((res: boolean) => {
-      logger.debug(START_PAGE_TAGE + res.valueOf())
+      logger.debug(LOG_TAG.START_PAGE + res.valueOf())
       if (res) {
         isServerReady = true
-        logger.info(START_PAGE_TAGE + '服务端准备就绪isServerReady=' + isServerReady)
+        logger.info(LOG_TAG.START_PAGE + '服务端准备就绪isServerReady=' + isServerReady)
       } else {
         isServerReady = false
-        logger.info(START_PAGE_TAGE + '服务端准备中isServerReady=' + isServerReady)
+        logger.info(LOG_TAG.START_PAGE + '服务端准备中isServerReady=' + isServerReady)
       }
     })
     if (isServerReady) {
-      logger.debug(START_PAGE_TAGE + '尝试获取全部新闻列表')
+      logger.debug(LOG_TAG.START_PAGE + '尝试获取全部新闻列表')
       NewsListAPI.getAllNews().then((res: NewsArticle[] | null) => {
         if (res === null) {
-          logger.warn(START_PAGE_TAGE + '')
+          logger.warn(LOG_TAG.START_PAGE + '')
         } else {
           promptAction.openToast({ message: '获取新闻列表成功', duration: 2000 })
         }

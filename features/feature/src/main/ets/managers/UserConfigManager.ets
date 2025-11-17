@@ -17,13 +17,12 @@ import {
   DEFAULT_FONT_SIZE,
   GET_USER_CONFIG,
   logger,
+  LOG_TAG,
   preferenceDB,
   PreferenceEnum,
   UserConfigViewModel
 } from "common";
 import { AppStorageV2, promptAction } from "@kit.ArkUI";
-
-const UserConfigManager_LOG_TAG = 'UserConfigManager: '
 
 /**
  * 用户配置项管理器，提供全局变量和持久化数据之间的交互接口。
@@ -41,7 +40,7 @@ export class UserConfigManager {
     preferenceDB.pushData(PreferenceEnum.FONT_SIZE, fontSize)
     if (preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE) === colorMode &&
       preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE) === fontSize) {
-      logger.warn(`${UserConfigManager_LOG_TAG}数据持久化成功,colorMode=${preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE)},fontSize=${preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE)}`)
+      logger.warn(`${LOG_TAG.USER_CONFIG_MANAGER}数据持久化成功,colorMode=${preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE)},fontSize=${preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE)}`)
       return true
     }
     return false
@@ -53,25 +52,25 @@ export class UserConfigManager {
    */
   syncDataToAppStorage(): boolean {
     if (preferenceDB.hasData(PreferenceEnum.COLOR_MODE)) {
-      logger.info(`${UserConfigManager_LOG_TAG}检测到COLOR_MODE = ${preferenceDB.getData<number>(PreferenceEnum.COLOR_MODE)}`)
+      logger.info(`${LOG_TAG.USER_CONFIG_MANAGER}检测到COLOR_MODE = ${preferenceDB.getData<number>(PreferenceEnum.COLOR_MODE)}`)
       AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel = preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE)!
     }
     if (preferenceDB.hasData(PreferenceEnum.FONT_SIZE)) {
-      logger.info(`${UserConfigManager_LOG_TAG}检测到FONT_SIZE = ${preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE)}`)
+      logger.info(`${LOG_TAG.USER_CONFIG_MANAGER}检测到FONT_SIZE = ${preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE)}`)
       AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.fontSize = preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE)!
     }
     if (!preferenceDB.hasData(PreferenceEnum.FONT_SIZE) || !preferenceDB.hasData(PreferenceEnum.COLOR_MODE)) {
-      logger.warn(`${UserConfigManager_LOG_TAG}无用户配置持久化数据，执行默认配置设置`)
+      logger.warn(`${LOG_TAG.USER_CONFIG_MANAGER}无用户配置持久化数据，执行默认配置设置`)
       this.setConfigToDefault()
     }
     const fontSize = AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.fontSize
     const colorMode = AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel
     if (preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE) === colorMode &&
       preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE) === fontSize) {
-      logger.warn(`${UserConfigManager_LOG_TAG}用户首选项持久化数据读取成功,colorMode=${colorMode},fontSize=${fontSize}`)
+      logger.warn(`${LOG_TAG.USER_CONFIG_MANAGER}用户首选项持久化数据读取成功,colorMode=${colorMode},fontSize=${fontSize}`)
       return true
     }
-    logger.error(`${UserConfigManager_LOG_TAG}用户首选项持久化数据获取发生异常`)
+    logger.error(`${LOG_TAG.USER_CONFIG_MANAGER}用户首选项持久化数据获取发生异常`)
     return false
   }
 
@@ -80,12 +79,12 @@ export class UserConfigManager {
    */
   async setConfigToDefault() {
 
-    logger.debug(`${UserConfigManager_LOG_TAG}preferenceDB.hasData(PreferenceEnum.COLOR_MODE)=${preferenceDB.hasData(PreferenceEnum.COLOR_MODE)}`)
+    logger.debug(`${LOG_TAG.USER_CONFIG_MANAGER}preferenceDB.hasData(PreferenceEnum.COLOR_MODE)=${preferenceDB.hasData(PreferenceEnum.COLOR_MODE)}`)
     AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel =
       DEFAULT_COLOR_MODE
     preferenceDB.pushData(PreferenceEnum.COLOR_MODE, DEFAULT_COLOR_MODE)
 
-    logger.debug(`${UserConfigManager_LOG_TAG}preferenceDB.hasData(PreferenceEnum.FONT_SIZE)=${preferenceDB.hasData(PreferenceEnum.FONT_SIZE)}`)
+    logger.debug(`${LOG_TAG.USER_CONFIG_MANAGER}preferenceDB.hasData(PreferenceEnum.FONT_SIZE)=${preferenceDB.hasData(PreferenceEnum.FONT_SIZE)}`)
     AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.fontSize =
       DEFAULT_FONT_SIZE
     preferenceDB.pushData(PreferenceEnum.FONT_SIZE, DEFAULT_FONT_SIZE)

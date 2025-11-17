@@ -13,15 +13,8 @@
  * limitations under the License.
  */
 import {
-  GET_USER_CONFIG, logger, preferenceDB, UserConfigViewModel
+  GET_USER_CONFIG, logger, preferenceDB, UserConfigViewModel, LOG_TAG
 } from "common";
-import { common } from "@kit.AbilityKit";
-import { AppStorageV2, promptAction } from "@kit.ArkUI";
-import { colorModManager, newsManager, userConfigManager } from "feature";
-import { lvCode, lvText } from "@luvi/lv-markdown-in";
-
-
-const AppInit_LOG_TAG = 'AppInit: '
 
 /**
  * 应用初始化接口
@@ -33,14 +26,14 @@ export class AppInit {
   configInit(context: common.UIAbilityContext) {
     const isPreferenceDBInitSuccess: boolean = preferenceDB.init(context)
     if (isPreferenceDBInitSuccess) {
-      logger.info(`${AppInit_LOG_TAG}首选项数据对象初始化成功`)
+      logger.info(`${LOG_TAG.APP_INIT}首选项数据对象初始化成功`)
       if (userConfigManager.syncDataToAppStorage()) {
         return true
       }
       return false
     } else {
-      promptAction.openToast({ message: `${AppInit_LOG_TAG}首选项数据对象初始化错误` })
-      logger.error(`${AppInit_LOG_TAG}首选项数据对象初始化错误`)
+      promptAction.openToast({ message: `${LOG_TAG.APP_INIT}首选项数据对象初始化错误` })
+      logger.error(`${LOG_TAG.APP_INIT}首选项数据对象初始化错误`)
       return false
     }
   }
@@ -58,7 +51,7 @@ export class AppInit {
       AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.fontSize
     lvCode.setIndexState(true)
     lvText.setTextSize(baseFontSize)
-    logger.info(`${AppInit_LOG_TAG}Markdown初始化成功`)
+    logger.info(`${LOG_TAG.APP_INIT}Markdown初始化成功`)
   }
 }
 

@@ -16,8 +16,7 @@ import { NewsArticle, NewsResponse } from "../../modules/news/NewsListModules";
 import { logger } from "../../utils/logger/logger";
 import { axiosHttp } from "../http/AxiosHttp";
 import { BusinessError } from "@kit.BasicServicesKit";
-
-const NewsListAPI_TAG = 'NewsListAPI: '
+import { LOG_TAG } from '../../modules/enums';
 
 export class NewsListAPI{
   /**
@@ -32,7 +31,7 @@ export class NewsListAPI{
       return res.articles
     }catch (e){
       let err = e as BusinessError
-      logger.error(`${NewsListAPI_TAG}${err.message}`)
+      logger.error(`${LOG_TAG.NEWS_LIST_API}${err.message}`)
       return null
     }
   }

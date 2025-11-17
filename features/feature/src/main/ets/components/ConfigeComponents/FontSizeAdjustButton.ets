@@ -12,12 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DEFAULT_FONT_SIZE, DEVICE_TYPES, GET_USER_CONFIG, logger, PreferenceEnum, preferenceDB, UserConfigViewModel } from "common"
+import { DEFAULT_FONT_SIZE, DEVICE_TYPES, GET_USER_CONFIG, logger, LOG_TAG, PreferenceEnum, preferenceDB, UserConfigViewModel } from "common"
 import { AppStorageV2, promptAction } from "@kit.ArkUI"
 import { deviceInfo } from "@kit.BasicServicesKit"
 import { userConfigManager } from "../../managers/UserConfigManager"
-
-const FontSizeAdjustButton_LOG_TAG = 'FontSizeAdjustButton: '
 
 /**
  * 字体大小调整弹窗（平板专用）
@@ -171,7 +169,7 @@ export struct FontSizeAdjustButton {
   }
 
   toggleAdjustPanel() {
-    logger.debug(`${FontSizeAdjustButton_LOG_TAG}字体大小调整面板切换`)
+    logger.debug(`${LOG_TAG.FONT_SIZE_ADJUST_BUTTON}字体大小调整面板切换`)
     this.updateDialogController()
 
     if (this.deviceType === DEVICE_TYPES.PHONE) {
@@ -188,7 +186,7 @@ export struct FontSizeAdjustButton {
 
   onFontSizeChange(value: number) {
     this.tempFontSize = value
-    logger.debug(`${FontSizeAdjustButton_LOG_TAG}字体大小临时调整为: ${value}`)
+    logger.debug(`${LOG_TAG.FONT_SIZE_ADJUST_BUTTON}字体大小临时调整为: ${value}`)
   }
 
   confirmFontSizeChange(fontSize?: number) {
@@ -197,7 +195,7 @@ export struct FontSizeAdjustButton {
     AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.fontSize = this.fontSize
     userConfigManager.syncDataToPreference()
     this.showSheet = false
-    logger.info(`${FontSizeAdjustButton_LOG_TAG}字体大小已确认更改为: ${this.fontSize}`)
+    logger.info(`${LOG_TAG.FONT_SIZE_ADJUST_BUTTON}字体大小已确认更改为: ${this.fontSize}`)
 
     try {
       promptAction.openToast({
@@ -216,7 +214,7 @@ export struct FontSizeAdjustButton {
   cancelFontSizeChange() {
     this.tempFontSize = this.fontSize
     this.showSheet = false
-    logger.debug(`${FontSizeAdjustButton_LOG_TAG}字体大小调整已取消，保持为: ${this.fontSize}`)
+    logger.debug(`${LOG_TAG.FONT_SIZE_ADJUST_BUTTON}字体大小调整已取消，保持为: ${this.fontSize}`)
   }
 
   @Builder

@@ -17,8 +17,6 @@ import { AITabContent } from "../tab_contents/AITabContent"
 import { NewsListTabContent } from "../tab_contents/NewsListTabContent"
 import { SelfTabContent } from "../tab_contents/SelfTabContent"
 
-const MainPage_TAG = 'MainPage: '
-
 @Preview
 @ComponentV2
 export struct MainPage {
