@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DEFAULT_FONT_SIZE, DEVICE_TYPES, GET_USER_CONFIG, logger, LOG_TAG, PreferenceEnum, preferenceDB, UserConfigViewModel } from "common"
+import { DEFAULT_FONT_SIZE, DEVICE_TYPES, APP_STORAGE_KEYS, logger, LOG_TAG, PreferenceEnum, preferenceDB, UserConfigViewModel } from "common"
 import { AppStorageV2, promptAction } from "@kit.ArkUI"
 import { deviceInfo } from "@kit.BasicServicesKit"
 import { userConfigManager } from "../../managers/UserConfigManager"
@@ -141,7 +141,7 @@ export struct FontSizeAdjustButton {
   })
 
   aboutToAppear(): void {
-    this.fontSize = AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.fontSize
+    this.fontSize = AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.fontSize
     this.tempFontSize = this.fontSize
 
     // 更新弹窗控制器
@@ -192,7 +192,7 @@ export struct FontSizeAdjustButton {
   confirmFontSizeChange(fontSize?: number) {
     const newFontSize = fontSize || this.tempFontSize
     this.fontSize = newFontSize
-    AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.fontSize = this.fontSize
+    AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.fontSize = this.fontSize
     userConfigManager.syncDataToPreference()
     this.showSheet = false
     logger.info(`${LOG_TAG.FONT_SIZE_ADJUST_BUTTON}字体大小已确认更改为: ${this.fontSize}`)

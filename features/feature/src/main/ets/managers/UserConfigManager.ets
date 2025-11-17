@@ -15,7 +15,7 @@
 import {
   DEFAULT_COLOR_MODE,
   DEFAULT_FONT_SIZE,
-  GET_USER_CONFIG,
+  APP_STORAGE_KEYS,
   logger,
   LOG_TAG,
   preferenceDB,
@@ -33,7 +33,7 @@ export class UserConfigManager {
    * @returns 是否成功
    */
   syncDataToPreference(): boolean {
-    const UserConfig = AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!
+    const UserConfig = AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!
     const colorMode = UserConfig.colorModel
     preferenceDB.pushData(PreferenceEnum.COLOR_MODE, colorMode)
     const fontSize = UserConfig.fontSize
@@ -53,18 +53,18 @@ export class UserConfigManager {
   syncDataToAppStorage(): boolean {
     if (preferenceDB.hasData(PreferenceEnum.COLOR_MODE)) {
       logger.info(`${LOG_TAG.USER_CONFIG_MANAGER}检测到COLOR_MODE = ${preferenceDB.getData<number>(PreferenceEnum.COLOR_MODE)}`)
-      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel = preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE)!
+      AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.colorModel = preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE)!
     }
     if (preferenceDB.hasData(PreferenceEnum.FONT_SIZE)) {
       logger.info(`${LOG_TAG.USER_CONFIG_MANAGER}检测到FONT_SIZE = ${preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE)}`)
-      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.fontSize = preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE)!
+      AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.fontSize = preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE)!
     }
     if (!preferenceDB.hasData(PreferenceEnum.FONT_SIZE) || !preferenceDB.hasData(PreferenceEnum.COLOR_MODE)) {
       logger.warn(`${LOG_TAG.USER_CONFIG_MANAGER}无用户配置持久化数据，执行默认配置设置`)
       this.setConfigToDefault()
     }
-    const fontSize = AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.fontSize
-    const colorMode = AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel
+    const fontSize = AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.fontSize
+    const colorMode = AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.colorModel
     if (preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE) === colorMode &&
       preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE) === fontSize) {
       logger.warn(`${LOG_TAG.USER_CONFIG_MANAGER}用户首选项持久化数据读取成功,colorMode=${colorMode},fontSize=${fontSize}`)
@@ -80,12 +80,12 @@ export class UserConfigManager {
   async setConfigToDefault() {
 
     logger.debug(`${LOG_TAG.USER_CONFIG_MANAGER}preferenceDB.hasData(PreferenceEnum.COLOR_MODE)=${preferenceDB.hasData(PreferenceEnum.COLOR_MODE)}`)
-    AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel =
+    AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.colorModel =
       DEFAULT_COLOR_MODE
     preferenceDB.pushData(PreferenceEnum.COLOR_MODE, DEFAULT_COLOR_MODE)
 
     logger.debug(`${LOG_TAG.USER_CONFIG_MANAGER}preferenceDB.hasData(PreferenceEnum.FONT_SIZE)=${preferenceDB.hasData(PreferenceEnum.FONT_SIZE)}`)
-    AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.fontSize =
+    AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.fontSize =
       DEFAULT_FONT_SIZE
     preferenceDB.pushData(PreferenceEnum.FONT_SIZE, DEFAULT_FONT_SIZE)
 

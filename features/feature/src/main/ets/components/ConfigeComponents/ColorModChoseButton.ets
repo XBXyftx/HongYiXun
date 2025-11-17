@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DEFAULT_COLOR_MODE, DEVICE_TYPES, GET_USER_CONFIG, logger, LOG_TAG, UserConfigViewModel } from "common"
+import { DEFAULT_COLOR_MODE, DEVICE_TYPES, APP_STORAGE_KEYS, logger, LOG_TAG, UserConfigViewModel } from "common"
 import { AppStorageV2 } from "@kit.ArkUI"
 import { colorModManager } from "../../managers/ColorModManager"
 import { ConfigurationConstant } from "@kit.AbilityKit"
@@ -29,7 +29,7 @@ export struct ColorModChoseButton {
 
   aboutToAppear(): void {
     this.appColorMode =
-      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel
+      AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.colorModel
   }
 
   changeColorMode() {

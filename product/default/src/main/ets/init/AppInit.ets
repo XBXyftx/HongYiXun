@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import {
-  GET_USER_CONFIG, logger, preferenceDB, UserConfigViewModel, LOG_TAG
+  APP_STORAGE_KEYS, logger, preferenceDB, UserConfigViewModel, LOG_TAG
 } from "common";
 import { common } from "@kit.AbilityKit";
 import { colorModManager, newsManager, userConfigManager } from "feature";
@@ -51,7 +51,7 @@ export class AppInit {
   }
 
   markDownConfigInit() {
-    let baseFontSize:number = AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.fontSize
+    let baseFontSize:number = AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.fontSize
     lvCode.setIndexState(true)
     lvText.setTextSize(baseFontSize)
     logger.info(`${LOG_TAG.APP_INIT}Markdown初始化成功`)

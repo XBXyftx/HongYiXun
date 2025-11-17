@@ -14,7 +14,7 @@
  */
 
 import { common, ConfigurationConstant } from "@kit.AbilityKit";
-import { DEFAULT_COLOR_MODE, GET_USER_CONFIG, logger, LOG_TAG, UserConfigViewModel } from "common";
+import { DEFAULT_COLOR_MODE, APP_STORAGE_KEYS, logger, LOG_TAG, UserConfigViewModel } from "common";
 import { AppStorageV2 } from "@kit.ArkUI";
 import { userConfigManager } from "./UserConfigManager";
 
@@ -46,24 +46,24 @@ export class ColorModManager {
    * 初始化颜色设置，仅做内部调用，外部请使用其余设置接口
    */
   private initColoModSetting() {
-    switch (AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel) {
+    switch (AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.colorModel) {
       case 0: {
         logger.info(`${LOG_TAG.COLOR_MOD_MANAGER}initColoModSetting 0: AppStorageV2colorModel = ${AppStorageV2.connect(UserConfigViewModel,
-          GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel}`)
+          APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.colorModel}`)
         this.applicationContext!.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT);
         break
       }
 
       case 1: {
         logger.info(`${LOG_TAG.COLOR_MOD_MANAGER}initColoModSetting 1: AppStorageV2colorModel = ${AppStorageV2.connect(UserConfigViewModel,
-          GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel}`)
+          APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.colorModel}`)
         this.applicationContext!.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_DARK);
         break
       }
 
       case 2: {
         logger.info(`${LOG_TAG.COLOR_MOD_MANAGER}initColoModSetting 2: AppStorageV2colorModel = ${AppStorageV2.connect(UserConfigViewModel,
-          GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel}`)
+          APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.colorModel}`)
         this.applicationContext!.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET);
         break
       }
@@ -74,9 +74,9 @@ export class ColorModManager {
   setDarkMod(): boolean {
     if (this.applicationContext) {
       this.applicationContext.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_DARK)
-      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel = 1
+      AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.colorModel = 1
       logger.info(`${LOG_TAG.COLOR_MOD_MANAGER}深色模式修改成功AppStoragecolorModel=${AppStorageV2.connect(UserConfigViewModel,
-        GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel}开始持久化数据`)
+        APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.colorModel}开始持久化数据`)
       userConfigManager.syncDataToPreference()
       return true
     }
@@ -87,9 +87,9 @@ export class ColorModManager {
   setLightMod(): boolean {
     if (this.applicationContext) {
       this.applicationContext.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_LIGHT)
-      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel = 0
+      AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.colorModel = 0
       logger.info(`${LOG_TAG.COLOR_MOD_MANAGER}浅色模式修改成功AppStoragecolorModel=${AppStorageV2.connect(UserConfigViewModel,
-        GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel}开始持久化数据`)
+        APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.colorModel}开始持久化数据`)
       userConfigManager.syncDataToPreference()
       return true
     }
@@ -100,9 +100,9 @@ export class ColorModManager {
   setDefaultColorMode(): boolean {
     if (this.applicationContext) {
       this.applicationContext.setColorMode(ConfigurationConstant.ColorMode.COLOR_MODE_NOT_SET)
-      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel = 2
+      AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.colorModel = 2
       logger.info(`${LOG_TAG.COLOR_MOD_MANAGER}跟随系统模式修改成功AppStoragecolorModel=${AppStorageV2.connect(UserConfigViewModel,
-        GET_USER_CONFIG, () => new UserConfigViewModel())!.colorModel}开始持久化数据`)
+        APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.colorModel}开始持久化数据`)
       userConfigManager.syncDataToPreference()
       return true
     }

@@ -20,7 +20,7 @@ import {
   DEVICE_TYPES,
   logger,
   NAV_DESTS,
-  NAV_PATH_STUCK,
+  APP_STORAGE_KEYS,
   LOG_TAG
 } from 'common'
 import { ColorModChoseButton, FontSizeAdjustButton } from 'feature'
@@ -43,7 +43,7 @@ function PlaceholderPage() {
 @Entry
 @ComponentV2
 struct Main {
-  @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, NAV_PATH_STUCK, () => new NavPathStack())!
+  @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, APP_STORAGE_KEYS.NAV_PATH_STUCK, () => new NavPathStack())!
   @Local breakpointSystem: BreakpointSystem = BreakpointSystem.getInstance(this.getUIContext())
   @Local navMod: NavigationMode = NavigationMode.Stack
   @Local deviceType: DEVICE_TYPES =

@@ -18,7 +18,7 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 import { AppStorageV2, window } from '@kit.ArkUI';
 import { appInit } from '../init/AppInit';
 import { userConfigManager } from 'feature';
-import { WINDOW_WIDTH, WinWidth, LOG_TAG } from 'common';
+import { APP_STORAGE_KEYS, WinWidth, LOG_TAG } from 'common';
 
 const DOMAIN = 0x0000;
 
@@ -37,7 +37,7 @@ export default class EntryAbility extends UIAbility {
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onWindowStageCreate');
     window.getLastWindow(this.context).then((win) => {
       const winWidth = win.getWindowProperties().windowRect.width
-      AppStorageV2.connect(WinWidth, WINDOW_WIDTH, () => new WinWidth(winWidth))
+      AppStorageV2.connect(WinWidth, APP_STORAGE_KEYS.WINDOW_WIDTH, () => new WinWidth(winWidth))
     })
     windowStage.loadContent('pages/StartPage', (err) => {
       if (err.code) {

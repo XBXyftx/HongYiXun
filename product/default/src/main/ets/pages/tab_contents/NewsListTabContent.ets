@@ -1,4 +1,4 @@
-import { IS_STICKY, NAV_PATH_STUCK, NewsArticle, NewsListHeaderIsSticky } from "common"
+import { APP_STORAGE_KEYS, NewsArticle, NewsListHeaderIsSticky } from "common"
 import { NewsList, newsManager, NewsSwiper } from "feature"
 import { AppStorageV2, promptAction } from "@kit.ArkUI"
 
@@ -8,9 +8,9 @@ export struct NewsListTabContent{
   @Local newsSwiperData: ResourceStr[] | null = []
   @Local newsList: NewsArticle[] | null = null
   @Local listScroller: Scroller = new Scroller()
-  @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, NAV_PATH_STUCK, () => new NavPathStack())!
+  @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, APP_STORAGE_KEYS.NAV_PATH_STUCK, () => new NavPathStack())!
   @Local isNewsListSticky: NewsListHeaderIsSticky =
-    AppStorageV2.connect(NewsListHeaderIsSticky, IS_STICKY, () => new NewsListHeaderIsSticky())!
+    AppStorageV2.connect(NewsListHeaderIsSticky, APP_STORAGE_KEYS.IS_STICKY, () => new NewsListHeaderIsSticky())!
   async aboutToAppear(): Promise<void> {
     this.newsList = await newsManager.getNewsArticleListFromDB()
     if (!this.newsList) {

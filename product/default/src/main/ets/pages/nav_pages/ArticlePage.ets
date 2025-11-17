@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 import { AppStorageV2 } from '@kit.ArkUI'
-import { DEVICE_TYPES, GET_USER_CONFIG, NewsArticle, UserConfigViewModel } from 'common'
+import { DEVICE_TYPES, APP_STORAGE_KEYS, NewsArticle, UserConfigViewModel } from 'common'
 import { ColorModChoseButton, FontSizeAdjustButton, NewsArticleView } from 'feature'
 import { deviceInfo } from '@kit.BasicServicesKit'
 
 @ComponentV2
 export struct ArticlePage {
   @Local userConfig: UserConfigViewModel =
-    AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!
+    AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!
   @Local article: NewsArticle = {
     id: '',
     title: '',

@@ -14,22 +14,16 @@
  */
 
 import { curves } from "@kit.ArkUI";
-import { NAV_DESTS, KV_DB_KEYS, PreferenceEnum, DEVICE_TYPES } from './enums';
-
-export const NAV_PATH_STUCK = 'navPathStuck'
+import { NAV_DESTS, KV_DB_KEYS, PreferenceEnum, DEVICE_TYPES, APP_STORAGE_KEYS } from './enums';
 
 export const NEWS_LIST_ITEM_ANIMATE_PARAM = TransitionEffect.OPACITY
   .combine(TransitionEffect.scale({ x: 0.5, y: 0.5 }))
   .animation({ curve: curves.springMotion(0.5, 0.7) })
 ;
 
-export { NAV_DESTS, KV_DB_KEYS, PreferenceEnum, DEVICE_TYPES }
+export { NAV_DESTS, KV_DB_KEYS, PreferenceEnum, DEVICE_TYPES, APP_STORAGE_KEYS }
 
 export const SERVE_BASE_ADDRESS = 'http://113.47.8.204:32776'
-
-export const GET_USER_CONFIG = 'UserConfig'
-
-export const WINDOW_WIDTH = 'Window width'
 
 export const DEFAULT_FONT_SIZE = 16
 
@@ -38,8 +32,6 @@ export const DEFAULT_COLOR_MODE = 2
 export const APP_KV_DB = 'HongYiXunKVDB'
 
 export const GET_BREAK_POINT_SYSTEM = 'getBreakpointSystem'
-
-export const IS_STICKY = 'isSticky'
 
 export const NEWS_LIST_ANIMATION_PARAM: AnimateParam = {
   curve: Curve.EaseInOut,

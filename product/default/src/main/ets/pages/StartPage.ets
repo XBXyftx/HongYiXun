@@ -18,7 +18,7 @@ import {
   NewsArticle,
   NewsListAPI,
   ServerHealthAPI,
-  WINDOW_WIDTH,
+  APP_STORAGE_KEYS,
   WinWidth,
   LOG_TAG
 } from "common"
@@ -32,7 +32,7 @@ struct StarPage {
 
   async aboutToAppear(): Promise<void> {
     window.getLastWindow(this.getUIContext().getHostContext())
-    const width: number = (AppStorageV2.connect(WinWidth, WINDOW_WIDTH)?.value) ?? 350
+    const width: number = (AppStorageV2.connect(WinWidth, APP_STORAGE_KEYS.WINDOW_WIDTH)?.value) ?? 350
     this.winWidth = this.getUIContext().px2vp(width)
     logger.debug(`${LOG_TAG.START_PAGE}winWidth: ${this.winWidth}`)
     this.updateFontSize()

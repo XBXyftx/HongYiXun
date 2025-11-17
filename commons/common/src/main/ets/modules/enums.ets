@@ -57,6 +57,28 @@ export enum DEVICE_TYPES {
 }
 
 /**
+ * AppStorageV2 键值枚举 - 统一管理所有 AppStorageV2 的键值
+ */
+export enum APP_STORAGE_KEYS {
+  /**
+   * 导航路径栈
+   */
+  NAV_PATH_STUCK = 'navPathStuck',
+  /**
+   * 用户配置
+   */
+  USER_CONFIG = 'UserConfig',
+  /**
+   * 窗口宽度
+   */
+  WINDOW_WIDTH = 'Window width',
+  /**
+   * 是否粘性
+   */
+  IS_STICKY = 'isSticky'
+}
+
+/**
  * 日志标签枚举 - 统一管理所有模块的日志标签
  */
 export enum LOG_TAG {

@@ -16,10 +16,9 @@
 import {
   NEWS_LIST_ITEM_ANIMATE_PARAM,
   DEVICE_TYPES,
-  IS_STICKY,
+  APP_STORAGE_KEYS,
   logger,
   LOG_TAG,
-  NAV_PATH_STUCK,
   NewsArticle,
   NewsListHeaderIsSticky,
   NEWS_LIST_ANIMATION_PARAM,
@@ -34,11 +33,11 @@ export struct NewsList {
   @Param listScroller: Scroller = new Scroller()
   @Param newsList: NewsArticle[] = []
   @Param navStuck: NavPathStack = new NavPathStack()
-  @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, NAV_PATH_STUCK, () => new NavPathStack())!
+  @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, APP_STORAGE_KEYS.NAV_PATH_STUCK, () => new NavPathStack())!
   @Local deviceType: DEVICE_TYPES =
     deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
   @Local isNewsListSticky: NewsListHeaderIsSticky =
-    AppStorageV2.connect(NewsListHeaderIsSticky, IS_STICKY, () => new NewsListHeaderIsSticky())!
+    AppStorageV2.connect(NewsListHeaderIsSticky, APP_STORAGE_KEYS.IS_STICKY, () => new NewsListHeaderIsSticky())!
   @Local headerRadius: number = 20
   @Local headerAlignItems: HorizontalAlign = HorizontalAlign.Center
   @Local headerFontSize: number = this.deviceType === DEVICE_TYPES.PHONE ? 25 : 35
