@@ -13,4 +13,5 @@
  * limitations under the License.
  */
 
-export * from './Index'
+export * from './AxiosHttp'
+

@@ -13,4 +13,7 @@
  * limitations under the License.
  */
 
-export * from './Index'
+export * from './ColorModManager'
+export * from './NewsManager'
+export * from './UserConfigManager'
+

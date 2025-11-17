@@ -13,4 +13,7 @@
  * limitations under the License.
  */
 
-export * from './Index'
+export * from './http'
+export * from './news'
+export * from './serverHealth'
+

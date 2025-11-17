@@ -13,12 +13,6 @@
  * limitations under the License.
  */
 
-
-export * from './src/main/ets/components/NewsComponents/NewsSwiper'
-export * from './src/main/ets/managers/UserConfigManager'
-export * from './src/main/ets/managers/ColorModManager'
-export * from './src/main/ets/components/ConfigeComponents/ColorModChoseButton'
-export * from './src/main/ets/components/ConfigeComponents/FontSizeAdjustButton'
-export * from './src/main/ets/managers/NewsManager'
-export * from './src/main/ets/components/NewsComponents/NewsList'
-export * from './src/main/ets/components/NewsComponents/NewsArticle'
+export * from './src/main/ets/components'
+export * from './src/main/ets/managers'
+export * from './src/main/ets/pages'

@@ -13,4 +13,7 @@
  * limitations under the License.
  */
 
-export * from './Index'
+export * from './NewsListDataSource'
+export * from './NewsListModules'
+export * from './NewsSwiperModules'
+

@@ -13,4 +13,6 @@
  * limitations under the License.
  */
 
-export * from './Index'
+export * from './ConfigeComponents'
+export * from './NewsComponents'
+
