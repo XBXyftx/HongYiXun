@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
+import { AITabContent } from "../tab_contents/AITabContent"
 import { NewsListTabContent } from "../tab_contents/NewsListTabContent"
+import { SelfTabContent } from "../tab_contents/SelfTabContent"
 
 const MainPage_TAG = 'MainPage: '
 
@@ -52,25 +54,13 @@ export struct MainPage {
 
         // AI问答子页面
         TabContent() {
-          Column() {
-            Text('AI问答')
-              .fontSize(16)
-          }
-          .width('100%')
-          .height('100%')
-          .justifyContent(FlexAlign.Center)
+          AITabContent()
         }
         .tabBar(this.tabBarBuilder('鸿小易', 1, $rawfile('TabBarAI.svg'), $rawfile('TabBarAISelected.svg')))
 
         // 我的子页面
         TabContent() {
-          Column() {
-            Text('我的')
-              .fontSize(16)
-          }
-          .width('100%')
-          .height('100%')
-          .justifyContent(FlexAlign.Center)
+          SelfTabContent()
         }
         .tabBar(this.tabBarBuilder('我的', 2, $rawfile('TabBarSelf.svg'), $rawfile('TabBarSelfSelected.svg')))
       }
