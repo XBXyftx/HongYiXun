@@ -15,6 +15,10 @@
 import {
   GET_USER_CONFIG, logger, preferenceDB, UserConfigViewModel, LOG_TAG
 } from "common";
+import { common } from "@kit.AbilityKit";
+import { colorModManager, newsManager, userConfigManager } from "feature";
+import { AppStorageV2, promptAction } from "@kit.ArkUI";
+import { lvCode, lvText } from "@luvi/lv-markdown-in";
 
 /**
  * 应用初始化接口
@@ -47,8 +51,7 @@ export class AppInit {
   }
 
   markDownConfigInit() {
-    let baseFontSize =
-      AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.fontSize
+    let baseFontSize:number = AppStorageV2.connect(UserConfigViewModel, GET_USER_CONFIG, () => new UserConfigViewModel())!.fontSize
     lvCode.setIndexState(true)
     lvText.setTextSize(baseFontSize)
     logger.info(`${LOG_TAG.APP_INIT}Markdown初始化成功`)

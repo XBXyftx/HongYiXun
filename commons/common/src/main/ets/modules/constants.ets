@@ -25,11 +25,8 @@ export const NEWS_LIST_ITEM_ANIMATE_PARAM = TransitionEffect.OPACITY
 
 export { NAV_DESTS, KV_DB_KEYS, PreferenceEnum, DEVICE_TYPES }
 
-// export const SERVE_BASE_ADDRESS = 'http://localhost:8001'
-// export const SERVE_BASE_ADDRESS = 'http://192.168.1.4:8001'
 export const SERVE_BASE_ADDRESS = 'http://113.47.8.204:32776'
 
-// export const SERVE_BASE_ADDRESS = 'http://192.168.43.6:8001'
 export const GET_USER_CONFIG = 'UserConfig'
 
 export const WINDOW_WIDTH = 'Window width'
@@ -38,7 +35,7 @@ export const DEFAULT_FONT_SIZE = 16
 
 export const DEFAULT_COLOR_MODE = 2
 
-export const APP_KV_DB = 'NowInOpenHarmonyKVDB'
+export const APP_KV_DB = 'HongYiXunKVDB'
 
 export const GET_BREAK_POINT_SYSTEM = 'getBreakpointSystem'
 
