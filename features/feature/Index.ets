@@ -15,4 +15,3 @@
 
 export * from './src/main/ets/components'
 export * from './src/main/ets/managers'
-export * from './src/main/ets/pages'
