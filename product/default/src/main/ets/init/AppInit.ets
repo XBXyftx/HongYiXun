@@ -449,8 +449,6 @@ export class AppInit {
       }
       
       logger.info(`${LOG_TAG.APP_INIT}========== 阶段 3 完成：UI 依赖模块初始化成功 ==========`)
-      logger.info(`${LOG_TAG.APP_INIT}========== 应用初始化全部完成 ==========`)
-      this.printInitStatus()
       
       return true
       
@@ -536,9 +534,9 @@ export class AppInit {
    * - 成功的模块使用 info 级别
    * - 失败的模块使用 warn 级别，便于快速定位问题
    * 
-   * @private
+   * @public
    */
-  private printInitStatus(): void {
+  printInitStatus(): void {
     logger.info(`${LOG_TAG.APP_INIT}========== 初始化状态报告 ==========`)
     
     // 数据库模块

@@ -61,6 +61,15 @@ const TAG = 'EntryAbility';
  */
 export default class EntryAbility extends UIAbility {
   /**
+   * 阶段 1 初始化 Promise
+   * 
+   * 用于在窗口创建时等待阶段 1 完成，确保初始化顺序正确
+   * 
+   * @private
+   */
+  private phase1Promise: Promise<boolean> | null = null
+  
+  /**
    * 应用创建生命周期回调
    * 
    * 在应用启动时调用，是初始化的第一个阶段
@@ -89,16 +98,8 @@ export default class EntryAbility extends UIAbility {
     hilog.info(DOMAIN, TAG, '%{public}s', 'Ability onCreate');
     logger.info(`${LOG_TAG.ENTRY_ABILITY}应用启动，开始初始化流程`)
     
-    // 阶段 1：基础模块初始化
-    appInit.initPhase1_BaseModules(this.context).then(success => {
-      if (success) {
-        logger.info(`${LOG_TAG.ENTRY_ABILITY}阶段 1 初始化成功`)
-      } else {
-        logger.error(`${LOG_TAG.ENTRY_ABILITY}阶段 1 初始化失败，应用可能无法正常运行`)
-      }
-    }).catch((error: Error) => {
-      logger.error(`${LOG_TAG.ENTRY_ABILITY}阶段 1 初始化异常: ${JSON.stringify(error)}`)
-    })
+    // 阶段 1：基础模块初始化（异步执行，保存 Promise 供后续等待）
+    this.phase1Promise = appInit.initPhase1_BaseModules(this.context)
   }
 
   /**
@@ -126,6 +127,7 @@ export default class EntryAbility extends UIAbility {
    * 
    * @remarks
    * 初始化内容：
+   * - 等待阶段 1 完成（确保初始化顺序）
    * - 阶段 2：窗口相关初始化（颜色模式管理器等）
    * - AppStorageV2 初始化（窗口宽度）
    * - 页面加载（StartPage）
@@ -142,53 +144,97 @@ export default class EntryAbility extends UIAbility {
    */
   onWindowStageCreate(windowStage: window.WindowStage): void {
     hilog.info(DOMAIN, TAG, '%{public}s', 'Ability onWindowStageCreate');
-    logger.info(`${LOG_TAG.ENTRY_ABILITY}窗口创建，开始窗口相关初始化`)
+    logger.info(`${LOG_TAG.ENTRY_ABILITY}窗口创建，等待阶段 1 完成...`)
     
-    // 阶段 2：窗口相关模块初始化
-    const phase2Success = appInit.initPhase2_WindowRelated(this.context.getApplicationContext())
-    if (phase2Success) {
-      logger.info(`${LOG_TAG.ENTRY_ABILITY}阶段 2 初始化成功`)
+    // 等待阶段 1 完成（如果还在进行中）
+    const phase1Promise = this.phase1Promise || Promise.resolve(false)
+    
+    phase1Promise.then((phase1Success) => {
+      // 记录阶段 1 结果
+      if (phase1Success) {
+        logger.info(`${LOG_TAG.ENTRY_ABILITY}✓ 阶段 1 初始化成功`)
+      } else {
+        logger.error(`${LOG_TAG.ENTRY_ABILITY}✗ 阶段 1 初始化失败，应用可能无法正常运行`)
+      }
+      
+      // 阶段 2：窗口相关模块初始化
+      logger.info(`${LOG_TAG.ENTRY_ABILITY}开始阶段 2 初始化...`)
+      const phase2Success = appInit.initPhase2_WindowRelated(this.context.getApplicationContext())
+      if (phase2Success) {
+        logger.info(`${LOG_TAG.ENTRY_ABILITY}✓ 阶段 2 初始化成功`)
+      } else {
+        logger.warn(`${LOG_TAG.ENTRY_ABILITY}⚠ 阶段 2 初始化失败，部分功能可能受影响`)
+      }
+      
+      // 初始化 AppStorageV2：存储窗口宽度
+      window.getLastWindow(this.context).then((win) => {
+        const winWidth = win.getWindowProperties().windowRect.width
+        AppStorageV2.connect(WinWidth, APP_STORAGE_KEYS.WINDOW_WIDTH, () => new WinWidth(winWidth))
+        logger.info(`${LOG_TAG.ENTRY_ABILITY}窗口宽度已存储到 AppStorageV2: ${winWidth}px`)
+      }).catch((error: Error) => {
+        logger.error(`${LOG_TAG.ENTRY_ABILITY}获取窗口宽度失败: ${JSON.stringify(error)}`)
+      })
+      
+      // 加载启动页面
+      windowStage.loadContent('pages/StartPage', (err) => {
+        if (err.code) {
+          hilog.error(DOMAIN, TAG, 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
+          logger.error(`${LOG_TAG.ENTRY_ABILITY}页面加载失败: ${JSON.stringify(err)}`)
+          return;
+        }
+        
+        hilog.info(DOMAIN, TAG, 'Succeeded in loading the content.');
+        logger.info(`${LOG_TAG.ENTRY_ABILITY}启动页加载成功`)
+        
+        // 阶段 3：UI 依赖模块初始化
+        logger.info(`${LOG_TAG.ENTRY_ABILITY}开始阶段 3 初始化...`)
+        const phase3Success = appInit.initPhase3_UIDependent()
+        if (phase3Success) {
+          logger.info(`${LOG_TAG.ENTRY_ABILITY}✓ 阶段 3 初始化成功`)
+        } else {
+          logger.warn(`${LOG_TAG.ENTRY_ABILITY}⚠ 阶段 3 初始化失败，部分功能可能受影响`)
+        }
+        
+        // 等待所有异步操作完成后，打印最终状态报告
+        setTimeout(() => {
+          this.printFinalInitStatus()
+        }, 100) // 给异步操作留出完成时间
+      });
+    }).catch((error: Error) => {
+      logger.error(`${LOG_TAG.ENTRY_ABILITY}✗ 阶段 1 初始化异常: ${JSON.stringify(error)}`)
+      logger.error(`${LOG_TAG.ENTRY_ABILITY}应用启动失败，请重启应用`)
+    })
+  }
+  
+  /**
+   * 打印最终初始化状态报告
+   * 
+   * 在所有初始化阶段完成后调用，输出完整的状态报告
+   * 
+   * @private
+   */
+  private printFinalInitStatus(): void {
+    logger.info(`${LOG_TAG.ENTRY_ABILITY}========================================`)
+    logger.info(`${LOG_TAG.ENTRY_ABILITY}      应用初始化完成状态报告`)
+    logger.info(`${LOG_TAG.ENTRY_ABILITY}========================================`)
+    
+    // 打印详细状态
+    appInit.printInitStatus()
+    
+    // 检查完整初始化状态
+    if (appInit.isFullyInitialized()) {
+      logger.info(`${LOG_TAG.ENTRY_ABILITY}`)
+      logger.info(`${LOG_TAG.ENTRY_ABILITY}🎉 应用完全初始化成功，所有功能可用`)
+      logger.info(`${LOG_TAG.ENTRY_ABILITY}`)
     } else {
-      logger.warn(`${LOG_TAG.ENTRY_ABILITY}阶段 2 初始化失败，部分功能可能受影响`)
+      logger.warn(`${LOG_TAG.ENTRY_ABILITY}`)
+      logger.warn(`${LOG_TAG.ENTRY_ABILITY}⚠️  应用初始化不完整，部分功能可能受限`)
+      const status = appInit.getInitStatus()
+      logger.warn(`${LOG_TAG.ENTRY_ABILITY}详细状态: ${JSON.stringify(status)}`)
+      logger.warn(`${LOG_TAG.ENTRY_ABILITY}`)
     }
     
-    // 初始化 AppStorageV2：存储窗口宽度
-    window.getLastWindow(this.context).then((win) => {
-      const winWidth = win.getWindowProperties().windowRect.width
-      AppStorageV2.connect(WinWidth, APP_STORAGE_KEYS.WINDOW_WIDTH, () => new WinWidth(winWidth))
-      logger.info(`${LOG_TAG.ENTRY_ABILITY}窗口宽度已存储到 AppStorageV2: ${winWidth}px`)
-    }).catch((error: Error) => {
-      logger.error(`${LOG_TAG.ENTRY_ABILITY}获取窗口宽度失败: ${JSON.stringify(error)}`)
-    })
-    
-    // 加载启动页面
-    windowStage.loadContent('pages/StartPage', (err) => {
-      if (err.code) {
-        hilog.error(DOMAIN, TAG, 'Failed to load the content. Cause: %{public}s', JSON.stringify(err));
-        logger.error(`${LOG_TAG.ENTRY_ABILITY}页面加载失败: ${JSON.stringify(err)}`)
-        return;
-      }
-      
-      hilog.info(DOMAIN, TAG, 'Succeeded in loading the content.');
-      logger.info(`${LOG_TAG.ENTRY_ABILITY}启动页加载成功`)
-      
-      // 阶段 3：UI 依赖模块初始化
-      const phase3Success = appInit.initPhase3_UIDependent()
-      if (phase3Success) {
-        logger.info(`${LOG_TAG.ENTRY_ABILITY}阶段 3 初始化成功`)
-      } else {
-        logger.warn(`${LOG_TAG.ENTRY_ABILITY}阶段 3 初始化失败，部分功能可能受影响`)
-      }
-      
-      // 检查完整初始化状态
-      if (appInit.isFullyInitialized()) {
-        logger.info(`${LOG_TAG.ENTRY_ABILITY}应用完全初始化成功，所有功能可用`)
-      } else {
-        logger.warn(`${LOG_TAG.ENTRY_ABILITY}应用初始化不完整，部分功能可能受限`)
-        const status = appInit.getInitStatus()
-        logger.warn(`${LOG_TAG.ENTRY_ABILITY}初始化状态: ${JSON.stringify(status)}`)
-      }
-    });
+    logger.info(`${LOG_TAG.ENTRY_ABILITY}========================================`)
   }
 
   /**
