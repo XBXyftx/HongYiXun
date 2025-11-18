@@ -155,7 +155,7 @@ export class AppInit {
       logger.info(`${LOG_TAG.APP_INIT}步骤 1/4：初始化数据库模块...`)
       const dbInitSuccess = await this.initDatabases(uiAbilityContext)
       if (!dbInitSuccess) {
-        logger.error(`${LOG_TAG.APP_INIT}数据库初始化失败，终止初始化流程`)
+        logger.error(`${LOG_TAG.APP_INIT}✗ 数据库初始化失败，终止初始化流程 - 请检查应用权限和存储空间`)
         return false
       }
       
@@ -171,8 +171,9 @@ export class AppInit {
       logger.info(`${LOG_TAG.APP_INIT}步骤 3/4：初始化业务管理器...`)
       const managersInitSuccess = await this.initManagers(uiAbilityContext)
       if (!managersInitSuccess) {
-        logger.error(`${LOG_TAG.APP_INIT}管理器初始化失败`)
-        return false
+        logger.error(`${LOG_TAG.APP_INIT}✗ 管理器初始化失败 - 应用可继续运行但新闻功能不可用`)
+        // 管理器初始化失败不终止流程，允许应用继续启动
+        // return false
       }
       
       // 步骤 4：预加载数据
@@ -183,7 +184,7 @@ export class AppInit {
       return true
       
     } catch (error) {
-      logger.error(`${LOG_TAG.APP_INIT}阶段 1 初始化异常: ${JSON.stringify(error)}`)
+      logger.error(`${LOG_TAG.APP_INIT}✗ 阶段 1 初始化异常 - 详细信息：${JSON.stringify(error)}`)
       promptAction.openToast({ message: '应用初始化失败，请重启应用' })
       return false
     }
@@ -212,19 +213,19 @@ export class AppInit {
     // 初始化 KV 数据库
     const kvInitSuccess = kvDatabase.init(context)
     if (kvInitSuccess) {
-      logger.info(`${LOG_TAG.APP_INIT}KV 数据库初始化成功`)
+      logger.info(`${LOG_TAG.APP_INIT}✓ KV 数据库初始化成功`)
       this.initStatus.databases = true
     } else {
-      logger.error(`${LOG_TAG.APP_INIT}KV 数据库初始化失败`)
+      logger.error(`${LOG_TAG.APP_INIT}✗ KV 数据库初始化失败 - 原因：KVManager 创建失败或 context 无效`)
       return false
     }
     
     // 初始化偏好设置数据库
     const preferenceInitSuccess = preferenceDB.init(context)
     if (preferenceInitSuccess) {
-      logger.info(`${LOG_TAG.APP_INIT}偏好设置数据库初始化成功`)
+      logger.info(`${LOG_TAG.APP_INIT}✓ 偏好设置数据库初始化成功`)
     } else {
-      logger.error(`${LOG_TAG.APP_INIT}偏好设置数据库初始化失败`)
+      logger.error(`${LOG_TAG.APP_INIT}✗ 偏好设置数据库初始化失败 - 原因：Preferences 实例创建失败`)
       return false
     }
     
@@ -255,15 +256,15 @@ export class AppInit {
     try {
       const syncSuccess = userConfigManager.syncDataToAppStorage()
       if (syncSuccess) {
-        logger.info(`${LOG_TAG.APP_INIT}用户配置加载成功`)
+        logger.info(`${LOG_TAG.APP_INIT}✓ 用户配置加载成功`)
         this.initStatus.userConfig = true
         return true
       } else {
-        logger.warn(`${LOG_TAG.APP_INIT}用户配置加载失败，使用默认配置`)
+        logger.warn(`${LOG_TAG.APP_INIT}⚠ 用户配置加载失败 - 原因：PreferenceDB 数据读取失败，将使用默认配置`)
         return false
       }
     } catch (error) {
-      logger.error(`${LOG_TAG.APP_INIT}用户配置加载异常: ${JSON.stringify(error)}`)
+      logger.error(`${LOG_TAG.APP_INIT}✗ 用户配置加载异常 - 原因：${JSON.stringify(error)}`)
       return false
     }
   }
@@ -290,15 +291,15 @@ export class AppInit {
       // 初始化新闻管理器
       const newsManagerInitSuccess = await newsManager.init(context)
       if (newsManagerInitSuccess) {
-        logger.info(`${LOG_TAG.APP_INIT}新闻管理器初始化成功`)
+        logger.info(`${LOG_TAG.APP_INIT}✓ 新闻管理器初始化成功`)
         this.initStatus.managers = true
         return true
       } else {
-        logger.error(`${LOG_TAG.APP_INIT}新闻管理器初始化失败`)
+        logger.error(`${LOG_TAG.APP_INIT}✗ 新闻管理器初始化失败 - 原因：无法获取 KV 数据库实例`)
         return false
       }
     } catch (error) {
-      logger.error(`${LOG_TAG.APP_INIT}管理器初始化异常: ${JSON.stringify(error)}`)
+      logger.error(`${LOG_TAG.APP_INIT}✗ 管理器初始化异常 - 原因：${JSON.stringify(error)}`)
       return false
     }
   }
@@ -379,10 +380,10 @@ export class AppInit {
       logger.info(`${LOG_TAG.APP_INIT}初始化颜色模式管理器...`)
       const colorModInitSuccess = colorModManager.init(applicationContext)
       if (colorModInitSuccess) {
-        logger.info(`${LOG_TAG.APP_INIT}颜色模式管理器初始化成功`)
+        logger.info(`${LOG_TAG.APP_INIT}✓ 颜色模式管理器初始化成功`)
         this.initStatus.appStorageV2 = true
       } else {
-        logger.warn(`${LOG_TAG.APP_INIT}颜色模式管理器初始化失败，使用默认主题`)
+        logger.warn(`${LOG_TAG.APP_INIT}⚠ 颜色模式管理器初始化失败 - 原因：ApplicationContext 无效，将使用默认主题`)
         // 不影响应用运行
       }
       
@@ -442,9 +443,9 @@ export class AppInit {
       logger.info(`${LOG_TAG.APP_INIT}初始化 Markdown 配置...`)
       const markdownInitSuccess = this.markDownConfigInit()
       if (markdownInitSuccess) {
-        logger.info(`${LOG_TAG.APP_INIT}Markdown 配置初始化成功`)
+        logger.info(`${LOG_TAG.APP_INIT}✓ Markdown 配置初始化成功`)
       } else {
-        logger.warn(`${LOG_TAG.APP_INIT}Markdown 配置初始化失败，使用默认配置`)
+        logger.warn(`${LOG_TAG.APP_INIT}⚠ Markdown 配置初始化失败 - 原因：无法从 AppStorageV2 获取用户配置，将使用默认配置`)
       }
       
       logger.info(`${LOG_TAG.APP_INIT}========== 阶段 3 完成：UI 依赖模块初始化成功 ==========`)
@@ -503,7 +504,7 @@ export class AppInit {
       )
       
       if (!userConfig) {
-        logger.error(`${LOG_TAG.APP_INIT}无法获取用户配置，Markdown 使用默认字体大小`)
+        logger.error(`${LOG_TAG.APP_INIT}✗ 无法获取用户配置 - 原因：AppStorageV2 中不存在 USER_CONFIG，Markdown 使用默认字体大小`)
         return false
       }
       
@@ -513,13 +514,13 @@ export class AppInit {
       lvCode.setIndexState(true)           // 启用代码块行号
       lvText.setTextSize(baseFontSize)     // 设置文本基础字体大小
       
-      logger.info(`${LOG_TAG.APP_INIT}Markdown 配置成功，字体大小: ${baseFontSize}`)
+      logger.info(`${LOG_TAG.APP_INIT}✓ Markdown 配置成功，字体大小: ${baseFontSize}`)
       this.initStatus.markdown = true
       
       return true
       
     } catch (error) {
-      logger.error(`${LOG_TAG.APP_INIT}Markdown 配置异常: ${JSON.stringify(error)}`)
+      logger.error(`${LOG_TAG.APP_INIT}✗ Markdown 配置异常 - 原因：${JSON.stringify(error)}`)
       return false
     }
   }
@@ -531,15 +532,50 @@ export class AppInit {
    * 
    * 用于调试和问题诊断，输出各模块的初始化状态
    * 
+   * @remarks
+   * - 成功的模块使用 info 级别
+   * - 失败的模块使用 warn 级别，便于快速定位问题
+   * 
    * @private
    */
   private printInitStatus(): void {
     logger.info(`${LOG_TAG.APP_INIT}========== 初始化状态报告 ==========`)
-    logger.info(`${LOG_TAG.APP_INIT}数据库模块: ${this.initStatus.databases ? '✓ 成功' : '✗ 失败'}`)
-    logger.info(`${LOG_TAG.APP_INIT}用户配置: ${this.initStatus.userConfig ? '✓ 成功' : '✗ 失败'}`)
-    logger.info(`${LOG_TAG.APP_INIT}业务管理器: ${this.initStatus.managers ? '✓ 成功' : '✗ 失败'}`)
-    logger.info(`${LOG_TAG.APP_INIT}AppStorageV2: ${this.initStatus.appStorageV2 ? '✓ 成功' : '✗ 失败'}`)
-    logger.info(`${LOG_TAG.APP_INIT}Markdown 配置: ${this.initStatus.markdown ? '✓ 成功' : '✗ 失败'}`)
+    
+    // 数据库模块
+    if (this.initStatus.databases) {
+      logger.info(`${LOG_TAG.APP_INIT}[数据库模块] ✓ 初始化成功`)
+    } else {
+      logger.warn(`${LOG_TAG.APP_INIT}[数据库模块] ✗ 初始化失败 - 影响：离线功能可能不可用`)
+    }
+    
+    // 用户配置
+    if (this.initStatus.userConfig) {
+      logger.info(`${LOG_TAG.APP_INIT}[用户配置] ✓ 初始化成功`)
+    } else {
+      logger.warn(`${LOG_TAG.APP_INIT}[用户配置] ✗ 初始化失败 - 影响：将使用默认配置（字体16、跟随系统主题）`)
+    }
+    
+    // 业务管理器
+    if (this.initStatus.managers) {
+      logger.info(`${LOG_TAG.APP_INIT}[业务管理器] ✓ 初始化成功`)
+    } else {
+      logger.warn(`${LOG_TAG.APP_INIT}[业务管理器] ✗ 初始化失败 - 影响：新闻数据功能不可用，请检查网络或数据库`)
+    }
+    
+    // AppStorageV2
+    if (this.initStatus.appStorageV2) {
+      logger.info(`${LOG_TAG.APP_INIT}[AppStorageV2] ✓ 初始化成功`)
+    } else {
+      logger.warn(`${LOG_TAG.APP_INIT}[AppStorageV2] ✗ 初始化失败 - 影响：主题切换功能可能不可用`)
+    }
+    
+    // Markdown 配置
+    if (this.initStatus.markdown) {
+      logger.info(`${LOG_TAG.APP_INIT}[Markdown配置] ✓ 初始化成功`)
+    } else {
+      logger.warn(`${LOG_TAG.APP_INIT}[Markdown配置] ✗ 初始化失败 - 影响：文章渲染使用默认字体`)
+    }
+    
     logger.info(`${LOG_TAG.APP_INIT}======================================`)
   }
 
