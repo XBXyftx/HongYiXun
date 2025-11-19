@@ -287,35 +287,67 @@ export class AppInit {
   }
 
   /**
-   * 预加载应用数据
+   * 预加载应用数据（分页加载策略）
    * 
    * 在后台预加载必要的数据，提升用户体验
    * 
    * @remarks
-   * 预加载策略：
+   * 预加载策略（优化版）：
    * - 异步执行，不阻塞主流程
    * - 失败不影响应用启动
-   * - 优先加载用户可能立即需要的数据
+   * - 采用分页加载，提升性能和用户体验
+   * 
+   * 分两阶段加载：
+   * 1. **首批快速加载**：最新 15 条新闻 + 轮播图
+   * 2. **后台分页加载**：剩余所有新闻（每页 50 条）
    * 
    * 预加载内容：
-   * - 新闻文章列表
+   * - 新闻文章列表（分页）
    * - 轮播图数据
    * 
    * @private
    */
   private async preloadData(): Promise<void> {
     try {
-      // 异步更新新闻数据，不阻塞启动流程
+      // ========== 第 1 步：快速加载最新 15 条新闻 + 轮播图 ==========
+      logger.info(`${LOG_TAG.APP_INIT}[数据预加载] 开始快速加载首批数据...`)
+      
       Promise.all([
-        newsManager.updateNewsListToDB(),
-        newsManager.updateNewsSwiperToDB()
-      ]).then(() => {
-        logger.info(`${LOG_TAG.APP_INIT}数据预加载完成`)
+        newsManager.loadLatestNewsToDB(15),  // 最新 15 条新闻
+        newsManager.updateNewsSwiperToDB()   // 轮播图
+      ]).then((results: boolean[]) => {
+        
+        const newsSuccess: boolean = results[0]
+        const swiperSuccess: boolean = results[1]
+        
+        if (newsSuccess && swiperSuccess) {
+          logger.info(`${LOG_TAG.APP_INIT}[数据预加载] ✓ 首批数据加载成功（15条新闻 + 轮播图）`)
+        } else {
+          logger.warn(`${LOG_TAG.APP_INIT}[数据预加载] ⚠ 首批数据部分加载失败（新闻:${newsSuccess}, 轮播图:${swiperSuccess}）`)
+        }
+
+        // ========== 第 2 步：后台分页加载所有新闻 ==========
+        logger.info(`${LOG_TAG.APP_INIT}[数据预加载] 开始后台分页加载所有新闻...`)
+        
+        newsManager.loadNewsIncrementally(50, (loadedCount: number) => {
+          logger.debug(`${LOG_TAG.APP_INIT}[数据预加载] 进度: ${loadedCount} 条`)
+        }).then((allSuccess: boolean) => {
+          if (allSuccess) {
+            logger.info(`${LOG_TAG.APP_INIT}[数据预加载] ✓ 所有新闻加载完成`)
+          } else {
+            logger.warn(`${LOG_TAG.APP_INIT}[数据预加载] ⚠ 部分新闻加载失败`)
+          }
+        }).catch((error: Error) => {
+          logger.warn(`${LOG_TAG.APP_INIT}[数据预加载] 分页加载异常: ${error.message}，将使用缓存数据`)
+        })
+
       }).catch((error: Error) => {
-        logger.warn(`${LOG_TAG.APP_INIT}数据预加载失败: ${JSON.stringify(error)}，将使用缓存数据`)
+        logger.warn(`${LOG_TAG.APP_INIT}[数据预加载] 首批数据加载失败: ${error.message}，将使用缓存数据`)
       })
+
     } catch (error) {
-      logger.warn(`${LOG_TAG.APP_INIT}数据预加载异常: ${JSON.stringify(error)}`)
+      let err = error as Error
+      logger.warn(`${LOG_TAG.APP_INIT}[数据预加载] 异常: ${err.message}`)
     }
   }
 
