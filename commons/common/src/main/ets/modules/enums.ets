@@ -56,7 +56,15 @@ export enum KV_DB_KEYS {
   /** 新闻文章列表 - 存储所有新闻文章的数组 */
   NEWS_ARTICLE_LIST = 'NewsArticleList',
   /** 新闻轮播图 - 存储轮播图图片 URL 数组 */
-  NEWS_SWIPER = 'NewsSwiper'
+  NEWS_SWIPER = 'NewsSwiper',
+  /** 开源鸿蒙官方动态 - 存储 OpenHarmony 官网新闻公告 */
+  NEWS_OPENHARMONY_OFFICIAL = 'NewsOpenHarmonyOfficial',
+  /** 开源鸿蒙技术博客 - 存储 OpenHarmony 官方技术博客文章 */
+  NEWS_OPENHARMONY_BLOG = 'NewsOpenHarmonyBlog',
+  /** 鸿蒙资讯 - 存储鸿蒙相关资讯（待开发） */
+  NEWS_HARMONY_NEWS = 'NewsHarmonyNews',
+  /** 鸿蒙开发者论坛 - 存储鸿蒙开发者论坛内容（待开发） */
+  NEWS_HARMONY_FORUM = 'NewsHarmonyForum'
 }
 
 /**
@@ -135,6 +143,43 @@ export enum DEVICE_TYPES {
   PHONE = 'phone',
   /** 平板设备 - 屏幕较大，可使用多列布局或分栏模式 */
   TABLET = 'tablet'
+}
+
+// ==================== 新闻分类枚举 ====================
+
+/**
+ * 新闻栏目类别枚举
+ * 
+ * 定义新闻列表中可用的栏目分类
+ * 
+ * @remarks
+ * 用于新闻列表头部的分栏切换功能
+ */
+export enum NEWS_CATEGORY {
+  /** 开源鸿蒙官方动态 - OpenHarmony 官网新闻公告 */
+  OPENHARMONY_OFFICIAL = 'OPENHARMONY_OFFICIAL',
+  /** 开源鸿蒙技术博客 - OpenHarmony 官方技术博客文章 */
+  OPENHARMONY_BLOG = 'OPENHARMONY_BLOG',
+  /** 鸿蒙资讯 - 鸿蒙相关资讯（待开发） */
+  HARMONY_NEWS = 'HARMONY_NEWS',
+  /** 鸿蒙开发者论坛 - 鸿蒙开发者论坛内容（待开发） */
+  HARMONY_FORUM = 'HARMONY_FORUM'
+}
+
+/**
+ * 新闻栏目信息接口
+ */
+export interface NewsCategoryInfo {
+  /** 栏目 ID */
+  id: NEWS_CATEGORY
+  /** 栏目显示名称 */
+  displayName: string
+  /** 后端 API 的 category 参数值（待开发栏目为空字符串） */
+  apiCategory: string
+  /** 数据库存储键 */
+  dbKey: KV_DB_KEYS
+  /** 是否已开发 */
+  isDeveloped: boolean
 }
 
 // ==================== 应用状态管理枚举 ====================

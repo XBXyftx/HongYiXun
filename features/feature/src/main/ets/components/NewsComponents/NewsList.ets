@@ -23,10 +23,14 @@ import {
   NewsListHeaderIsSticky,
   NEWS_LIST_ANIMATION_PARAM,
   NewsListDataSource,
-  NAV_DESTS
+  NAV_DESTS,
+  NEWS_CATEGORIES,
+  NEWS_CATEGORY,
+  NewsCategoryInfo
 } from "common"
 import { AppStorageV2, curves } from "@kit.ArkUI"
 import { deviceInfo } from "@kit.BasicServicesKit"
+import { newsManager } from '../../managers/NewsManager'
 
 @ComponentV2
 export struct NewsList {
@@ -43,6 +47,12 @@ export struct NewsList {
   @Local headerFontSize: number = this.deviceType === DEVICE_TYPES.PHONE ? 25 : 35
   @Local isOnAreaChange: boolean = false
   @Local newsListDataSource: NewsListDataSource = new NewsListDataSource()
+  // 新增：当前选中的新闻栏目
+  @Local currentCategory: NEWS_CATEGORY = NEWS_CATEGORY.OPENHARMONY_OFFICIAL
+  // 新增：当前栏目的新闻列表
+  @Local currentCategoryNews: NewsArticle[] = []
+  // 新增：横向滚动控制器
+  private categoryScroller: Scroller = new Scroller()
 
   @Monitor('newsList')
   resetDataSource() {
@@ -50,29 +60,125 @@ export struct NewsList {
     this.newsListDataSource.resetData(this.newsList)
   }
 
+  @Monitor('currentCategoryNews')
+  resetCategoryDataSource() {
+    logger.info(`${LOG_TAG.NEWS_LIST}捕获到当前栏目数据变化${this.currentCategoryNews.length}`)
+    this.newsListDataSource.resetData(this.currentCategoryNews)
+  }
+
+  /**
+   * 切换新闻栏目
+   * 
+   * @param categoryInfo - 栏目信息对象
+   */
+  switchCategory(categoryInfo: NewsCategoryInfo) {
+    logger.info(`${LOG_TAG.NEWS_LIST}切换到栏目: ${categoryInfo.displayName}`)
+    this.currentCategory = categoryInfo.id
+    this.loadCategoryNews(categoryInfo)
+  }
+
+  /**
+   * 加载指定栏目的新闻数据
+   * 
+   * @param categoryInfo - 栏目信息对象
+   */
+  async loadCategoryNews(categoryInfo: NewsCategoryInfo) {
+    try {
+      // 先从数据库读取
+      const cachedNews = await newsManager.getCategoryNewsFromDB(categoryInfo.dbKey, categoryInfo.displayName)
+      
+      if (cachedNews && cachedNews.length > 0) {
+        this.currentCategoryNews = cachedNews
+        logger.info(`${LOG_TAG.NEWS_LIST}从缓存加载【${categoryInfo.displayName}】成功: ${cachedNews.length}条`)
+      } else {
+        this.currentCategoryNews = []
+        logger.warn(`${LOG_TAG.NEWS_LIST}【${categoryInfo.displayName}】缓存为空`)
+      }
+
+      // 后台更新数据
+      if (categoryInfo.isDeveloped) {
+        newsManager.loadCategoryNewsToDB(categoryInfo.apiCategory, categoryInfo.dbKey).then((success: boolean) => {
+          if (success) {
+            // 重新加载数据
+            newsManager.getCategoryNewsFromDB(categoryInfo.dbKey, categoryInfo.displayName).then((updatedNews: NewsArticle[] | null) => {
+              if (updatedNews && this.currentCategory === categoryInfo.id) {
+                this.currentCategoryNews = updatedNews
+                logger.info(`${LOG_TAG.NEWS_LIST}【${categoryInfo.displayName}】后台更新成功`)
+              }
+            })
+          }
+        })
+      }
+    } catch (error) {
+      logger.error(`${LOG_TAG.NEWS_LIST}加载【${categoryInfo.displayName}】失败: ${JSON.stringify(error)}`)
+      this.currentCategoryNews = []
+    }
+  }
+
   @Builder
   NewsListHeaderBuilder() {
     Column() {
-      Column() {
-        Row() {
-          Text(`热点新闻共${this.newsList?.length}条`)
-            .fontSize(this.headerFontSize)
-            .fontColor($r('app.color.news_list_header_font'))
-            .margin({ left: 10 })
-            .animation(NEWS_LIST_ANIMATION_PARAM)
-          if (this.isNewsListSticky.isSticky) {
-            Image($rawfile('backToTop.svg'))
-              .fillColor($r('app.color.back_to_top'))
-              .width(25)
-              .transition(NEWS_LIST_ITEM_ANIMATE_PARAM)
+      // 横向分栏目录
+      Row() {
+        // 横向滚动列表
+        List({ scroller: this.categoryScroller, space: this.deviceType === DEVICE_TYPES.PHONE ? 10 : 15 }) {
+          ForEach(NEWS_CATEGORIES, (category: NewsCategoryInfo) => {
+            ListItem() {
+              Column() {
+                Text(category.displayName)
+                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18)
+                  .fontColor(this.currentCategory === category.id 
+                    ? $r('app.color.news_list_header_font') 
+                    : Color.Gray)
+                  .fontWeight(this.currentCategory === category.id ? FontWeight.Bold : FontWeight.Normal)
+                  .padding({
+                    left: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16,
+                    right: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16,
+                    top: this.deviceType === DEVICE_TYPES.PHONE ? 8 : 10,
+                    bottom: this.deviceType === DEVICE_TYPES.PHONE ? 8 : 10
+                  })
+                
+                // 选中指示器
+                if (this.currentCategory === category.id) {
+                  Divider()
+                    .width('80%')
+                    .height(2)
+                    .color($r('app.color.news_list_header_font'))
+                    .margin({ top: 2 })
+                }
+              }
+              .alignItems(HorizontalAlign.Center)
               .onClick(() => {
-                this.listScroller.scrollEdge(Edge.Top, { velocity: 6000 })
-                this.isNewsListSticky.isSticky = false
+                if (category.isDeveloped) {
+                  this.switchCategory(category)
+                } else {
+                  this.getUIContext()
+                    .getPromptAction()
+                    .showToast({ message: `${category.displayName}功能正在开发中，敬请期待`, duration: 2000 })
+                }
               })
-          }
+            }
+          }, (item: NewsCategoryInfo) => item.id)
         }
-        .justifyContent(this.isNewsListSticky.isSticky ? FlexAlign.SpaceBetween : FlexAlign.Center)
+        .listDirection(Axis.Horizontal)
+        .scrollBar(BarState.Off)
+        .edgeEffect(EdgeEffect.Spring)
         .width('100%')
+        .layoutWeight(1)
+
+        // 回到顶部按钮
+        if (this.isNewsListSticky.isSticky) {
+          Image($rawfile('backToTop.svg'))
+            .fillColor($r('app.color.back_to_top'))
+            .width(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 30)
+            .height(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 30)
+            .margin({ left: 10, right: 10 })
+            .transition(NEWS_LIST_ITEM_ANIMATE_PARAM)
+            .onClick(() => {
+              this.listScroller.scrollEdge(Edge.Top, { velocity: 6000 })
+              this.isNewsListSticky.isSticky = false
+            })
+        }
       }
       .width('95%')
       .padding(10)
@@ -98,7 +204,6 @@ export struct NewsList {
           }, 200)
         }
       }
-
     })
     .width('100%')
   }
@@ -124,6 +229,10 @@ export struct NewsList {
           .showToast({ message: '后端数据正在更新请稍后下拉刷新或重启应用重试', duration: 5000 })
       }
       this.newsListDataSource.pushDataArr(this.newsList)
+      
+      // 加载默认栏目（开源鸿蒙资讯）的数据
+      const defaultCategory = NEWS_CATEGORIES[0]
+      this.loadCategoryNews(defaultCategory)
     }, 200)
   }
 

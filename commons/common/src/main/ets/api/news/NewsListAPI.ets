@@ -103,6 +103,79 @@ export class NewsListAPI {
   }
 
   /**
+   * 按分类获取新闻列表（支持分页）
+   * 
+   * @param category - 新闻分类（"官方动态" | "技术博客"）
+   * @param page - 页码，从 1 开始
+   * @param pageSize - 每页数量，默认 20 条
+   * @returns Promise<NewsResponse | null> - 分类新闻响应对象，失败返回 null
+   * 
+   * @remarks
+   * 分类过滤机制：
+   * - 先从所有新闻中过滤出指定分类
+   * - 再对过滤结果进行分页
+   * - total 返回该分类的文章总数
+   * - has_next/has_prev 基于过滤后的数据判断
+   * 
+   * 可用的分类值：
+   * - "官方动态": OpenHarmony 官网新闻公告
+   * - "技术博客": OpenHarmony 官方技术博客文章
+   * 
+   * @example
+   * ```typescript
+   * // 获取官方动态第 1 页
+   * const response = await NewsListAPI.getNewsByCategory("官方动态", 1, 20)
+   * if (response) {
+   *   console.log(`官方动态共 ${response.total} 条，本页 ${response.articles.length} 条`)
+   * }
+   * ```
+   */
+  static async getNewsByCategory(category: string, page: number = 1, pageSize: number = 20): Promise<NewsResponse | null> {
+    try {
+      const res = await axiosHttp.request<NewsResponse>({
+        url: `/api/news/?category=${encodeURIComponent(category)}&page=${page}&page_size=${pageSize}`
+      })
+      logger.info(`${LOG_TAG.NEWS_LIST_API}获取【${category}】第${page}页成功: 共${res.articles.length}条，总计${res.total}条`)
+      return res
+    } catch (e) {
+      let err = e as BusinessError
+      logger.error(`${LOG_TAG.NEWS_LIST_API}获取【${category}】失败: ${err.message}`)
+      return null
+    }
+  }
+
+  /**
+   * 按分类获取所有新闻（不分页，慎用）
+   * 
+   * @param category - 新闻分类（"官方动态" | "技术博客"）
+   * @returns Promise<NewsArticle[] | null> - 分类新闻数组，失败返回 null
+   * 
+   * @remarks
+   * 适用场景：
+   * - 需要获取某分类的全部数据进行缓存
+   * - 分类数据量较小（< 100 条）
+   * 
+   * @example
+   * ```typescript
+   * // 获取所有官方动态
+   * const allOfficial = await NewsListAPI.getAllNewsByCategory("官方动态")
+   * ```
+   */
+  static async getAllNewsByCategory(category: string): Promise<NewsArticle[] | null> {
+    try {
+      const res = await axiosHttp.request<NewsResponse>({
+        url: `/api/news/?category=${encodeURIComponent(category)}&all=true`
+      })
+      logger.info(`${LOG_TAG.NEWS_LIST_API}获取【${category}】全部数据成功: 共${res.articles.length}条`)
+      return res.articles
+    } catch (e) {
+      let err = e as BusinessError
+      logger.error(`${LOG_TAG.NEWS_LIST_API}获取【${category}】全部数据失败: ${err.message}`)
+      return null
+    }
+  }
+
+  /**
    * 获取全部新闻列表接口（不推荐）
    * 
    * @deprecated 建议使用 getNewsPage() 进行分页加载以提升性能

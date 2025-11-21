@@ -14,7 +14,7 @@
  */
 
 import { curves } from "@kit.ArkUI";
-import { NAV_DESTS, KV_DB_KEYS, PreferenceEnum, DEVICE_TYPES, APP_STORAGE_KEYS } from './enums';
+import { NAV_DESTS, KV_DB_KEYS, PreferenceEnum, DEVICE_TYPES, APP_STORAGE_KEYS, NEWS_CATEGORY, NewsCategoryInfo } from './enums';
 
 // ==================== 动画参数配置 ====================
 
@@ -62,7 +62,60 @@ export const NEWS_LIST_ANIMATION_PARAM: AnimateParam = {
  * - DEVICE_TYPES: 设备类型枚举
  * - APP_STORAGE_KEYS: AppStorageV2 键值枚举
  */
-export { NAV_DESTS, KV_DB_KEYS, PreferenceEnum, DEVICE_TYPES, APP_STORAGE_KEYS }
+export { NAV_DESTS, KV_DB_KEYS, PreferenceEnum, DEVICE_TYPES, APP_STORAGE_KEYS, NEWS_CATEGORY }
+
+// ==================== 新闻栏目配置 ====================
+
+/**
+ * 新闻栏目列表配置
+ * 
+ * 定义新闻列表中可用的四个栏目分类及其详细信息
+ * 
+ * @remarks
+ * 栏目说明：
+ * - 开源鸿蒙资讯：OpenHarmony 官网新闻公告
+ * - 开源鸿蒙技术博文：OpenHarmony 官方技术博客文章
+ * - 鸿蒙资讯：鸿蒙相关资讯（待开发）
+ * - 鸿蒙开发者论坛：鸿蒙开发者论坛内容（待开发）
+ * 
+ * @example
+ * ```typescript
+ * // 遍历所有栏目
+ * NEWS_CATEGORIES.forEach(category => {
+ *   console.log(category.displayName)
+ * })
+ * ```
+ */
+export const NEWS_CATEGORIES: NewsCategoryInfo[] = [
+  {
+    id: NEWS_CATEGORY.OPENHARMONY_OFFICIAL,
+    displayName: '开源鸿蒙资讯',
+    apiCategory: '官方动态',
+    dbKey: KV_DB_KEYS.NEWS_OPENHARMONY_OFFICIAL,
+    isDeveloped: true
+  },
+  {
+    id: NEWS_CATEGORY.OPENHARMONY_BLOG,
+    displayName: '开源鸿蒙技术博文',
+    apiCategory: '技术博客',
+    dbKey: KV_DB_KEYS.NEWS_OPENHARMONY_BLOG,
+    isDeveloped: true
+  },
+  {
+    id: NEWS_CATEGORY.HARMONY_NEWS,
+    displayName: '鸿蒙资讯',
+    apiCategory: '',
+    dbKey: KV_DB_KEYS.NEWS_HARMONY_NEWS,
+    isDeveloped: false
+  },
+  {
+    id: NEWS_CATEGORY.HARMONY_FORUM,
+    displayName: '鸿蒙开发者论坛',
+    apiCategory: '',
+    dbKey: KV_DB_KEYS.NEWS_HARMONY_FORUM,
+    isDeveloped: false
+  }
+]
 
 // ==================== 服务器配置 ====================
 

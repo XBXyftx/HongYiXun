@@ -323,6 +323,96 @@ export class NewsManager {
     return null
   }
 
+  /**
+   * 按分类加载新闻数据到数据库
+   * 
+   * 从后端获取指定分类的所有新闻，并存储到对应的数据库键中
+   * 
+   * @param category - 新闻分类（"官方动态" | "技术博客"）
+   * @param dbKey - 数据库存储键（KV_DB_KEYS 中的枚举值）
+   * @returns Promise<boolean> - 加载是否成功
+   * 
+   * @remarks
+   * 加载策略：
+   * - 获取该分类的所有数据（不分页）
+   * - 直接覆盖数据库中的旧数据
+   * - 适合分类数据量较小（< 100 条）的场景
+   * 
+   * @example
+   * ```typescript
+   * // 加载官方动态数据
+   * await newsManager.loadCategoryNewsToDB("官方动态", KV_DB_KEYS.NEWS_OPENHARMONY_OFFICIAL)
+   * ```
+   */
+  async loadCategoryNewsToDB(category: string, dbKey: KV_DB_KEYS): Promise<boolean> {
+    if (!(await ServerHealthAPI.isServerReady())) {
+      logger.error(`${LOG_TAG.NEWS_MANAGER}服务端未就绪，无法加载【${category}】`)
+      return false
+    }
+
+    if (!this.appKVDb) {
+      logger.error(`${LOG_TAG.NEWS_MANAGER}数据库未初始化，无法加载【${category}】`)
+      return false
+    }
+
+    try {
+      const categoryNews = await NewsListAPI.getAllNewsByCategory(category)
+      
+      if (!categoryNews || categoryNews.length === 0) {
+        logger.warn(`${LOG_TAG.NEWS_MANAGER}【${category}】无数据`)
+        // 即使无数据也存储空数组，避免读取时出错
+        await this.appKVDb.put(dbKey, JSON.stringify([]))
+        return true
+      }
+
+      logger.info(`${LOG_TAG.NEWS_MANAGER}获取【${category}】成功，共 ${categoryNews.length} 条`)
+
+      // 存储到数据库
+      await this.appKVDb.put(dbKey, JSON.stringify(categoryNews))
+      logger.info(`${LOG_TAG.NEWS_MANAGER}✓ 【${category}】已存储到数据库`)
+      return true
+
+    } catch (error) {
+      let err = error as BusinessError
+      logger.error(`${LOG_TAG.NEWS_MANAGER}加载【${category}】异常: ${err.message}`)
+      return false
+    }
+  }
+
+  /**
+   * 从数据库读取分类新闻数据
+   * 
+   * @param dbKey - 数据库存储键（KV_DB_KEYS 中的枚举值）
+   * @param categoryName - 分类名称（用于日志输出）
+   * @returns Promise<NewsArticle[] | null> - 新闻数组，失败或无数据返回 null
+   * 
+   * @example
+   * ```typescript
+   * // 读取官方动态数据
+   * const officialNews = await newsManager.getCategoryNewsFromDB(
+   *   KV_DB_KEYS.NEWS_OPENHARMONY_OFFICIAL, 
+   *   "官方动态"
+   * )
+   * ```
+   */
+  async getCategoryNewsFromDB(dbKey: KV_DB_KEYS, categoryName: string): Promise<NewsArticle[] | null> {
+    if (!this.appKVDb) {
+      logger.error(`${LOG_TAG.NEWS_MANAGER}数据库未初始化，无法读取【${categoryName}】`)
+      return null
+    }
+
+    try {
+      const res: string = (await this.appKVDb.get(dbKey)) as string
+      const categoryNews = JSON.parse(res) as NewsArticle[]
+      logger.info(`${LOG_TAG.NEWS_MANAGER}从数据库读取【${categoryName}】: ${categoryNews.length} 条`)
+      return categoryNews
+    } catch (e) {
+      let err = e as BusinessError
+      logger.warn(`${LOG_TAG.NEWS_MANAGER}读取【${categoryName}】失败或无数据: ${err.message}`)
+      return null
+    }
+  }
+
   async updateNewsSwiperToDB(): Promise<boolean> {
     if (await NewsSwiperStateAPI.isSwiperServerReady()) {
       let swiperData: ResourceStr[] | null = await NewsSwiperAPI.getNewsSwiperImgData()
