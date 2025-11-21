@@ -37,6 +37,7 @@ export struct NewsList {
   @Param listScroller: Scroller = new Scroller()
   @Param newsList: NewsArticle[] = []
   @Param navStuck: NavPathStack = new NavPathStack()
+  @Param refreshTrigger: number = 0  // 刷新触发器，用于父组件通知重新加载数据
   @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, APP_STORAGE_KEYS.NAV_PATH_STUCK, () => new NavPathStack())!
   @Local deviceType: DEVICE_TYPES =
     deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
@@ -64,6 +65,18 @@ export struct NewsList {
   resetCategoryDataSource() {
     logger.info(`${LOG_TAG.NEWS_LIST}捕获到当前栏目数据变化${this.currentCategoryNews.length}`)
     this.newsListDataSource.resetData(this.currentCategoryNews)
+  }
+
+  @Monitor('refreshTrigger')
+  onRefreshTriggered() {
+    if (this.refreshTrigger > 0) {
+      logger.info(`${LOG_TAG.NEWS_LIST}捕获到刷新触发器变化: ${this.refreshTrigger}，重新加载当前栏目数据`)
+      // 重新加载当前选中栏目的数据
+      const currentCategoryInfo = NEWS_CATEGORIES.find(cat => cat.id === this.currentCategory)
+      if (currentCategoryInfo && currentCategoryInfo.isDeveloped) {
+        this.reloadCurrentCategoryData(currentCategoryInfo)
+      }
+    }
   }
 
   /**
@@ -115,6 +128,29 @@ export struct NewsList {
     }
   }
 
+  /**
+   * 重新加载当前栏目数据（仅从数据库读取，不请求网络）
+   * 
+   * 用于响应父组件的刷新触发，实时更新 UI
+   * 
+   * @param categoryInfo - 栏目信息对象
+   */
+  async reloadCurrentCategoryData(categoryInfo: NewsCategoryInfo) {
+    try {
+      const updatedNews = await newsManager.getCategoryNewsFromDB(
+        categoryInfo.dbKey,
+        categoryInfo.displayName
+      )
+
+      if (updatedNews) {
+        this.currentCategoryNews = updatedNews
+        logger.info(`${LOG_TAG.NEWS_LIST}[实时更新] 重新加载【${categoryInfo.displayName}】成功: ${updatedNews.length}条`)
+      }
+    } catch (error) {
+      logger.error(`${LOG_TAG.NEWS_LIST}[实时更新] 重新加载【${categoryInfo.displayName}】失败: ${JSON.stringify(error)}`)
+    }
+  }
+
   @Builder
   NewsListHeaderBuilder() {
     Column() {
@@ -126,10 +162,10 @@ export struct NewsList {
             ListItem() {
               Column() {
                 Text(category.displayName)
-                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18)
+                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 20)
                   .fontColor(this.currentCategory === category.id 
                     ? $r('app.color.news_list_header_font') 
-                    : Color.Gray)
+                    : '#ffaeaeae')
                   .fontWeight(this.currentCategory === category.id ? FontWeight.Bold : FontWeight.Normal)
                   .padding({
                     left: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16,
@@ -141,7 +177,7 @@ export struct NewsList {
                 // 选中指示器
                 if (this.currentCategory === category.id) {
                   Divider()
-                    .width('80%')
+                    .width('40%')
                     .height(2)
                     .color($r('app.color.news_list_header_font'))
                     .margin({ top: 2 })

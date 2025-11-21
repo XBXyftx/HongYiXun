@@ -23,12 +23,58 @@ import {
   NewsListAPI,
   NewsSwiperAPI,
   NewsSwiperStateAPI,
-  ServerHealthAPI
+  ServerHealthAPI,
+  NEWS_CATEGORIES,
+  NewsCategoryInfo
 } from "common"
 import { common } from "@kit.AbilityKit"
 import { distributedKVStore } from "@kit.ArkData"
 import { promptAction } from "@kit.ArkUI"
 import { BusinessError } from "@kit.BasicServicesKit"
+
+/**
+ * 快速刷新结果接口
+ */
+interface QuickRefreshResult {
+  /** 是否成功 */
+  success: boolean
+  /** 成功加载的栏目数量 */
+  loadedCount: number
+}
+
+/**
+ * 完整刷新结果接口
+ */
+interface FullRefreshResult {
+  /** 是否成功 */
+  success: boolean
+  /** 成功更新的栏目数量 */
+  updatedCount: number
+}
+
+/**
+ * 刷新进度信息接口
+ */
+interface RefreshProgress {
+  /** 栏目名称 */
+  category: string
+  /** 当前进度 */
+  current: number
+  /** 总数 */
+  total: number
+}
+
+/**
+ * 栏目加载结果接口
+ */
+interface CategoryLoadResult {
+  /** 栏目名称 */
+  category: string
+  /** 是否成功 */
+  success: boolean
+  /** 加载的新闻条数 */
+  count: number
+}
 
 export class NewsManager {
   /**
@@ -449,6 +495,246 @@ export class NewsManager {
       }
     }
     return null
+  }
+
+  /**
+   * 两阶段刷新 - 第一阶段：快速加载各分栏前20条最新数据
+   * 
+   * 使用 Promise.all 并发加载所有已开发栏目的前20条数据，快速响应用户
+   * 
+   * @returns Promise<{ success: boolean, loadedCount: number }> - 加载结果和成功加载的栏目数
+   * 
+   * @remarks
+   * 刷新策略：
+   * - 仅加载已开发的栏目（isDeveloped === true）
+   * - 每个栏目获取最新 20 条数据
+   * - 使用 Promise.all 并发请求，最大化速度
+   * - 单个栏目失败不影响其他栏目
+   * - 同时刷新轮播图数据
+   * 
+   * 适用场景：
+   * - 用户下拉刷新时的第一阶段
+   * - 需要快速看到最新内容
+   * 
+   * @example
+   * ```typescript
+   * const result = await newsManager.quickRefreshCategories()
+   * if (result.success) {
+   *   console.log(`快速刷新完成，加载了 ${result.loadedCount} 个栏目`)
+   * }
+   * ```
+   */
+  async quickRefreshCategories(): Promise<QuickRefreshResult> {
+    logger.info(`${LOG_TAG.NEWS_MANAGER}[快速刷新] 开始第一阶段：并发加载各分栏前20条数据`)
+    
+    if (!(await ServerHealthAPI.isServerReady())) {
+      logger.error(`${LOG_TAG.NEWS_MANAGER}[快速刷新] 服务端未就绪`)
+      const result: QuickRefreshResult = { success: false, loadedCount: 0 }
+      return result
+    }
+
+    if (!this.appKVDb) {
+      logger.error(`${LOG_TAG.NEWS_MANAGER}[快速刷新] 数据库未初始化`)
+      const result: QuickRefreshResult = { success: false, loadedCount: 0 }
+      return result
+    }
+
+    try {
+      const startTime = Date.now()
+      
+      // 筛选出已开发的栏目
+      const developedCategories = NEWS_CATEGORIES.filter(cat => cat.isDeveloped)
+      logger.info(`${LOG_TAG.NEWS_MANAGER}[快速刷新] 需要刷新 ${developedCategories.length} 个栏目`)
+
+      // 创建并发加载任务数组
+      const loadTasks = developedCategories.map(async (category: NewsCategoryInfo) => {
+        try {
+          logger.debug(`${LOG_TAG.NEWS_MANAGER}[快速刷新] 开始加载【${category.displayName}】前20条`)
+          
+          // 调用分类 API 获取前20条数据
+          const response = await NewsListAPI.getNewsByCategory(category.apiCategory, 1, 20)
+          
+          if (response && response.articles.length > 0) {
+            // 读取现有数据
+            let existingArticles: NewsArticle[] = []
+            try {
+              const existingData = (await this.appKVDb!.get(category.dbKey)) as string
+              existingArticles = JSON.parse(existingData) as NewsArticle[]
+            } catch (e) {
+              existingArticles = []
+            }
+
+            // 合并去重（新数据优先）
+            const articleMap = new Map<string, NewsArticle>()
+            existingArticles.forEach(article => {
+              if (article.id) articleMap.set(article.id, article)
+            })
+            response.articles.forEach(article => {
+              if (article.id) articleMap.set(article.id, article)
+            })
+
+            // 按日期倒序排序
+            const mergedArticles = Array.from(articleMap.values())
+              .sort((a, b) => b.date.localeCompare(a.date))
+
+            // 写入数据库
+            await this.appKVDb!.put(category.dbKey, JSON.stringify(mergedArticles))
+            
+            logger.info(`${LOG_TAG.NEWS_MANAGER}[快速刷新] ✓ 【${category.displayName}】加载成功: ${response.articles.length}条`)
+            const result: CategoryLoadResult = { category: category.displayName, success: true, count: response.articles.length }
+            return result
+          } else {
+            logger.warn(`${LOG_TAG.NEWS_MANAGER}[快速刷新] 【${category.displayName}】无数据`)
+            const result: CategoryLoadResult = { category: category.displayName, success: false, count: 0 }
+            return result
+          }
+        } catch (error) {
+          logger.error(`${LOG_TAG.NEWS_MANAGER}[快速刷新] 【${category.displayName}】加载失败: ${JSON.stringify(error)}`)
+          const result: CategoryLoadResult = { category: category.displayName, success: false, count: 0 }
+          return result
+        }
+      })
+
+      // 同时加载轮播图数据
+      const swiperTask = this.updateNewsSwiperToDB()
+
+      // 并发执行所有任务
+      const results = await Promise.all([...loadTasks, swiperTask])
+      
+      // 统计结果（最后一个是轮播图任务）
+      const categoryResults = results.slice(0, -1) as CategoryLoadResult[]
+      const swiperSuccess = results[results.length - 1] as boolean
+      
+      const successCount = categoryResults.filter(r => r.success).length
+      const totalArticles = categoryResults.reduce((sum, r) => sum + r.count, 0)
+      
+      const endTime = Date.now()
+      const duration = endTime - startTime
+
+      logger.info(`${LOG_TAG.NEWS_MANAGER}[快速刷新] ✓ 第一阶段完成: ${successCount}/${developedCategories.length} 个栏目成功, 共${totalArticles}条数据, 耗时${duration}ms`)
+      logger.info(`${LOG_TAG.NEWS_MANAGER}[快速刷新] 轮播图刷新: ${swiperSuccess ? '成功' : '失败'}`)
+
+      const finalResult: QuickRefreshResult = { 
+        success: successCount > 0, 
+        loadedCount: successCount 
+      }
+      return finalResult
+
+    } catch (error) {
+      let err = error as BusinessError
+      logger.error(`${LOG_TAG.NEWS_MANAGER}[快速刷新] 异常: ${err.message}`)
+      const result: QuickRefreshResult = { success: false, loadedCount: 0 }
+      return result
+    }
+  }
+
+  /**
+   * 两阶段刷新 - 第二阶段：后台完整加载所有分栏数据
+   * 
+   * 在后台逐个加载各栏目的全部数据，并提供进度回调实时更新 UI
+   * 
+   * @param onProgress - 进度回调函数，参数为 { category: 栏目名, current: 当前进度, total: 总数 }
+   * @returns Promise<{ success: boolean, updatedCount: number }> - 加载结果和成功更新的栏目数
+   * 
+   * @remarks
+   * 刷新策略：
+   * - 后台逐个加载已开发栏目的全部数据
+   * - 每个栏目完成后立即回调，通知 UI 更新
+   * - 单个栏目失败不影响其他栏目
+   * - 按日期倒序排序后存储
+   * 
+   * 适用场景：
+   * - 快速刷新完成后的后台任务
+   * - 确保数据完整性和最新性
+   * 
+   * @example
+   * ```typescript
+   * newsManager.fullRefreshCategories((progress) => {
+   *   console.log(`${progress.category}: ${progress.current}/${progress.total}`)
+   * }).then(result => {
+   *   console.log(`完整刷新完成，更新了 ${result.updatedCount} 个栏目`)
+   * })
+   * ```
+   */
+  async fullRefreshCategories(
+    onProgress?: (progress: RefreshProgress) => void
+  ): Promise<FullRefreshResult> {
+    logger.info(`${LOG_TAG.NEWS_MANAGER}[完整刷新] 开始第二阶段：后台加载全部分栏数据`)
+
+    if (!(await ServerHealthAPI.isServerReady())) {
+      logger.error(`${LOG_TAG.NEWS_MANAGER}[完整刷新] 服务端未就绪`)
+      const result: FullRefreshResult = { success: false, updatedCount: 0 }
+      return result
+    }
+
+    if (!this.appKVDb) {
+      logger.error(`${LOG_TAG.NEWS_MANAGER}[完整刷新] 数据库未初始化`)
+      const result: FullRefreshResult = { success: false, updatedCount: 0 }
+      return result
+    }
+
+    try {
+      const startTime = Date.now()
+      const developedCategories = NEWS_CATEGORIES.filter(cat => cat.isDeveloped)
+      const totalCategories = developedCategories.length
+      let updatedCount = 0
+
+      // 逐个加载栏目（避免并发过多导致服务器压力）
+      for (let i = 0; i < developedCategories.length; i++) {
+        const category = developedCategories[i]
+        const current = i + 1
+
+        try {
+          logger.info(`${LOG_TAG.NEWS_MANAGER}[完整刷新] [${current}/${totalCategories}] 加载【${category.displayName}】全部数据`)
+
+          // 获取该分类的所有数据
+          const allNews = await NewsListAPI.getAllNewsByCategory(category.apiCategory)
+
+          if (allNews && allNews.length > 0) {
+            // 按日期倒序排序
+            const sortedNews = allNews.sort((a, b) => b.date.localeCompare(a.date))
+            
+            // 直接覆盖存储（已经是最新完整数据）
+            await this.appKVDb.put(category.dbKey, JSON.stringify(sortedNews))
+            
+            updatedCount++
+            logger.info(`${LOG_TAG.NEWS_MANAGER}[完整刷新] ✓ [${current}/${totalCategories}] 【${category.displayName}】完成: ${sortedNews.length}条`)
+
+            // 回调进度更新
+            if (onProgress) {
+              const progress: RefreshProgress = {
+                category: category.displayName,
+                current: current,
+                total: totalCategories
+              }
+              onProgress(progress)
+            }
+          } else {
+            logger.warn(`${LOG_TAG.NEWS_MANAGER}[完整刷新] [${current}/${totalCategories}] 【${category.displayName}】无数据`)
+          }
+
+        } catch (error) {
+          logger.error(`${LOG_TAG.NEWS_MANAGER}[完整刷新] [${current}/${totalCategories}] 【${category.displayName}】失败: ${JSON.stringify(error)}`)
+        }
+      }
+
+      const endTime = Date.now()
+      const duration = endTime - startTime
+
+      logger.info(`${LOG_TAG.NEWS_MANAGER}[完整刷新] ✓ 第二阶段完成: ${updatedCount}/${totalCategories} 个栏目成功, 耗时${duration}ms`)
+
+      const finalResult: FullRefreshResult = {
+        success: updatedCount > 0,
+        updatedCount: updatedCount
+      }
+      return finalResult
+
+    } catch (error) {
+      let err = error as BusinessError
+      logger.error(`${LOG_TAG.NEWS_MANAGER}[完整刷新] 异常: ${err.message}`)
+      const result: FullRefreshResult = { success: false, updatedCount: 0 }
+      return result
+    }
   }
 }
 
