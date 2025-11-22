@@ -138,11 +138,21 @@ export struct SelfTabContent {
             }
           )
 
+          // 设置卡片
+          this.MenuCardBuilder(
+            $rawfile('settings_icon.svg'),
+            '设置',
+            '应用设置项',
+            undefined,
+            () => {
+              this.navPathStuck.pushPath({ name: NAV_DESTS.SETTINGS })
+            }
+          )
+
           // 预留其他功能卡片位置
           // 可以在这里添加更多功能入口，如：
           // - 我的收藏
           // - 阅读统计
-          // - 设置
           // - 关于
         }
         .padding({

@@ -35,7 +35,13 @@ export enum NAV_DESTS {
   /** 文章详情页 - 显示具体文章内容 */
   ARTICLE = 'Article',
   /** 浏览历史页 - 显示用户浏览历史记录 */
-  HISTORY = 'History'
+  HISTORY = 'History',
+  /** 设置页 - 应用设置 */
+  SETTINGS = 'Settings',
+  /** 字体大小设置页 - 调整文章字体大小 */
+  FONT_SIZE_SETTINGS = 'FontSizeSettings',
+  /** 颜色模式设置页 - 调整深浅色模式 */
+  COLOR_MODE_SETTINGS = 'ColorModeSettings'
 }
 
 // ==================== 数据库相关枚举 ====================

@@ -28,6 +28,9 @@ import { MainPage } from './nav_pages/MainPage'
 import { deviceInfo } from '@kit.BasicServicesKit'
 import { ArticlePage } from './nav_pages/ArticlePage'
 import { HistoryPage } from './nav_pages/HistoryPage'
+import { SettingsPage } from './nav_pages/SettingsPage'
+import { FontSizeSettingsPage } from './nav_pages/FontSizeSettingsPage'
+import { ColorModeSettingsPage } from './nav_pages/ColorModeSettingsPage'
 
 @Builder
 function PlaceholderPage() {
@@ -96,6 +99,12 @@ struct Main {
       ArticlePage()
     } else if (name === NAV_DESTS.HISTORY) {
       HistoryPage()
+    } else if (name === NAV_DESTS.SETTINGS) {
+      SettingsPage()
+    } else if (name === NAV_DESTS.FONT_SIZE_SETTINGS) {
+      FontSizeSettingsPage()
+    } else if (name === NAV_DESTS.COLOR_MODE_SETTINGS) {
+      ColorModeSettingsPage()
     }
   }
 
