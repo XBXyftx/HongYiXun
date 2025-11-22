@@ -33,7 +33,9 @@ export enum NAV_DESTS {
   /** 主页面 - 包含新闻列表和标签页 */
   MAIN = 'Main',
   /** 文章详情页 - 显示具体文章内容 */
-  ARTICLE = 'Article'
+  ARTICLE = 'Article',
+  /** 浏览历史页 - 显示用户浏览历史记录 */
+  HISTORY = 'History'
 }
 
 // ==================== 数据库相关枚举 ====================
