@@ -310,6 +310,7 @@ export struct HistoryPage {
         modalTransition: ModalTransition.DEFAULT
       })
     }
+    .hideBackButton(true)
     .hideTitleBar(true)
     .mode(NavDestinationMode.STANDARD)
   }

@@ -27,6 +27,7 @@ import { ColorModChoseButton, FontSizeAdjustButton } from 'feature'
 import { MainPage } from './nav_pages/MainPage'
 import { deviceInfo } from '@kit.BasicServicesKit'
 import { ArticlePage } from './nav_pages/ArticlePage'
+import { HistoryPage } from './nav_pages/HistoryPage'
 
 @Builder
 function PlaceholderPage() {
@@ -93,6 +94,8 @@ struct Main {
       Main()
     } else if (name === NAV_DESTS.ARTICLE) {
       ArticlePage()
+    } else if (name === NAV_DESTS.HISTORY) {
+      HistoryPage()
     }
   }
 
