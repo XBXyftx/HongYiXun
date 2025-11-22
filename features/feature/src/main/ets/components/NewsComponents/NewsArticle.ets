@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 import {
-  CONTENT_TYPE_ENUM, DEVICE_TYPES, NewsArticle, NewsContentBlock
+  CONTENT_TYPE_ENUM, DEVICE_TYPES, NewsArticle, NewsContentBlock, logger, LOG_TAG
 } from "common"
 import { deviceInfo } from "@kit.BasicServicesKit"
 import { LvMarkdownIn } from '@luvi/lv-markdown-in'
+import { historyManager } from '../../managers/HistoryManager'
 
 /**
  * 文章内容渲染组件
@@ -36,6 +37,18 @@ export struct NewsArticleView {
   @Param baseFontSize: number = 0
   @Local deviceType: DEVICE_TYPES =
     deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
+
+  async aboutToAppear(): Promise<void> {
+    // 添加浏览历史记录
+    try {
+      const success = await historyManager.addHistory(this.article)
+      if (success) {
+        logger.info(`${LOG_TAG.NEWS_LIST}添加浏览历史成功: ${this.article.title}`)
+      }
+    } catch (error) {
+      logger.error(`${LOG_TAG.NEWS_LIST}添加浏览历史失败: ${JSON.stringify(error)}`)
+    }
+  }
 
   @Builder
   articleInfoBuilder() {

@@ -14,4 +14,5 @@
  */
 
 export * from './NewsListHeaderIsSticky'
+export * from './HistoryUpdateTrigger'
 

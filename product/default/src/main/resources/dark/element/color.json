@@ -27,6 +27,30 @@
     {
       "name": "text_secondary",
       "value": "#99FFFFFF"
+    },
+    {
+      "name": "text_primary",
+      "value": "#FFFFFFFF"
+    },
+    {
+      "name": "button_secondary_bg",
+      "value": "#33FFFFFF"
+    },
+    {
+      "name": "news_list_item_bg",
+      "value": "#1A1A1A"
+    },
+    {
+      "name": "dialog_bg",
+      "value": "#2A2A2A"
+    },
+    {
+      "name": "dialog_mask",
+      "value": "#CC000000"
+    },
+    {
+      "name": "color_change_button_background",
+      "value": "#FFFFFFFF"
     }
   ]
 }

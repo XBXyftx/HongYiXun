@@ -64,7 +64,9 @@ export enum KV_DB_KEYS {
   /** 鸿蒙资讯 - 存储鸿蒙相关资讯（待开发） */
   NEWS_HARMONY_NEWS = 'NewsHarmonyNews',
   /** 鸿蒙开发者论坛 - 存储鸿蒙开发者论坛内容（待开发） */
-  NEWS_HARMONY_FORUM = 'NewsHarmonyForum'
+  NEWS_HARMONY_FORUM = 'NewsHarmonyForum',
+  /** 浏览历史记录 - 存储用户浏览过的新闻文章 */
+  READING_HISTORY = 'ReadingHistory'
 }
 
 /**
@@ -242,7 +244,17 @@ export enum APP_STORAGE_KEYS {
    * 
    * @type NewsListHeaderIsSticky
    */
-  IS_STICKY = 'isSticky'
+  IS_STICKY = 'isSticky',
+  
+  /**
+   * 历史记录更新触发器
+   * 
+   * 用于通知历史记录页面刷新数据
+   * 每次历史记录变化时递增该值
+   * 
+   * @type HistoryUpdateTrigger
+   */
+  HISTORY_UPDATE_TRIGGER = 'historyUpdateTrigger'
 }
 
 // ==================== 日志相关枚举 ====================
@@ -320,5 +332,7 @@ export enum LOG_TAG {
   /** 新闻管理器 - 管理新闻数据的获取和缓存 */
   NEWS_MANAGER = 'NewsManager: ',
   /** 用户配置管理器 - 管理用户个性化设置 */
-  USER_CONFIG_MANAGER = 'UserConfigManager: '
+  USER_CONFIG_MANAGER = 'UserConfigManager: ',
+  /** 历史记录管理器 - 管理用户浏览历史 */
+  HISTORY_MANAGER = 'HistoryManager: '
 }
