@@ -15,6 +15,7 @@
 
 import { kvDatabase, KV_DB_KEYS, NewsArticle, logger, LOG_TAG, APP_STORAGE_KEYS, FavoriteUpdateTrigger } from "common"
 import { AppStorageV2 } from "@kit.ArkUI"
+import { distributedKVStore } from "@kit.ArkData"
 
 /**
  * 收藏项接口
@@ -29,7 +30,7 @@ export interface FavoriteItem {
  * 收藏管理器
  */
 class FavoriteManager {
-  private appKVDb: any = null
+  private appKVDb: distributedKVStore.SingleKVStore | null = null
 
   /**
    * 初始化数据库
@@ -146,7 +147,7 @@ class FavoriteManager {
     }
 
     try {
-      const data = await this.appKVDb.get(KV_DB_KEYS.FAVORITE_LIST)
+      const data: distributedKVStore.Value = await this.appKVDb!.get(KV_DB_KEYS.FAVORITE_LIST)
       if (data) {
         const list = JSON.parse(data as string) as FavoriteItem[]
         logger.info(`${LOG_TAG.FAVORITE_MANAGER}获取收藏列表成功: ${list.length}条`)
