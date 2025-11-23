@@ -43,7 +43,8 @@ class FavoriteManager {
    * 触发收藏更新通知
    */
   private notifyFavoriteUpdate(): void {
-    const trigger = AppStorageV2.connect(FavoriteUpdateTrigger, APP_STORAGE_KEYS.FAVORITE_UPDATE_TRIGGER, () => new FavoriteUpdateTrigger())
+    const trigger = AppStorageV2.connect(FavoriteUpdateTrigger, APP_STORAGE_KEYS.FAVORITE_UPDATE_TRIGGER,
+      () => new FavoriteUpdateTrigger())
     if (trigger) {
       trigger.trigger++
       logger.info(`${LOG_TAG.FAVORITE_MANAGER}触发收藏更新通知: ${trigger.trigger}`)
@@ -82,11 +83,14 @@ class FavoriteManager {
         favoriteList = favoriteList.slice(0, 200)
       }
 
-      await this.appKVDb.put(KV_DB_KEYS.FAVORITE_LIST, JSON.stringify(favoriteList))
-      logger.info(`${LOG_TAG.FAVORITE_MANAGER}添加收藏成功: ${article.title}`)
-      
-      this.notifyFavoriteUpdate()
-      return true
+      if (this.appKVDb) {
+        await this.appKVDb.put(KV_DB_KEYS.FAVORITE_LIST, JSON.stringify(favoriteList))
+        logger.info(`${LOG_TAG.FAVORITE_MANAGER}添加收藏成功: ${article.title}`)
+        this.notifyFavoriteUpdate()
+        return true
+      }
+      logger.error(`${LOG_TAG.FAVORITE_MANAGER}appKVDb为空`)
+      return false
     } catch (error) {
       logger.error(`${LOG_TAG.FAVORITE_MANAGER}添加收藏失败: ${JSON.stringify(error)}`)
       return false
@@ -109,12 +113,15 @@ class FavoriteManager {
         logger.warn(`${LOG_TAG.FAVORITE_MANAGER}未找到要删除的收藏: ${articleId}`)
         return false
       }
+      if (this.appKVDb) {
+        await this.appKVDb.put(KV_DB_KEYS.FAVORITE_LIST, JSON.stringify(newList))
+        logger.info(`${LOG_TAG.FAVORITE_MANAGER}删除收藏成功: ${articleId}`)
+        this.notifyFavoriteUpdate()
+        return true
+      }
+      logger.error(`${LOG_TAG.FAVORITE_MANAGER}appKVDb为空`)
+      return false
 
-      await this.appKVDb.put(KV_DB_KEYS.FAVORITE_LIST, JSON.stringify(newList))
-      logger.info(`${LOG_TAG.FAVORITE_MANAGER}删除收藏成功: ${articleId}`)
-      
-      this.notifyFavoriteUpdate()
-      return true
     } catch (error) {
       logger.error(`${LOG_TAG.FAVORITE_MANAGER}删除收藏失败: ${JSON.stringify(error)}`)
       return false
@@ -147,7 +154,7 @@ class FavoriteManager {
     }
 
     try {
-      const data: distributedKVStore.Value = await this.appKVDb!.get(KV_DB_KEYS.FAVORITE_LIST)
+      let data = await this.appKVDb!.get(KV_DB_KEYS.FAVORITE_LIST)
       if (data) {
         const list = JSON.parse(data as string) as FavoriteItem[]
         logger.info(`${LOG_TAG.FAVORITE_MANAGER}获取收藏列表成功: ${list.length}条`)
@@ -169,11 +176,15 @@ class FavoriteManager {
     }
 
     try {
-      await this.appKVDb.put(KV_DB_KEYS.FAVORITE_LIST, JSON.stringify([]))
-      logger.info(`${LOG_TAG.FAVORITE_MANAGER}清空收藏成功`)
-      
-      this.notifyFavoriteUpdate()
-      return true
+      if (this.appKVDb) {
+        await this.appKVDb.put(KV_DB_KEYS.FAVORITE_LIST, JSON.stringify([]))
+        logger.info(`${LOG_TAG.FAVORITE_MANAGER}清空收藏成功`)
+
+        this.notifyFavoriteUpdate()
+        return true
+      }
+      logger.error(`${LOG_TAG.FAVORITE_MANAGER}appKVDb为空`)
+      return false
     } catch (error) {
       logger.error(`${LOG_TAG.FAVORITE_MANAGER}清空收藏失败: ${JSON.stringify(error)}`)
       return false

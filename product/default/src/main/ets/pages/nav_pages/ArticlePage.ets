@@ -92,10 +92,6 @@ export struct ArticlePage {
 
         // 收藏按钮
         Stack({ alignContent: Alignment.Center }) {
-          Image($rawfile('colorButtonBG.svg'))
-            .width('90%')
-            .height('90%')
-            .fillColor($r('app.color.color_change_button_svg'))
           Image(this.isFavorite ? $rawfile('favorite_filled.svg') : $rawfile('favorite_outline.svg'))
             .width('50%')
             .height('50%')

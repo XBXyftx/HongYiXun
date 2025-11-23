@@ -294,10 +294,6 @@ export struct FontSizeAdjustButton {
     if (this.deviceType === DEVICE_TYPES.PHONE) {
       // 手机使用 bindSheet
       Stack({ alignContent: Alignment.Center }) {
-        Image($rawfile('colorButtonBG.svg'))
-          .width('90%')
-          .height('90%')
-          .fillColor($r('app.color.color_change_button_svg'))
         Text('字')
           .fontSize(20)
           .fontWeight(800)
