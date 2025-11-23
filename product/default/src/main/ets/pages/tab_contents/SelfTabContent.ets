@@ -135,7 +135,7 @@ export struct SelfTabContent {
             '查看你浏览过的新闻',
             this.historyCount,
             () => {
-              this.navPathStuck.pushPath({ name: NAV_DESTS.HISTORY })
+              this.navPathStuck.replacePath({ name: NAV_DESTS.HISTORY })
             }
           )
 
@@ -146,7 +146,7 @@ export struct SelfTabContent {
             '应用设置项',
             undefined,
             () => {
-              this.navPathStuck.pushPath({ name: NAV_DESTS.SETTINGS })
+              this.navPathStuck.replacePath({ name: NAV_DESTS.SETTINGS })
             }
           )
 
