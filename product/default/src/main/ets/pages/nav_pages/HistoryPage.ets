@@ -152,6 +152,12 @@ export struct HistoryPage {
     .padding(this.deviceType === DEVICE_TYPES.PHONE ? 15 : 20)
     .backgroundColor($r('app.color.news_list_item_bg'))
     .borderRadius(12)
+    .shadow({
+      radius: 16,
+      color: 'rgba(0, 0, 0, 0.15)',
+      offsetX: 0,
+      offsetY: 4
+    })
     .onClick(() => {
       this.navPathStuck.pushPath({
         name: NAV_DESTS.ARTICLE,
