@@ -297,6 +297,7 @@ export struct HistoryPage {
               ListItem() {
                 this.HistoryItemBuilder(item)
               }
+              .padding(4)
               .transition(TransitionEffect.OPACITY.animation({ duration: 300, curve: Curve.EaseInOut }))
             }, (item: HistoryItem) => item.article.id + item.timestamp)
           }
