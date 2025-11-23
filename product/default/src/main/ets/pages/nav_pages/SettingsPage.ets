@@ -78,9 +78,10 @@ export struct SettingsPage {
       }
     })
     .shadow({
-      radius: 8,
-      color: 'rgba(0, 0, 0, 0.05)',
-      offsetY: 2
+      radius: 16,
+      color: 'rgba(0, 0, 0, 0.15)',
+      offsetX: 0,
+      offsetY: 4
     })
   }
 
