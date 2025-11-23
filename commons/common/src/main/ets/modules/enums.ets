@@ -41,7 +41,9 @@ export enum NAV_DESTS {
   /** 字体大小设置页 - 调整文章字体大小 */
   FONT_SIZE_SETTINGS = 'FontSizeSettings',
   /** 颜色模式设置页 - 调整深浅色模式 */
-  COLOR_MODE_SETTINGS = 'ColorModeSettings'
+  COLOR_MODE_SETTINGS = 'ColorModeSettings',
+  /** 收藏列表页 - 显示用户收藏的新闻 */
+  FAVORITES = 'Favorites'
 }
 
 // ==================== 数据库相关枚举 ====================
@@ -74,7 +76,9 @@ export enum KV_DB_KEYS {
   /** 鸿蒙开发者论坛 - 存储鸿蒙开发者论坛内容（待开发） */
   NEWS_HARMONY_FORUM = 'NewsHarmonyForum',
   /** 浏览历史记录 - 存储用户浏览过的新闻文章 */
-  READING_HISTORY = 'ReadingHistory'
+  READING_HISTORY = 'ReadingHistory',
+  /** 收藏列表 - 存储用户收藏的新闻文章 */
+  FAVORITE_LIST = 'FavoriteList'
 }
 
 /**
@@ -262,7 +266,17 @@ export enum APP_STORAGE_KEYS {
    * 
    * @type HistoryUpdateTrigger
    */
-  HISTORY_UPDATE_TRIGGER = 'historyUpdateTrigger'
+  HISTORY_UPDATE_TRIGGER = 'historyUpdateTrigger',
+  
+  /**
+   * 收藏更新触发器
+   * 
+   * 用于通知收藏页面刷新数据
+   * 每次收藏变化时递增该值
+   * 
+   * @type FavoriteUpdateTrigger
+   */
+  FAVORITE_UPDATE_TRIGGER = 'favoriteUpdateTrigger'
 }
 
 // ==================== 日志相关枚举 ====================
@@ -342,5 +356,7 @@ export enum LOG_TAG {
   /** 用户配置管理器 - 管理用户个性化设置 */
   USER_CONFIG_MANAGER = 'UserConfigManager: ',
   /** 历史记录管理器 - 管理用户浏览历史 */
-  HISTORY_MANAGER = 'HistoryManager: '
+  HISTORY_MANAGER = 'HistoryManager: ',
+  /** 收藏管理器 - 管理用户收藏 */
+  FAVORITE_MANAGER = 'FavoriteManager: '
 }

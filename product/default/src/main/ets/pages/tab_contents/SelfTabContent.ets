@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { DEVICE_TYPES, NAV_DESTS, APP_STORAGE_KEYS, HistoryUpdateTrigger } from "common"
+import { DEVICE_TYPES, NAV_DESTS, APP_STORAGE_KEYS, HistoryUpdateTrigger, FavoriteUpdateTrigger } from "common"
 import { deviceInfo } from "@kit.BasicServicesKit"
-import { historyManager } from "feature"
+import { historyManager, favoriteManager } from "feature"
 import { AppStorageV2 } from "@kit.ArkUI"
 
 @ComponentV2
@@ -25,10 +25,14 @@ export struct SelfTabContent {
   @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, APP_STORAGE_KEYS.NAV_PATH_STUCK, () => new NavPathStack())!
   @Local historyUpdateTrigger: HistoryUpdateTrigger = 
     AppStorageV2.connect(HistoryUpdateTrigger, APP_STORAGE_KEYS.HISTORY_UPDATE_TRIGGER, () => new HistoryUpdateTrigger())!
+  @Local favoriteUpdateTrigger: FavoriteUpdateTrigger = 
+    AppStorageV2.connect(FavoriteUpdateTrigger, APP_STORAGE_KEYS.FAVORITE_UPDATE_TRIGGER, () => new FavoriteUpdateTrigger())!
   @Local historyCount: number = 0
+  @Local favoriteCount: number = 0
 
   async aboutToAppear(): Promise<void> {
     await this.updateHistoryCount()
+    await this.updateFavoriteCount()
   }
 
   /**
@@ -40,11 +44,27 @@ export struct SelfTabContent {
   }
 
   /**
+   * 监听收藏更新触发器
+   */
+  @Monitor('favoriteUpdateTrigger.trigger')
+  async onFavoriteUpdate(): Promise<void> {
+    await this.updateFavoriteCount()
+  }
+
+  /**
    * 更新历史记录数量
    */
   async updateHistoryCount(): Promise<void> {
     const historyList = await historyManager.getHistoryList()
     this.historyCount = historyList.length
+  }
+
+  /**
+   * 更新收藏数量
+   */
+  async updateFavoriteCount(): Promise<void> {
+    const favoriteList = await favoriteManager.getFavoriteList()
+    this.favoriteCount = favoriteList.length
   }
 
   @Builder
@@ -136,6 +156,17 @@ export struct SelfTabContent {
             this.historyCount,
             () => {
               this.navPathStuck.replacePath({ name: NAV_DESTS.HISTORY })
+            }
+          )
+
+          // 我的收藏卡片
+          this.MenuCardBuilder(
+            $rawfile('favorite_icon.svg'),
+            '我的收藏',
+            '查看你收藏的新闻',
+            this.favoriteCount,
+            () => {
+              this.navPathStuck.replacePath({ name: NAV_DESTS.FAVORITES })
             }
           )
 

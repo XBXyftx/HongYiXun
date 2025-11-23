@@ -17,4 +17,5 @@ export * from './ColorModManager'
 export * from './NewsManager'
 export * from './UserConfigManager'
 export * from './HistoryManager'
+export * from './FavoriteManager'
 

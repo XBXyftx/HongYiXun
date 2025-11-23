@@ -13,7 +13,12 @@
  * limitations under the License.
  */
 
-export * from './NewsListHeaderIsSticky'
-export * from './HistoryUpdateTrigger'
-export * from './FavoriteUpdateTrigger'
-
+/**
+ * 收藏更新触发器
+ * 
+ * 用于实现跨组件的收藏数据同步
+ */
+@ObservedV2
+export class FavoriteUpdateTrigger {
+  @Trace trigger: number = 0
+}

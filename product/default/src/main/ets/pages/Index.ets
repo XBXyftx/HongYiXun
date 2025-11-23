@@ -31,6 +31,7 @@ import { HistoryPage } from './nav_pages/HistoryPage'
 import { SettingsPage } from './nav_pages/SettingsPage'
 import { FontSizeSettingsPage } from './nav_pages/FontSizeSettingsPage'
 import { ColorModeSettingsPage } from './nav_pages/ColorModeSettingsPage'
+import { FavoritesPage } from './nav_pages/FavoritesPage'
 
 @Builder
 function PlaceholderPage() {
@@ -105,6 +106,8 @@ struct Main {
       FontSizeSettingsPage()
     } else if (name === NAV_DESTS.COLOR_MODE_SETTINGS) {
       ColorModeSettingsPage()
+    } else if (name === NAV_DESTS.FAVORITES) {
+      FavoritesPage()
     }
   }
 
