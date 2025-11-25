@@ -13,13 +13,24 @@
  * limitations under the License.
  */
 
-export * from './breakPoint'
-export * from './config'
-export * from './constants'
-export * from './context'
-export * from './enums'
-export * from './models'
-export * from './news'
-export * from './server'
-export * from './view'
+/**
+ * 数据模型统一导出文件
+ * 
+ * 集中管理所有 interface 和数据类型定义
+ */
 
+// 新闻相关模型
+export * from './NewsArticle'
+export * from './NewsSwiperModules'
+export * from './NewsCategoryInfo'
+
+// 用户数据模型
+export * from './HistoryItem'
+export * from './FavoriteItem'
+
+// 服务端相关模型
+export * from './ServerModels'
+
+// 系统相关模型
+export * from './Breakpoint'
+export * from './InitStatus'

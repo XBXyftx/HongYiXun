@@ -13,22 +13,10 @@
  * limitations under the License.
  */
 
-import { APP_KV_DB, KV_DB_KEYS, logger, LOG_TAG, NewsArticle, kvDatabase, APP_STORAGE_KEYS, HistoryUpdateTrigger } from "common"
+import { APP_KV_DB, KV_DB_KEYS, logger, LOG_TAG, NewsArticle, kvDatabase, APP_STORAGE_KEYS, HistoryUpdateTrigger, HistoryItem } from "common"
 import { distributedKVStore } from "@kit.ArkData"
 import { BusinessError } from "@kit.BasicServicesKit"
 import { AppStorageV2 } from "@kit.ArkUI"
-
-/**
- * 历史记录项接口
- */
-export interface HistoryItem {
-  /** 新闻文章数据 */
-  article: NewsArticle
-  /** 浏览时间戳 */
-  timestamp: number
-  /** 浏览日期（格式化字符串，用于分组显示） */
-  dateStr: string
-}
 
 /**
  * 历史记录管理器

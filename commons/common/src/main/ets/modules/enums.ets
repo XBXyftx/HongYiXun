@@ -180,21 +180,7 @@ export enum NEWS_CATEGORY {
   HARMONY_FORUM = 'HARMONY_FORUM'
 }
 
-/**
- * 新闻栏目信息接口
- */
-export interface NewsCategoryInfo {
-  /** 栏目 ID */
-  id: NEWS_CATEGORY
-  /** 栏目显示名称 */
-  displayName: string
-  /** 后端 API 的 category 参数值（待开发栏目为空字符串） */
-  apiCategory: string
-  /** 数据库存储键 */
-  dbKey: KV_DB_KEYS
-  /** 是否已开发 */
-  isDeveloped: boolean
-}
+// NewsCategoryInfo 接口已迁移到 commons/common/src/main/ets/modules/models/NewsCategoryInfo.ets
 
 // ==================== 应用状态管理枚举 ====================
 

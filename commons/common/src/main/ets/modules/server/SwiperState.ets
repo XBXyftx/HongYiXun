@@ -13,17 +13,16 @@
  * limitations under the License.
  */
 
-export interface SwiperState {
-  cache_status: CacheStatus
-}
+/**
+ * 轮播图状态相关的数据模型已迁移到 models 目录
+ * 
+ * @see commons/common/src/main/ets/modules/models/ServerModels.ets
+ * 
+ * 导出的类型：
+ * - SwiperState: 轮播图状态接口
+ * - CacheStatus: 缓存状态接口
+ * - CACHE_STATUS: 缓存状态枚举
+ */
 
-export interface CacheStatus {
-  status: CACHE_STATUS
-  error_message:null|string
-}
-
-export enum CACHE_STATUS {
-  preparing = 'preparing',
-  ready = 'ready',
-  error = 'error'
-}
+// 从 models 重新导出，保持向后兼容
+export { SwiperState, CacheStatus, CACHE_STATUS } from '../models/ServerModels'

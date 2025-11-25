@@ -19,7 +19,7 @@ import { common } from "@kit.AbilityKit";
 import { colorModManager, newsManager, userConfigManager } from "feature";
 import { AppStorageV2, promptAction } from "@kit.ArkUI";
 import { lvCode, lvText } from "@luvi/lv-markdown-in";
-import { InitStatus } from "../modules/AppInit/InitStatus";
+import { InitStatus } from "common";
 
 
 /**

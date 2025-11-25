@@ -13,12 +13,10 @@
  * limitations under the License.
  */
 /**
- * 首页顶部轮播图数据结构
+ * 轮播图相关的数据模型已迁移到 models 目录
+ * 
+ * @see commons/common/src/main/ets/modules/models/NewsSwiperModules.ets
  */
-export interface NewsSwiperResModule{
-  success:boolean
-  images:ResourceStr[]
-  total:4
-  message:string
-  timestamp:string
-}
+
+// 从 models 重新导出，保持向后兼容
+export { NewsSwiperResModule } from '../models/NewsSwiperModules'

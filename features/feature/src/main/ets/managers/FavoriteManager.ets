@@ -13,18 +13,9 @@
  * limitations under the License.
  */
 
-import { kvDatabase, KV_DB_KEYS, NewsArticle, logger, LOG_TAG, APP_STORAGE_KEYS, FavoriteUpdateTrigger } from "common"
+import { kvDatabase, KV_DB_KEYS, NewsArticle, logger, LOG_TAG, APP_STORAGE_KEYS, FavoriteUpdateTrigger, FavoriteItem } from "common"
 import { AppStorageV2 } from "@kit.ArkUI"
 import { distributedKVStore } from "@kit.ArkData"
-
-/**
- * 收藏项接口
- */
-export interface FavoriteItem {
-  article: NewsArticle
-  timestamp: number
-  dateStr: string
-}
 
 /**
  * 收藏管理器
