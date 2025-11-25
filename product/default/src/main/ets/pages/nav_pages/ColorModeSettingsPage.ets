@@ -52,7 +52,7 @@ export struct ColorModeSettingsPage {
         duration: 1500
       })
     } catch (error) {
-      promptAction.showToast({
+      promptAction.openToast({
         message: mode === 0 ? '已切换为浅色模式' : mode === 1 ? '已切换为深色模式' : '已设置为跟随系统',
         duration: 1500
       })

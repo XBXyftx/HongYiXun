@@ -50,7 +50,7 @@ export struct ArticlePage {
         try {
           promptAction.openToast({ message: '已取消收藏', duration: 1500 })
         } catch (error) {
-          promptAction.showToast({ message: '已取消收藏', duration: 1500 })
+          promptAction.openToast({ message: '已取消收藏', duration: 1500 })
         }
       }
     } else {
@@ -60,13 +60,13 @@ export struct ArticlePage {
         try {
           promptAction.openToast({ message: '已添加到收藏', duration: 1500 })
         } catch (error) {
-          promptAction.showToast({ message: '已添加到收藏', duration: 1500 })
+          promptAction.openToast({ message: '已添加到收藏', duration: 1500 })
         }
       } else {
         try {
           promptAction.openToast({ message: '该文章已在收藏中', duration: 1500 })
         } catch (error) {
-          promptAction.showToast({ message: '该文章已在收藏中', duration: 1500 })
+          promptAction.openToast({ message: '该文章已在收藏中', duration: 1500 })
         }
       }
     }

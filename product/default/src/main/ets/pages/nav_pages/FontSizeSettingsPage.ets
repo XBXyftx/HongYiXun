@@ -44,7 +44,7 @@ export struct FontSizeSettingsPage {
         duration: 1500
       })
     } catch (error) {
-      promptAction.showToast({
+      promptAction.openToast({
         message: `字体大小已设置为 ${this.tempFontSize}`,
         duration: 1500
       })

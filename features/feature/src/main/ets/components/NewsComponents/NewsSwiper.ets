@@ -30,7 +30,7 @@ export struct NewsSwiper {
             .width('100%')
             .objectFit(ImageFit.Fill)
             .onClick(()=>{
-              promptAction.showToast({message:'跳转原页面功能待开发'})
+              promptAction.openToast({message:'跳转原页面功能待开发'})
             })
             .borderRadius(20)
             .aspectRatio(2.2)

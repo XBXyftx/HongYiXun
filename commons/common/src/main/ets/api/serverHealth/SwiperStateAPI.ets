@@ -35,7 +35,7 @@ export class NewsSwiperStateAPI {
         logger.warn(`${LOG_TAG.SWIPER_STATE_API}轮播图尚未准备完毕`)
         return false
       } else if (res.cache_status.status === CACHE_STATUS.error) {
-        promptAction.showToast({ message: `轮播图服务内部出现异常${res.cache_status.error_message}` })
+        promptAction.openToast({ message: `轮播图服务内部出现异常${res.cache_status.error_message}` })
         logger.error(`${LOG_TAG.SWIPER_STATE_API}轮播图服务内部出现异常${res.cache_status.error_message}`)
         return false
       } else if (res.cache_status.status === CACHE_STATUS.ready) {

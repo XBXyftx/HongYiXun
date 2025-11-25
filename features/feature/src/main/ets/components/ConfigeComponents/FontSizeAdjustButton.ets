@@ -204,7 +204,7 @@ export struct FontSizeAdjustButton {
       })
     } catch (error) {
       // 兼容旧版本API
-      promptAction.showToast({
+      promptAction.openToast({
         message: `字体大小已调整为 ${this.fontSize}`,
         duration: 1500
       })

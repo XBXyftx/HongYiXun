@@ -45,11 +45,11 @@ axiosInstance.interceptors.response.use((res: AxiosResponse) => {
     return res.data
   }
   logger.error(LOG_TAG.AXIOS_HTTP + 'ReqCode Error' + JSON.stringify(res.data))
-  promptAction.showToast({ message: 'ReqCode Error' + JSON.stringify(res.data)})
+  promptAction.openToast({ message: 'ReqCode Error' + JSON.stringify(res.data)})
   return Promise.reject(res.data)
 }, (err: AxiosError) => {
   logger.error(LOG_TAG.AXIOS_HTTP + 'AxiosReq Error' + err.message + ' URL = ' + err.config?.url)
-  promptAction.showToast({ message: 'AxiosReq Error' + err.message })
+  promptAction.openToast({ message: 'AxiosReq Error' + err.message })
   return Promise.reject(err)
 })
 

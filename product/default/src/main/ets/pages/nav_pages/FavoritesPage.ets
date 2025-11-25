@@ -66,7 +66,7 @@ export struct FavoritesPage {
       try {
         promptAction.openToast({ message: '已取消收藏', duration: 1500 })
       } catch (error) {
-        promptAction.showToast({ message: '已取消收藏', duration: 1500 })
+        promptAction.openToast({ message: '已取消收藏', duration: 1500 })
       }
     }
   }
@@ -81,7 +81,7 @@ export struct FavoritesPage {
       try {
         promptAction.openToast({ message: '已清空所有收藏', duration: 1500 })
       } catch (error) {
-        promptAction.showToast({ message: '已清空所有收藏', duration: 1500 })
+        promptAction.openToast({ message: '已清空所有收藏', duration: 1500 })
       }
     }
   }
