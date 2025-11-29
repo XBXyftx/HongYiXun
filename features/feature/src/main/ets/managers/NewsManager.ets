@@ -543,11 +543,11 @@ export class NewsManager {
       const startTime = Date.now()
       
       // 筛选出已开发的栏目
-      const developedCategories = NEWS_CATEGORIES.filter(cat => cat.isDeveloped)
+      const developedCategories = NEWS_CATEGORIES.filter((cat: NewsCategoryInfo): boolean => cat.isDeveloped)
       logger.info(`${LOG_TAG.NEWS_MANAGER}[快速刷新] 需要刷新 ${developedCategories.length} 个栏目`)
 
       // 创建并发加载任务数组
-      const loadTasks = developedCategories.map(async (category: NewsCategoryInfo) => {
+      const loadTasks = developedCategories.map(async (category: NewsCategoryInfo): Promise<CategoryLoadResult> => {
         try {
           logger.debug(`${LOG_TAG.NEWS_MANAGER}[快速刷新] 开始加载【${category.displayName}】前20条`)
           
@@ -575,7 +575,7 @@ export class NewsManager {
 
             // 按日期倒序排序
             const mergedArticles = Array.from(articleMap.values())
-              .sort((a, b) => b.date.localeCompare(a.date))
+              .sort((a: NewsArticle, b: NewsArticle): number => b.date.localeCompare(a.date))
 
             // 写入数据库
             await this.appKVDb!.put(category.dbKey, JSON.stringify(mergedArticles))
@@ -605,8 +605,8 @@ export class NewsManager {
       const categoryResults = results.slice(0, -1) as CategoryLoadResult[]
       const swiperSuccess = results[results.length - 1] as boolean
       
-      const successCount = categoryResults.filter(r => r.success).length
-      const totalArticles = categoryResults.reduce((sum, r) => sum + r.count, 0)
+      const successCount = categoryResults.filter((r: CategoryLoadResult): boolean => r.success).length
+      const totalArticles = categoryResults.reduce((sum: number, r: CategoryLoadResult): number => sum + r.count, 0)
       
       const endTime = Date.now()
       const duration = endTime - startTime
@@ -675,7 +675,7 @@ export class NewsManager {
 
     try {
       const startTime = Date.now()
-      const developedCategories = NEWS_CATEGORIES.filter(cat => cat.isDeveloped)
+      const developedCategories = NEWS_CATEGORIES.filter((cat: NewsCategoryInfo): boolean => cat.isDeveloped)
       const totalCategories = developedCategories.length
       let updatedCount = 0
 
@@ -692,7 +692,7 @@ export class NewsManager {
 
           if (allNews && allNews.length > 0) {
             // 按日期倒序排序
-            const sortedNews = allNews.sort((a, b) => b.date.localeCompare(a.date))
+            const sortedNews = allNews.sort((a: NewsArticle, b: NewsArticle): number => b.date.localeCompare(a.date))
             
             // 直接覆盖存储（已经是最新完整数据）
             await this.appKVDb.put(category.dbKey, JSON.stringify(sortedNews))
