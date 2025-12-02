@@ -27,6 +27,7 @@ import {
   ModelSelector,
   ChatInput,
   MessageList,
+  ConversationHistoryList,
   chatManager
 } from 'ai_feature'
 
@@ -47,6 +48,8 @@ export struct AITabContent {
   @Local private showModelSelector: boolean = true
   /** 是否已初始化 */
   @Local private isInitialized: boolean = false
+  /** 是否显示历史记录面板 */
+  @Local private showHistorySheet: boolean = false
 
   aboutToAppear(): void {
     this.initPage()
@@ -143,8 +146,79 @@ export struct AITabContent {
    * 处理查看历史记录
    */
   private handleViewHistory(): void {
-    // TODO: 跳转到历史记录页面
-    promptAction.openToast({ message: '历史记录功能开发中...' })
+    this.showHistorySheet = true
+  }
+
+  /**
+   * 处理选择历史会话
+   */
+  private async handleSelectConversation(conversationId: string): Promise<void> {
+    const success = await chatManager.loadConversation(conversationId)
+    if (success) {
+      this.showHistorySheet = false
+      this.showModelSelector = false
+      promptAction.openToast({ message: '已加载历史对话' })
+    } else {
+      promptAction.openToast({ message: '加载失败，请重试' })
+    }
+  }
+
+  /**
+   * 处理删除历史会话
+   */
+  private async handleDeleteConversation(conversationId: string): Promise<void> {
+    const success = await chatManager.deleteConversation(conversationId)
+    if (success) {
+      promptAction.openToast({ message: '已删除' })
+    } else {
+      promptAction.openToast({ message: '删除失败' })
+    }
+  }
+
+  /**
+   * 历史记录面板内容
+   */
+  @Builder
+  historySheetBuilder() {
+    Column() {
+      // 标题栏
+      Row() {
+        Text('历史对话')
+          .fontSize(18)
+          .fontWeight(FontWeight.Medium)
+          .fontColor($r('app.color.text_primary'))
+        
+        Blank()
+        
+        Button() {
+          Image($rawfile('close.svg'))
+            .width(20)
+            .height(20)
+            .fillColor($r('app.color.text_secondary'))
+        }
+        .width(36)
+        .height(36)
+        .backgroundColor(Color.Transparent)
+        .onClick(() => {
+          this.showHistorySheet = false
+        })
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 16, bottom: 12 })
+
+      // 历史记录列表
+      ConversationHistoryList({
+        onSelectConversation: (conversationId: string) => {
+          this.handleSelectConversation(conversationId)
+        },
+        onDeleteConversation: (conversationId: string) => {
+          this.handleDeleteConversation(conversationId)
+        }
+      })
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor($r('app.color.page_background'))
   }
 
   build() {
@@ -249,5 +323,14 @@ export struct AITabContent {
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
     .expandSafeArea()
+    .bindSheet(this.showHistorySheet, this.historySheetBuilder(), {
+      height: SheetSize.MEDIUM,
+      dragBar: true,
+      showClose: false,
+      backgroundColor: $r('app.color.page_background'),
+      onDisappear: () => {
+        this.showHistorySheet = false
+      }
+    })
   }
 }

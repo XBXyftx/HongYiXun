@@ -29,9 +29,9 @@ import {
 @ComponentV2
 export struct ConversationHistoryList {
   /** 选择会话回调 */
-  onSelectConversation: (conversationId: string) => void = () => {}
+  @Param onSelectConversation: (conversationId: string) => void = () => {}
   /** 删除会话回调 */
-  onDeleteConversation: (conversationId: string) => void = () => {}
+  @Param onDeleteConversation: (conversationId: string) => void = () => {}
   
   @Local private conversationList: ConversationHistoryListModel = new ConversationHistoryListModel()
 

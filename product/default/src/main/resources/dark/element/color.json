@@ -149,6 +149,10 @@
       "value": "#1A2A4A"
     },
     {
+      "name": "brand_shadow",
+      "value": "#4000FFFF"
+    },
+    {
       "name": "ai_bubble_background",
       "value": "#2A2A2A"
     },

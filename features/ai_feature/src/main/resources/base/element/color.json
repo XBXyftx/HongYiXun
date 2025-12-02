@@ -9,6 +9,10 @@
       "value": "#E8EAFF"
     },
     {
+      "name": "brand_shadow",
+      "value": "#403042FF"
+    },
+    {
       "name": "text_primary",
       "value": "#FF000000"
     },
