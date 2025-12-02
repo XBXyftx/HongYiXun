@@ -16,8 +16,6 @@
 import { AppStorageV2 } from '@kit.ArkUI'
 import {
   AIModelType,
-  AI_STORAGE_KEYS,
-  CurrentModelTypeState,
   AI_LOG_TAG,
   aiLogger
 } from 'ai_common'
@@ -33,8 +31,6 @@ import { AIChatPageParam } from '../nav_pages/AIChatPage'
 export struct AITabContent {
   /** 导航栈 */
   @Local private navPathStuck: NavPathStack = new NavPathStack()
-  /** 当前模型类型状态 */
-  @Local private modelState: CurrentModelTypeState = new CurrentModelTypeState()
 
   aboutToAppear(): void {
     // 连接导航栈
@@ -46,16 +42,6 @@ export struct AITabContent {
     if (navStack) {
       this.navPathStuck = navStack
     }
-
-    // 连接模型状态
-    const modelState = AppStorageV2.connect(
-      CurrentModelTypeState,
-      AI_STORAGE_KEYS.CURRENT_MODEL_TYPE,
-      () => new CurrentModelTypeState()
-    )
-    if (modelState) {
-      this.modelState = modelState
-    }
   }
 
 
@@ -65,10 +51,8 @@ export struct AITabContent {
   private handleModelSelected(modelType: AIModelType): void {
     aiLogger.info(`${AI_LOG_TAG.AI_PAGE}选择模型并导航: ${modelType}`)
     
-    // 更新全局模型状态
-    this.modelState.modelType = modelType
-    
-    // 导航到AI对话页面，使用共享元素转场
+    // 导航到AI对话页面，模型类型通过参数传递
+    // 新会话将在AIChatPage的onReady中创建
     const param: AIChatPageParam = { modelType: modelType }
     this.navPathStuck.pushPath({
       name: NAV_DESTS.AI_CHAT,

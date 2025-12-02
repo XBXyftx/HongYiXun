@@ -68,6 +68,12 @@ export struct AIChatPage {
     this.initKeyboardListener()
   }
 
+  aboutToDisappear(): void {
+    // 页面离开时重置所有状态
+    chatManager.resetAllStates()
+    aiLogger.info(`${AI_LOG_TAG.AI_PAGE}AI对话页面离开，已重置状态`)
+  }
+
 
   /**
    * 初始化键盘监听
@@ -140,8 +146,7 @@ export struct AIChatPage {
       this.errorState = errorState
     }
 
-    // 创建新会话
-    chatManager.createNewConversation()
+    // 注意：新会话在onReady中创建，因为需要获取传入的模型类型参数
     
     this.isInitialized = true
     aiLogger.info(`${AI_LOG_TAG.AI_PAGE}AI对话页面初始化完成`)
@@ -175,7 +180,8 @@ export struct AIChatPage {
    * 处理新建对话
    */
   private handleNewConversation(): void {
-    chatManager.createNewConversation()
+    // 保持当前模型类型创建新会话
+    chatManager.createNewConversation(this.modelState.modelType)
     promptAction.openToast({ message: '已创建新对话' })
   }
 
@@ -408,10 +414,12 @@ export struct AIChatPage {
     }
     .hideTitleBar(true)
     .onReady((context: NavDestinationContext) => {
-      // 获取传入的模型类型参数
+      // 获取传入的模型类型参数并创建新会话
       const param = context.pathInfo.param as AIChatPageParam
       if (param && param.modelType) {
-        this.modelState.modelType = param.modelType
+        // 创建新会话，传入模型类型
+        chatManager.createNewConversation(param.modelType)
+        aiLogger.info(`${AI_LOG_TAG.AI_PAGE}创建新会话，模型类型: ${param.modelType}`)
       }
     })
     .bindSheet(this.showHistorySheet, this.historySheetBuilder(), {

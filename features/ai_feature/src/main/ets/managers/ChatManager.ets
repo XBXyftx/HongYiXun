@@ -94,12 +94,12 @@ export class ChatManager {
   }
 
   /**
-   * 创建新会话
+   * 重置所有状态
+   * 在创建新会话或加载历史会话前调用
    */
-  createNewConversation(modelType: AIModelType = AIModelType.NOT_SELECTED): string {
-    const conversationId: string = generateConversationId()
-    this.currentConversationId = conversationId
-    this.hasSubstantialContent = false
+  resetAllStates(): void {
+    // 取消当前正在进行的请求
+    cozeAPI.cancelRequest()
 
     // 重置消息列表
     const messageList = AppStorageV2.connect(
@@ -122,6 +122,33 @@ export class ChatManager {
       currentMsg.hasEnd = true
     }
 
+    // 重置等待状态
+    const waitingState = AppStorageV2.connect(
+      WaitingResponseState,
+      AI_STORAGE_KEYS.IS_WAITING_RESPONSE,
+      () => new WaitingResponseState()
+    )
+    if (waitingState !== undefined) {
+      waitingState.isWaiting = false
+    }
+
+    // 重置缓冲区
+    typeStringBuffer.reset()
+
+    aiLogger.info(`${AI_LOG_TAG.CHAT_MANAGER}已重置所有状态`)
+  }
+
+  /**
+   * 创建新会话
+   */
+  createNewConversation(modelType: AIModelType = AIModelType.NOT_SELECTED): string {
+    // 先重置所有状态
+    this.resetAllStates()
+
+    const conversationId: string = generateConversationId()
+    this.currentConversationId = conversationId
+    this.hasSubstantialContent = false
+
     // 设置模型类型
     const modelState = AppStorageV2.connect(
       CurrentModelTypeState,
@@ -132,10 +159,7 @@ export class ChatManager {
       modelState.modelType = modelType
     }
 
-    // 重置缓冲区
-    typeStringBuffer.reset()
-
-    aiLogger.info(`${AI_LOG_TAG.CHAT_MANAGER}创建新会话: ${conversationId}`)
+    aiLogger.info(`${AI_LOG_TAG.CHAT_MANAGER}创建新会话: ${conversationId}, 模型: ${modelType}`)
     return conversationId
   }
 
@@ -377,6 +401,9 @@ export class ChatManager {
       return false
     }
 
+    // 先重置所有状态，取消当前请求
+    this.resetAllStates()
+
     try {
       const messagesKey: string = `${AI_KV_DB_KEYS.CONVERSATION_PREFIX}${conversationId}`
       const data: string = await this.kvStore.get(messagesKey) as string
@@ -389,7 +416,6 @@ export class ChatManager {
       )
 
       if (messageList !== undefined) {
-        messageList.clear()
         for (let i = 0; i < messages.length; i++) {
           const msg = messages[i]
           const viewMsg = new ViewMessageModel(msg.role, msg.content)
