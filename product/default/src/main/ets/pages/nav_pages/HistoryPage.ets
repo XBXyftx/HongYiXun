@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { DEVICE_TYPES, logger, LOG_TAG, NAV_DESTS, APP_STORAGE_KEYS, HistoryUpdateTrigger } from "common"
+import { DEVICE_TYPES, logger, LOG_TAG, NAV_DESTS, APP_STORAGE_KEYS, HistoryUpdateTrigger, HistoryItem } from "common"
 import { deviceInfo } from "@kit.BasicServicesKit"
-import { historyManager, HistoryItem } from "feature"
+import { historyManager } from "feature"
 import { AppStorageV2, promptAction } from "@kit.ArkUI"
 
 @ComponentV2
@@ -120,7 +120,7 @@ export struct HistoryPage {
           .fontColor($r('app.color.text_primary'))
         
         Row() {
-          Text(item.article.source)
+          Text(item.article.source ?? '')
             .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16)
             .fontColor($r('app.color.text_secondary'))
             .maxLines(1)

@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { DEVICE_TYPES, NAV_DESTS, APP_STORAGE_KEYS, FavoriteUpdateTrigger, logger, LOG_TAG } from "common"
+import { DEVICE_TYPES, NAV_DESTS, APP_STORAGE_KEYS, FavoriteUpdateTrigger, logger, LOG_TAG, FavoriteItem } from "common"
 import { deviceInfo } from "@kit.BasicServicesKit"
 import { AppStorageV2, promptAction } from "@kit.ArkUI"
-import { favoriteManager, FavoriteItem } from "feature"
+import { favoriteManager } from "feature"
 
 @ComponentV2
 export struct FavoritesPage {
@@ -117,7 +117,7 @@ export struct FavoritesPage {
           .fontColor($r('app.color.text_primary'))
         
         Row() {
-          Text(item.article.source)
+          Text(item.article.source ?? '')
             .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16)
             .fontColor($r('app.color.text_secondary'))
             .maxLines(1)
