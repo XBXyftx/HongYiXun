@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { AppStorageV2, promptAction } from '@kit.ArkUI'
+import { AppStorageV2, promptAction, window } from '@kit.ArkUI'
 import {
   AIModelType,
   AI_STORAGE_KEYS,
@@ -50,9 +50,34 @@ export struct AITabContent {
   @Local private isInitialized: boolean = false
   /** 是否显示历史记录面板 */
   @Local private showHistorySheet: boolean = false
+  /** 键盘高度 */
+  @Local private keyboardHeight: number = 0
 
   aboutToAppear(): void {
     this.initPage()
+    this.initKeyboardListener()
+  }
+
+  /**
+   * 初始化键盘监听
+   */
+  private initKeyboardListener(): void {
+    const context = this.getUIContext().getHostContext()
+    if (context === undefined) {
+      return
+    }
+    
+    window.getLastWindow(context).then((currentWindow: window.Window) => {
+      // 监听软键盘显示隐藏
+      currentWindow.on('avoidAreaChange', (data: window.AvoidAreaOptions) => {
+        if (data.type === window.AvoidAreaType.TYPE_KEYBOARD) {
+          this.keyboardHeight = px2vp(data.area.bottomRect.height)
+          aiLogger.info(`${AI_LOG_TAG.AI_PAGE}键盘高度变化: ${this.keyboardHeight}`)
+        }
+      })
+    }).catch((err: Error) => {
+      aiLogger.error(`${AI_LOG_TAG.AI_PAGE}初始化键盘监听失败: ${err.message}`)
+    })
   }
 
   /**
@@ -311,12 +336,20 @@ export struct AITabContent {
         })
       }
 
-      // 输入框
-      ChatInput({
-        onSendCallback: (message: string) => {
-          this.handleSendMessage(message)
-        },
-        disabled: !this.isInitialized
+      // 输入框容器，用于键盘规避
+      Column() {
+        ChatInput({
+          onSendCallback: (message: string) => {
+            this.handleSendMessage(message)
+          },
+          disabled: !this.isInitialized
+        })
+      }
+      .width('100%')
+      .margin({ bottom: this.keyboardHeight })
+      .animation({
+        duration: 200,
+        curve: Curve.EaseOut
       })
     }
     .width('100%')
