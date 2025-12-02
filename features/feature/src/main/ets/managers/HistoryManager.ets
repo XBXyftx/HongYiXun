@@ -67,7 +67,7 @@ export class HistoryManager {
       const historyList = await this.getHistoryList()
       
       // 检查是否已存在该文章（根据 id 去重）
-      const existingIndex = historyList.findIndex(item => item.article.id === article.id)
+      const existingIndex = historyList.findIndex((item: HistoryItem): boolean => item.article.id === article.id)
       
       // 创建新的历史记录项
       const now = new Date()
@@ -152,7 +152,7 @@ export class HistoryManager {
 
     try {
       const historyList = await this.getHistoryList()
-      const filteredList = historyList.filter(item => item.article.id !== articleId)
+      const filteredList = historyList.filter((item: HistoryItem): boolean => item.article.id !== articleId)
       
       if (filteredList.length === historyList.length) {
         logger.warn(`${LOG_TAG.HISTORY_MANAGER}未找到要删除的历史记录: ${articleId}`)

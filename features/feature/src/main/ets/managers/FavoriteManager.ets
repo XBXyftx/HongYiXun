@@ -54,7 +54,7 @@ class FavoriteManager {
       let favoriteList: FavoriteItem[] = await this.getFavoriteList()
 
       // 检查是否已收藏
-      const existIndex = favoriteList.findIndex(item => item.article.id === article.id)
+      const existIndex = favoriteList.findIndex((item: FavoriteItem): boolean => item.article.id === article.id)
       if (existIndex !== -1) {
         logger.info(`${LOG_TAG.FAVORITE_MANAGER}文章已在收藏列表中: ${article.title}`)
         return false
@@ -98,7 +98,7 @@ class FavoriteManager {
 
     try {
       let favoriteList: FavoriteItem[] = await this.getFavoriteList()
-      const newList = favoriteList.filter(item => item.article.id !== articleId)
+      const newList = favoriteList.filter((item: FavoriteItem): boolean => item.article.id !== articleId)
 
       if (newList.length === favoriteList.length) {
         logger.warn(`${LOG_TAG.FAVORITE_MANAGER}未找到要删除的收藏: ${articleId}`)
@@ -129,7 +129,7 @@ class FavoriteManager {
 
     try {
       const favoriteList: FavoriteItem[] = await this.getFavoriteList()
-      return favoriteList.some(item => item.article.id === articleId)
+      return favoriteList.some((item: FavoriteItem): boolean => item.article.id === articleId)
     } catch (error) {
       logger.error(`${LOG_TAG.FAVORITE_MANAGER}检查收藏状态失败: ${JSON.stringify(error)}`)
       return false
