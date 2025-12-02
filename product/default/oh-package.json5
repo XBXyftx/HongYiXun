@@ -21,6 +21,8 @@
   "license": "",
   "dependencies": {
     "common": "file:../../commons/common",
-    "feature": "file:../../features/feature"
+    "feature": "file:../../features/feature",
+    "ai_common": "file:../../commons/ai_common",
+    "ai_feature": "file:../../features/ai_feature"
   }
 }
