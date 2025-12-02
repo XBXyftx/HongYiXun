@@ -159,6 +159,14 @@
     {
       "name": "warning_light",
       "value": "#FFF8E6"
+    },
+    {
+      "name": "error",
+      "value": "#FF4D4F"
+    },
+    {
+      "name": "error_light",
+      "value": "#FFF2F0"
     }
   ]
 }

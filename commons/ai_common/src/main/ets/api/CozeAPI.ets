@@ -30,7 +30,8 @@ import {
   ICozeStreamDeltaData,
   ViewMessageModel,
   MessageHistoryList,
-  WaitingResponseState
+  WaitingResponseState,
+  AIErrorState
 } from '../modules/models'
 import { typeStringBuffer } from '../utils/TypeStringBuffer'
 import { aiLogger } from '../utils/AILogger'
@@ -169,6 +170,7 @@ export class CozeAPIService {
       await this.session.post(CozeApiConfig.WORKFLOW_CHAT_URL, requestBody)
         .catch((err: BusinessError) => {
           aiLogger.error(`${AI_LOG_TAG.COZE_API}请求失败: ${err.message}`)
+          this.setErrorState(`网络请求失败: ${err.message}`)
         })
         .finally(() => {
           this.handleRequestComplete(currentMsg, messageList)
@@ -178,6 +180,7 @@ export class CozeAPIService {
     } catch (error) {
       const err = error as BusinessError
       aiLogger.error(`${AI_LOG_TAG.COZE_API}发送请求异常: ${err.message}`)
+      this.setErrorState(`发送请求异常: ${err.message}`)
       return false
     }
   }
@@ -225,6 +228,20 @@ export class CozeAPIService {
       this.session.close()
       this.session = null
       aiLogger.info(`${AI_LOG_TAG.COZE_API}请求已取消`)
+    }
+  }
+
+  /**
+   * 设置错误状态
+   */
+  private setErrorState(message: string): void {
+    const errorState = AppStorageV2.connect(
+      AIErrorState,
+      AI_STORAGE_KEYS.ERROR_STATE,
+      () => new AIErrorState()
+    )
+    if (errorState !== undefined) {
+      errorState.setError(message)
     }
   }
 }

@@ -254,6 +254,37 @@ export class WaitingResponseState {
 }
 
 /**
+ * 错误状态模型
+ */
+@ObservedV2
+export class AIErrorState {
+  /** 是否有错误 */
+  @Trace hasError: boolean = false
+  /** 错误消息 */
+  @Trace errorMessage: string = ''
+  /** 错误时间戳 */
+  @Trace timestamp: number = 0
+
+  /**
+   * 设置错误
+   */
+  setError(message: string): void {
+    this.hasError = true
+    this.errorMessage = message
+    this.timestamp = Date.now()
+  }
+
+  /**
+   * 清除错误
+   */
+  clearError(): void {
+    this.hasError = false
+    this.errorMessage = ''
+    this.timestamp = 0
+  }
+}
+
+/**
  * 模型选项卡参数接口
  */
 export interface IModelOptionParams {

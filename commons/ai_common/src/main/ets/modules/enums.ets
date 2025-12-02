@@ -78,7 +78,9 @@ export enum AI_STORAGE_KEYS {
   /** 是否正在等待AI响应 */
   IS_WAITING_RESPONSE = 'ai_is_waiting_response',
   /** 会话历史记录列表 */
-  CONVERSATION_HISTORY_LIST = 'ai_conversation_history_list'
+  CONVERSATION_HISTORY_LIST = 'ai_conversation_history_list',
+  /** 错误状态 */
+  ERROR_STATE = 'ai_error_state'
 }
 
 /**

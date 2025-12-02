@@ -13,78 +13,41 @@
  * limitations under the License.
  */
 
-import { AppStorageV2, promptAction, window } from '@kit.ArkUI'
+import { AppStorageV2 } from '@kit.ArkUI'
 import {
   AIModelType,
   AI_STORAGE_KEYS,
   CurrentModelTypeState,
-  MessageHistoryList,
-  WaitingResponseState,
   AI_LOG_TAG,
   aiLogger
 } from 'ai_common'
-import {
-  ModelSelector,
-  ChatInput,
-  MessageList,
-  ConversationHistoryList,
-  chatManager
-} from 'ai_feature'
+import { APP_STORAGE_KEYS, NAV_DESTS } from 'common'
+import { AIChatPageParam } from '../nav_pages/AIChatPage'
 
 /**
- * AI对话页面
+ * AI Tab入口页面
  * 
- * 包含模型选择、消息列表、输入框等功能
+ * 显示模型选择器，点击后导航到AI对话页面
  */
 @ComponentV2
 export struct AITabContent {
+  /** 导航栈 */
+  @Local private navPathStuck: NavPathStack = new NavPathStack()
   /** 当前模型类型状态 */
   @Local private modelState: CurrentModelTypeState = new CurrentModelTypeState()
-  /** 消息列表 */
-  @Local private messageList: MessageHistoryList = new MessageHistoryList()
-  /** 等待响应状态 */
-  @Local private waitingState: WaitingResponseState = new WaitingResponseState()
-  /** 是否显示模型选择器 */
-  @Local private showModelSelector: boolean = true
-  /** 是否已初始化 */
-  @Local private isInitialized: boolean = false
-  /** 是否显示历史记录面板 */
-  @Local private showHistorySheet: boolean = false
-  /** 键盘高度 */
-  @Local private keyboardHeight: number = 0
 
   aboutToAppear(): void {
-    this.initPage()
-    this.initKeyboardListener()
-  }
-
-  /**
-   * 初始化键盘监听
-   */
-  private initKeyboardListener(): void {
-    const context = this.getUIContext().getHostContext()
-    if (context === undefined) {
-      return
+    // 连接导航栈
+    const navStack = AppStorageV2.connect(
+      NavPathStack,
+      APP_STORAGE_KEYS.NAV_PATH_STUCK,
+      () => new NavPathStack()
+    )
+    if (navStack) {
+      this.navPathStuck = navStack
     }
-    
-    window.getLastWindow(context).then((currentWindow: window.Window) => {
-      // 监听软键盘显示隐藏
-      currentWindow.on('avoidAreaChange', (data: window.AvoidAreaOptions) => {
-        if (data.type === window.AvoidAreaType.TYPE_KEYBOARD) {
-          this.keyboardHeight = px2vp(data.area.bottomRect.height)
-          aiLogger.info(`${AI_LOG_TAG.AI_PAGE}键盘高度变化: ${this.keyboardHeight}`)
-        }
-      })
-    }).catch((err: Error) => {
-      aiLogger.error(`${AI_LOG_TAG.AI_PAGE}初始化键盘监听失败: ${err.message}`)
-    })
-  }
 
-  /**
-   * 初始化页面
-   */
-  private async initPage(): Promise<void> {
-    // 连接全局状态
+    // 连接模型状态
     const modelState = AppStorageV2.connect(
       CurrentModelTypeState,
       AI_STORAGE_KEYS.CURRENT_MODEL_TYPE,
@@ -93,277 +56,139 @@ export struct AITabContent {
     if (modelState) {
       this.modelState = modelState
     }
-
-    const messageList = AppStorageV2.connect(
-      MessageHistoryList,
-      AI_STORAGE_KEYS.CURRENT_MESSAGE_LIST,
-      () => new MessageHistoryList()
-    )
-    if (messageList) {
-      this.messageList = messageList
-    }
-
-    const waitingState = AppStorageV2.connect(
-      WaitingResponseState,
-      AI_STORAGE_KEYS.IS_WAITING_RESPONSE,
-      () => new WaitingResponseState()
-    )
-    if (waitingState) {
-      this.waitingState = waitingState
-    }
-
-    // 创建新会话
-    chatManager.createNewConversation()
-    
-    this.isInitialized = true
-    aiLogger.info(`${AI_LOG_TAG.AI_PAGE}页面初始化完成`)
   }
 
+
   /**
-   * 处理模型选择
+   * 处理模型选择并导航到对话页面
    */
   private handleModelSelected(modelType: AIModelType): void {
-    aiLogger.info(`${AI_LOG_TAG.AI_PAGE}选择模型: ${modelType}`)
-    // 模型选择后不立即隐藏选择器，等待第一次发送消息
-  }
-
-  /**
-   * 处理发送消息
-   */
-  private async handleSendMessage(message: string): Promise<void> {
-    if (this.modelState.modelType === AIModelType.NOT_SELECTED) {
-      promptAction.openToast({ message: '请先选择对话模式' })
-      return
-    }
-
-    // 隐藏模型选择器
-    if (this.showModelSelector) {
-      this.showModelSelector = false
-    }
-
-    // 深度思考模式提示
-    if (this.modelState.modelType === AIModelType.DEEP_THINKING) {
-      promptAction.openToast({ 
-        message: '深度思考模式，回答生成可能需要较长时间，请耐心等待...',
-        duration: 3000
-      })
-    }
-
-    aiLogger.info(`${AI_LOG_TAG.AI_PAGE}发送消息: ${message.substring(0, 30)}...`)
+    aiLogger.info(`${AI_LOG_TAG.AI_PAGE}选择模型并导航: ${modelType}`)
     
-    const success = await chatManager.sendMessage(message)
-    if (!success) {
-      promptAction.openToast({ message: '发送失败，请重试' })
-    }
+    // 更新全局模型状态
+    this.modelState.modelType = modelType
+    
+    // 导航到AI对话页面，使用共享元素转场
+    const param: AIChatPageParam = { modelType: modelType }
+    this.navPathStuck.pushPath({
+      name: NAV_DESTS.AI_CHAT,
+      param: param
+    }, {
+      animated: true
+    })
   }
 
   /**
-   * 处理新建对话
-   */
-  private handleNewConversation(): void {
-    chatManager.createNewConversation()
-    this.showModelSelector = true
-    promptAction.openToast({ message: '已创建新对话' })
-    aiLogger.info(`${AI_LOG_TAG.AI_PAGE}创建新对话`)
-  }
-
-  /**
-   * 处理查看历史记录
-   */
-  private handleViewHistory(): void {
-    this.showHistorySheet = true
-  }
-
-  /**
-   * 处理选择历史会话
-   */
-  private async handleSelectConversation(conversationId: string): Promise<void> {
-    const success = await chatManager.loadConversation(conversationId)
-    if (success) {
-      this.showHistorySheet = false
-      this.showModelSelector = false
-      promptAction.openToast({ message: '已加载历史对话' })
-    } else {
-      promptAction.openToast({ message: '加载失败，请重试' })
-    }
-  }
-
-  /**
-   * 处理删除历史会话
-   */
-  private async handleDeleteConversation(conversationId: string): Promise<void> {
-    const success = await chatManager.deleteConversation(conversationId)
-    if (success) {
-      promptAction.openToast({ message: '已删除' })
-    } else {
-      promptAction.openToast({ message: '删除失败' })
-    }
-  }
-
-  /**
-   * 历史记录面板内容
+   * 模型选项卡构建器
    */
   @Builder
-  historySheetBuilder() {
-    Column() {
-      // 标题栏
-      Row() {
-        Text('历史对话')
+  modelOptionBuilder(
+    title: string,
+    description: string,
+    iconName: string,
+    modelType: AIModelType,
+    sharedId: string
+  ) {
+    Row() {
+      Image($rawfile(iconName))
+        .width(56)
+        .height(56)
+        .objectFit(ImageFit.Contain)
+        .margin({ right: 16 })
+
+      Column() {
+        Text(title)
           .fontSize(18)
           .fontWeight(FontWeight.Medium)
           .fontColor($r('app.color.text_primary'))
         
-        Blank()
-        
-        Button() {
-          Image($rawfile('close.svg'))
-            .width(20)
-            .height(20)
-            .fillColor($r('app.color.text_secondary'))
-        }
-        .width(36)
-        .height(36)
-        .backgroundColor(Color.Transparent)
-        .onClick(() => {
-          this.showHistorySheet = false
-        })
+        Text(description)
+          .fontSize(14)
+          .fontColor($r('app.color.text_secondary'))
+          .margin({ top: 4 })
       }
-      .width('100%')
-      .padding({ left: 16, right: 16, top: 16, bottom: 12 })
+      .alignItems(HorizontalAlign.Start)
+      .layoutWeight(1)
 
-      // 历史记录列表
-      ConversationHistoryList({
-        onSelectConversation: (conversationId: string) => {
-          this.handleSelectConversation(conversationId)
-        },
-        onDeleteConversation: (conversationId: string) => {
-          this.handleDeleteConversation(conversationId)
-        }
-      })
+      Image($rawfile('arrow_right.svg'))
+        .width(20)
+        .height(20)
+        .fillColor($r('app.color.text_secondary'))
     }
     .width('100%')
-    .height('100%')
-    .backgroundColor($r('app.color.page_background'))
+    .padding(20)
+    .backgroundColor($r('app.color.card_background'))
+    .borderRadius(16)
+    .shadow({
+      radius: 8,
+      color: '#1A000000',
+      offsetX: 0,
+      offsetY: 2
+    })
+    .geometryTransition(sharedId, { follow: true })
+    .onClick(() => {
+      this.handleModelSelected(modelType)
+    })
   }
 
   build() {
     Column() {
-      // 顶部工具栏
+      // 顶部标题
       Row() {
         Text('鸿小易')
-          .fontSize(20)
-          .fontWeight(FontWeight.Medium)
+          .fontSize(24)
+          .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.text_primary'))
-
-        Blank()
-
-        // 新建对话按钮
-        Button() {
-          Image($rawfile('new_chat.svg'))
-            .width(20)
-            .height(20)
-            .fillColor($r('app.color.text_secondary'))
-        }
-        .width(36)
-        .height(36)
-        .backgroundColor(Color.Transparent)
-        .onClick(() => {
-          this.handleNewConversation()
-        })
-
-        // 历史记录按钮
-        Button() {
-          Image($rawfile('history.svg'))
-            .width(20)
-            .height(20)
-            .fillColor($r('app.color.text_secondary'))
-        }
-        .width(36)
-        .height(36)
-        .backgroundColor(Color.Transparent)
-        .margin({ left: 8 })
-        .onClick(() => {
-          this.handleViewHistory()
-        })
       }
       .width('100%')
-      .height(56)
-      .padding({ left: 16, right: 16 })
-      .backgroundColor($r('app.color.card_background'))
+      .height(60)
+      .padding({ left: 20, right: 20 })
+      .justifyContent(FlexAlign.Start)
+      .alignItems(VerticalAlign.Center)
 
-      // 主内容区域
-      if (this.showModelSelector && this.messageList.length === 0) {
-        // 显示模型选择器
-        Column() {
-          Blank()
-          
-          ModelSelector({
-            onModelSelectedCallback: (modelType: AIModelType) => {
-              this.handleModelSelected(modelType)
-            }
-          })
-          
-          Blank()
-        }
-        .width('100%')
-        .layoutWeight(1)
-        .justifyContent(FlexAlign.Center)
-      } else {
-        // 显示消息列表
-        MessageList()
-      }
-
-      // 深度思考模式等待提示
-      if (this.waitingState.isWaiting && this.modelState.modelType === AIModelType.DEEP_THINKING) {
-        Row() {
-          LoadingProgress()
-            .width(20)
-            .height(20)
-            .color($r('app.color.brand'))
-          
-          Text('深度思考中，请耐心等待...')
-            .fontSize(14)
-            .fontColor($r('app.color.text_secondary'))
-            .margin({ left: 8 })
-        }
-        .width('100%')
-        .padding({ left: 16, right: 16, top: 8, bottom: 8 })
-        .backgroundColor($r('app.color.warning_light'))
-        .animation({
-          duration: 500,
-          iterations: -1,
-          playMode: PlayMode.Alternate
-        })
-      }
-
-      // 输入框容器，用于键盘规避
+      // 欢迎语
       Column() {
-        ChatInput({
-          onSendCallback: (message: string) => {
-            this.handleSendMessage(message)
-          },
-          disabled: !this.isInitialized
-        })
+        Text('你好，我是鸿小易')
+          .fontSize(28)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
+        
+        Text('选择一种对话模式开始聊天')
+          .fontSize(16)
+          .fontColor($r('app.color.text_secondary'))
+          .margin({ top: 8 })
       }
       .width('100%')
-      .margin({ bottom: this.keyboardHeight })
-      .animation({
-        duration: 200,
-        curve: Curve.EaseOut
-      })
+      .padding({ left: 20, right: 20, top: 40, bottom: 40 })
+      .alignItems(HorizontalAlign.Start)
+
+      // 模型选择卡片
+      Column({ space: 16 }) {
+        // 快速回答
+        this.modelOptionBuilder(
+          '快速回答',
+          '响应迅速，适合简单问题',
+          'ai_quick.svg',
+          AIModelType.QUICK_ANSWER,
+          'ai_chat_quick'
+        )
+
+        // 深度思考
+        this.modelOptionBuilder(
+          '深度思考',
+          '深度搜索分析，适合复杂问题',
+          'ai_deep.svg',
+          AIModelType.DEEP_THINKING,
+          'ai_chat_deep'
+        )
+      }
+      .width('100%')
+      .padding({ left: 20, right: 20 })
+
+      Blank()
     }
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
-    .expandSafeArea()
-    .bindSheet(this.showHistorySheet, this.historySheetBuilder(), {
-      height: SheetSize.MEDIUM,
-      dragBar: true,
-      showClose: false,
-      backgroundColor: $r('app.color.page_background'),
-      onDisappear: () => {
-        this.showHistorySheet = false
-      }
-    })
   }
 }

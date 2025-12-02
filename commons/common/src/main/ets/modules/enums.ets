@@ -43,7 +43,9 @@ export enum NAV_DESTS {
   /** 颜色模式设置页 - 调整深浅色模式 */
   COLOR_MODE_SETTINGS = 'ColorModeSettings',
   /** 收藏列表页 - 显示用户收藏的新闻 */
-  FAVORITES = 'Favorites'
+  FAVORITES = 'Favorites',
+  /** AI对话页 - AI智能问答对话 */
+  AI_CHAT = 'AIChat'
 }
 
 // ==================== 数据库相关枚举 ====================
