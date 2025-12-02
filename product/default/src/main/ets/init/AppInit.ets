@@ -17,6 +17,7 @@ import {
 } from "common";
 import { common } from "@kit.AbilityKit";
 import { colorModManager, newsManager, userConfigManager } from "feature";
+import { chatManager } from "ai_feature";
 import { AppStorageV2, promptAction } from "@kit.ArkUI";
 import { lvCode, lvText } from "@luvi/lv-markdown-in";
 import { InitStatus } from "common";
@@ -150,16 +151,29 @@ export class AppInit {
       }
       
       // 步骤 3：初始化业务管理器
-      logger.info(`${LOG_TAG.APP_INIT}步骤 3/4：初始化业务管理器...`)
+      logger.info(`${LOG_TAG.APP_INIT}步骤 3/5：初始化业务管理器...`)
       const managersInitSuccess = await this.initManagers(uiAbilityContext)
       if (!managersInitSuccess) {
         logger.error(`${LOG_TAG.APP_INIT}✗ 管理器初始化失败 - 应用可继续运行但新闻功能不可用`)
         // 管理器初始化失败不终止流程，允许应用继续启动
         // return false
       }
+
+      // 步骤 4：初始化AI聊天管理器
+      logger.info(`${LOG_TAG.APP_INIT}步骤 4/5：初始化AI聊天管理器...`)
+      try {
+        const chatManagerInitSuccess = await chatManager.init(uiAbilityContext)
+        if (chatManagerInitSuccess) {
+          logger.info(`${LOG_TAG.APP_INIT}✓ AI聊天管理器初始化成功`)
+        } else {
+          logger.warn(`${LOG_TAG.APP_INIT}⚠ AI聊天管理器初始化失败 - AI对话功能可能不可用`)
+        }
+      } catch (chatError) {
+        logger.warn(`${LOG_TAG.APP_INIT}⚠ AI聊天管理器初始化异常: ${JSON.stringify(chatError)} - AI对话功能可能不可用`)
+      }
       
-      // 步骤 4：预加载数据
-      logger.info(`${LOG_TAG.APP_INIT}步骤 4/4：预加载应用数据...`)
+      // 步骤 5：预加载数据
+      logger.info(`${LOG_TAG.APP_INIT}步骤 5/5：预加载应用数据...`)
       await this.preloadData()
       
       logger.info(`${LOG_TAG.APP_INIT}========== 阶段 1 完成：基础模块初始化成功 ==========`)

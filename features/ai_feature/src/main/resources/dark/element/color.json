@@ -1,0 +1,40 @@
+{
+  "color": [
+    {
+      "name": "brand",
+      "value": "#FF00FFFF"
+    },
+    {
+      "name": "brand_light",
+      "value": "#1A2A4A"
+    },
+    {
+      "name": "text_primary",
+      "value": "#FFFFFFFF"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#99FFFFFF"
+    },
+    {
+      "name": "card_background",
+      "value": "#1A1A1A"
+    },
+    {
+      "name": "input_background",
+      "value": "#2A2A2A"
+    },
+    {
+      "name": "border",
+      "value": "#333333"
+    },
+    {
+      "name": "disabled",
+      "value": "#555555"
+    },
+    {
+      "name": "ai_bubble_background",
+      "value": "#2A2A2A"
+    }
+  ]
+}

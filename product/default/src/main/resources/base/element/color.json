@@ -123,6 +123,38 @@
     {
       "name": "article_info_builder_bg",
       "value": "#FFFFFFFF"
+    },
+    {
+      "name": "input_background",
+      "value": "#F5F5F5"
+    },
+    {
+      "name": "card_background",
+      "value": "#FFFFFFFF"
+    },
+    {
+      "name": "page_background",
+      "value": "#F8F8F8"
+    },
+    {
+      "name": "disabled",
+      "value": "#CCCCCC"
+    },
+    {
+      "name": "border",
+      "value": "#E5E5E5"
+    },
+    {
+      "name": "brand_light",
+      "value": "#E8EAFF"
+    },
+    {
+      "name": "ai_bubble_background",
+      "value": "#F0F0F0"
+    },
+    {
+      "name": "warning_light",
+      "value": "#FFF8E6"
     }
   ]
 }
