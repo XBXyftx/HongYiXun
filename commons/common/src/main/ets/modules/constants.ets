@@ -14,7 +14,8 @@
  */
 
 import { curves } from "@kit.ArkUI";
-import { NAV_DESTS, KV_DB_KEYS, PreferenceEnum, DEVICE_TYPES, APP_STORAGE_KEYS, NEWS_CATEGORY, NewsCategoryInfo } from './enums';
+import { NAV_DESTS, KV_DB_KEYS, PreferenceEnum, DEVICE_TYPES, APP_STORAGE_KEYS, NEWS_CATEGORY } from './enums'
+import { NewsCategoryInfo } from './models'
 
 // ==================== 动画参数配置 ====================
 
