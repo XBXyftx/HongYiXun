@@ -15,23 +15,23 @@
 
 import { AppStorageV2 } from '@kit.ArkUI'
 import {
-  AIModelType,
-  AI_LOG_TAG,
-  aiLogger
+  AIModelType, AI_LOG_TAG, aiLogger
 } from 'ai_common'
-import { APP_STORAGE_KEYS, NAV_DESTS } from 'common'
+import { APP_STORAGE_KEYS, DEVICE_TYPES, NAV_DESTS } from 'common'
 import { AIChatPageParam } from '../nav_pages/AIChatPage'
+import { deviceInfo } from '@kit.BasicServicesKit'
 
 /**
  * AI Tab入口页面
- * 
+ *
  * 显示模型选择器，点击后导航到AI对话页面
  */
 @ComponentV2
 export struct AITabContent {
   /** 导航栈 */
   @Local private navPathStuck: NavPathStack = new NavPathStack()
-
+  @Local deviceType: DEVICE_TYPES =
+    deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
   aboutToAppear(): void {
     // 连接导航栈
     const navStack = AppStorageV2.connect(
@@ -44,13 +44,12 @@ export struct AITabContent {
     }
   }
 
-
   /**
    * 处理模型选择并导航到对话页面
    */
   private handleModelSelected(modelType: AIModelType): void {
     aiLogger.info(`${AI_LOG_TAG.AI_PAGE}选择模型并导航: ${modelType}`)
-    
+
     // 导航到AI对话页面，模型类型通过参数传递
     // 新会话将在AIChatPage的onReady中创建
     const param: AIChatPageParam = { modelType: modelType }
@@ -85,7 +84,7 @@ export struct AITabContent {
           .fontSize(18)
           .fontWeight(FontWeight.Medium)
           .fontColor($r('app.color.text_primary'))
-        
+
         Text(description)
           .fontSize(14)
           .fontColor($r('app.color.text_secondary'))
@@ -120,9 +119,13 @@ export struct AITabContent {
       // 顶部标题
       Row() {
         Text('鸿小易')
-          .fontSize(24)
+          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 28 : 34)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.text_primary'))
+          .padding({
+            top: this.deviceType === DEVICE_TYPES.PHONE ? 20 : 28,
+            bottom: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20
+          })
       }
       .width('100%')
       .height(60)
@@ -136,14 +139,19 @@ export struct AITabContent {
           .fontSize(28)
           .fontWeight(FontWeight.Bold)
           .fontColor($r('app.color.text_primary'))
-        
+
         Text('选择一种对话模式开始聊天')
           .fontSize(16)
           .fontColor($r('app.color.text_secondary'))
           .margin({ top: 8 })
       }
       .width('100%')
-      .padding({ left: 20, right: 20, top: 40, bottom: 40 })
+      .padding({
+        left: 20,
+        right: 20,
+        top: 40,
+        bottom: 40
+      })
       .alignItems(HorizontalAlign.Start)
 
       // 模型选择卡片
@@ -173,6 +181,6 @@ export struct AITabContent {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.page_background'))
+    // .backgroundColor($r('app.color.page_background'))
   }
 }
