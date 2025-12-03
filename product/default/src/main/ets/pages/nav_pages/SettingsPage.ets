@@ -132,7 +132,7 @@ export struct SettingsPage {
               '文章字体大小',
               `${this.userConfig.fontSize}`,
               () => {
-                this.navPathStuck.pushPath({ name: NAV_DESTS.FONT_SIZE_SETTINGS })
+                this.navPathStuck.replacePath({ name: NAV_DESTS.FONT_SIZE_SETTINGS })
               }
             )
 
@@ -142,7 +142,7 @@ export struct SettingsPage {
               '深浅色模式',
               this.getColorModeText(),
               () => {
-                this.navPathStuck.pushPath({ name: NAV_DESTS.COLOR_MODE_SETTINGS })
+                this.navPathStuck.replacePath({ name: NAV_DESTS.COLOR_MODE_SETTINGS })
               }
             )
           }

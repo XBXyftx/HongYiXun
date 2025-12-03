@@ -54,7 +54,7 @@ export struct AITabContent {
     // 导航到AI对话页面，模型类型通过参数传递
     // 新会话将在AIChatPage的onReady中创建
     const param: AIChatPageParam = { modelType: modelType }
-    this.navPathStuck.pushPath({
+    this.navPathStuck.replacePath({
       name: NAV_DESTS.AI_CHAT,
       param: param
     }, {

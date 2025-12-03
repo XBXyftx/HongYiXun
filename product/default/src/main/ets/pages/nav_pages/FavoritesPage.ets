@@ -156,7 +156,7 @@ export struct FavoritesPage {
       offsetY: 4
     })
     .onClick(() => {
-      this.navPathStuck.pushPath({
+      this.navPathStuck.replacePath({
         name: NAV_DESTS.ARTICLE,
         param: item.article
       })
