@@ -25,56 +25,15 @@ import {
   NewsSwiperStateAPI,
   ServerHealthAPI,
   NEWS_CATEGORIES,
-  NewsCategoryInfo
+  NewsCategoryInfo,
+  QuickRefreshResult,
+  FullRefreshResult,
+  RefreshProgress,
+  CategoryLoadResult
 } from "common"
 import { common } from "@kit.AbilityKit"
 import { distributedKVStore } from "@kit.ArkData"
-import { promptAction } from "@kit.ArkUI"
 import { BusinessError } from "@kit.BasicServicesKit"
-
-/**
- * 快速刷新结果接口
- */
-interface QuickRefreshResult {
-  /** 是否成功 */
-  success: boolean
-  /** 成功加载的栏目数量 */
-  loadedCount: number
-}
-
-/**
- * 完整刷新结果接口
- */
-interface FullRefreshResult {
-  /** 是否成功 */
-  success: boolean
-  /** 成功更新的栏目数量 */
-  updatedCount: number
-}
-
-/**
- * 刷新进度信息接口
- */
-interface RefreshProgress {
-  /** 栏目名称 */
-  category: string
-  /** 当前进度 */
-  current: number
-  /** 总数 */
-  total: number
-}
-
-/**
- * 栏目加载结果接口
- */
-interface CategoryLoadResult {
-  /** 栏目名称 */
-  category: string
-  /** 是否成功 */
-  success: boolean
-  /** 加载的新闻条数 */
-  count: number
-}
 
 export class NewsManager {
   /**

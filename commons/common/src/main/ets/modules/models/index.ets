@@ -34,3 +34,6 @@ export * from './ServerModels'
 // 系统相关模型
 export * from './Breakpoint'
 export * from './InitStatus'
+
+// 管理器相关模型
+export * from './NewsManagerModels'
