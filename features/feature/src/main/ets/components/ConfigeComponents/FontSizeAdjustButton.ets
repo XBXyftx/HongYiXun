@@ -296,7 +296,7 @@ export struct FontSizeAdjustButton {
       Stack({ alignContent: Alignment.Center }) {
         Text('字')
           .fontSize(20)
-          .fontWeight(800)
+          .fontWeight(600)
           .fontColor($r('app.color.color_change_button_font'))
       }
       .width(35)
@@ -322,13 +322,9 @@ export struct FontSizeAdjustButton {
     } else {
       // 平板只使用按钮，不使用 bindSheet
       Stack({ alignContent: Alignment.Center }) {
-        Image($rawfile('colorButtonBG.svg'))
-          .width('90%')
-          .height('90%')
-          .fillColor($r('app.color.color_change_button_svg'))
         Text('字')
           .fontSize(30)
-          .fontWeight(800)
+          .fontWeight(600)
           .fontColor($r('app.color.color_change_button_font'))
       }
       .width(45)

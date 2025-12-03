@@ -83,6 +83,6 @@ export struct ColorModChoseButton {
 @Extend(Text)
 function textStyle(deviceType: DEVICE_TYPES) {
   .fontSize(deviceType === DEVICE_TYPES.PHONE ? 20 : 30)
-  .fontWeight(800)
+  .fontWeight(600)
   .fontColor($r('app.color.color_change_button_font'))
 }

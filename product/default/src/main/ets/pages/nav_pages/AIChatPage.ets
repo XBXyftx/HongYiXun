@@ -293,6 +293,15 @@ export struct AIChatPage {
             this.navPathStuck.pop()
           })
 
+          // 模型图标
+          Image($rawfile(this.modelState.modelType === AIModelType.DEEP_THINKING 
+            ? 'ai_deep.svg' 
+            : 'ai_quick.svg'))
+            .width(28)
+            .height(28)
+            .objectFit(ImageFit.Contain)
+            .margin({ left: 4 })
+
           Text(this.getModelName())
             .fontSize(18)
             .fontWeight(FontWeight.Medium)
