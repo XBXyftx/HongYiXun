@@ -47,7 +47,11 @@ export enum NAV_DESTS {
   /** AI对话页 - AI智能问答对话 */
   AI_CHAT = 'AIChat',
   /** 点赞列表页 - 显示用户点赞的新闻 */
-  LIKES = 'Likes'
+  LIKES = 'Likes',
+  /** 热力日历设置页 - 配置热力日历显示选项 */
+  HEATMAP_SETTINGS = 'HeatmapSettings',
+  /** 日期历史记录页 - 显示指定日期的浏览历史 */
+  DATE_HISTORY = 'DateHistory'
 }
 
 // ==================== 数据库相关枚举 ====================
@@ -84,7 +88,9 @@ export enum KV_DB_KEYS {
   /** 收藏列表 - 存储用户收藏的新闻文章 */
   FAVORITE_LIST = 'FavoriteList',
   /** 点赞列表 - 存储用户点赞的新闻文章 */
-  LIKE_LIST = 'LikeList'
+  LIKE_LIST = 'LikeList',
+  /** 每日阅读统计 - 存储用户每天阅读的新闻数量统计 */
+  DAILY_READING_STATS = 'DailyReadingStats'
 }
 
 /**
@@ -133,7 +139,31 @@ export enum PreferenceEnum {
    * 
    * @default 16
    */
-  FONT_SIZE = 'FontSize'
+  FONT_SIZE = 'FontSize',
+  
+  /**
+   * 热力日历时间范围
+   * @default 30
+   */
+  HEATMAP_TIME_RANGE = 'HeatmapTimeRange',
+  
+  /**
+   * 热力日历颜色范围
+   * @default 500
+   */
+  HEATMAP_COLOR_RANGE = 'HeatmapColorRange',
+  
+  /**
+   * 热力日历点击跳转
+   * @default true
+   */
+  HEATMAP_CLICK_TO_HISTORY = 'HeatmapClickToHistory',
+  
+  /**
+   * 热力日历颜色系
+   * @default 'blue'
+   */
+  HEATMAP_COLOR_SCHEME = 'HeatmapColorScheme'
 }
 
 // ==================== 设备相关枚举 ====================

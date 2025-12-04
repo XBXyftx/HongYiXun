@@ -34,6 +34,8 @@ import { ColorModeSettingsPage } from './nav_pages/ColorModeSettingsPage'
 import { FavoritesPage } from './nav_pages/FavoritesPage'
 import { AIChatPage } from './nav_pages/AIChatPage'
 import { LikesPage } from './nav_pages/LikesPage'
+import { HeatmapSettingsPage } from './nav_pages/HeatmapSettingsPage'
+import { DateHistoryPage } from './nav_pages/DateHistoryPage'
 
 @Builder
 function PlaceholderPage() {
@@ -114,6 +116,10 @@ struct Main {
       AIChatPage()
     } else if (name === NAV_DESTS.LIKES) {
       LikesPage()
+    } else if (name === NAV_DESTS.HEATMAP_SETTINGS) {
+      HeatmapSettingsPage()
+    } else if (name === NAV_DESTS.DATE_HISTORY) {
+      DateHistoryPage()
     }
   }
 

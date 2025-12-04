@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { APP_KV_DB, KV_DB_KEYS, logger, LOG_TAG, NewsArticle, kvDatabase, APP_STORAGE_KEYS, HistoryUpdateTrigger, HistoryItem } from "common"
+import { APP_KV_DB, KV_DB_KEYS, logger, LOG_TAG, NewsArticle, kvDatabase, APP_STORAGE_KEYS, HistoryUpdateTrigger, HistoryItem, DailyReadingStats } from "common"
 import { distributedKVStore } from "@kit.ArkData"
 import { BusinessError } from "@kit.BasicServicesKit"
 import { AppStorageV2 } from "@kit.ArkUI"
@@ -95,6 +95,9 @@ export class HistoryManager {
       // 保存到数据库
       await this.appKVDb.put(KV_DB_KEYS.READING_HISTORY, JSON.stringify(historyList))
       logger.info(`${LOG_TAG.HISTORY_MANAGER}添加历史记录成功: ${article.title}`)
+      
+      // 更新每日阅读统计
+      await this.updateDailyStats(article.id, newHistoryItem.dateStr)
       
       // 触发更新通知
       this.notifyHistoryUpdate()
@@ -260,6 +263,157 @@ export class HistoryManager {
 
     logger.info(`${LOG_TAG.HISTORY_MANAGER}历史记录分组完成: ${groupedMap.size} 个日期`)
     return groupedMap
+  }
+
+  // ==================== 每日阅读统计相关方法 ====================
+
+  /**
+   * 更新每日阅读统计
+   * 
+   * @param articleId - 文章 ID
+   * @param dateStr - 日期字符串 (YYYY-MM-DD)
+   */
+  async updateDailyStats(articleId: string, dateStr: string): Promise<void> {
+    if (!this.appKVDb) {
+      await this.init()
+    }
+
+    if (!this.appKVDb) {
+      logger.error(`${LOG_TAG.HISTORY_MANAGER}数据库未初始化，无法更新每日统计`)
+      return
+    }
+
+    try {
+      const statsMap = await this.getDailyStatsMap()
+      
+      if (!statsMap.has(dateStr)) {
+        statsMap.set(dateStr, {
+          dateStr: dateStr,
+          count: 0,
+          articleIds: []
+        })
+      }
+
+      const dayStats = statsMap.get(dateStr)!
+      
+      // 检查当天是否已经阅读过该文章（去重）
+      if (!dayStats.articleIds.includes(articleId)) {
+        dayStats.articleIds.push(articleId)
+        dayStats.count = dayStats.articleIds.length
+        statsMap.set(dateStr, dayStats)
+        
+        // 保存到数据库
+        const statsArray = Array.from(statsMap.values())
+        await this.appKVDb.put(KV_DB_KEYS.DAILY_READING_STATS, JSON.stringify(statsArray))
+        logger.debug(`${LOG_TAG.HISTORY_MANAGER}更新每日统计: ${dateStr}, 数量: ${dayStats.count}`)
+      }
+    } catch (error) {
+      let err = error as BusinessError
+      logger.error(`${LOG_TAG.HISTORY_MANAGER}更新每日统计失败: ${err.message}`)
+    }
+  }
+
+  /**
+   * 获取每日阅读统计 Map
+   * 
+   * @returns 日期到统计数据的 Map
+   */
+  async getDailyStatsMap(): Promise<Map<string, DailyReadingStats>> {
+    if (!this.appKVDb) {
+      await this.init()
+    }
+
+    const statsMap = new Map<string, DailyReadingStats>()
+
+    if (!this.appKVDb) {
+      return statsMap
+    }
+
+    try {
+      const data = await this.appKVDb.get(KV_DB_KEYS.DAILY_READING_STATS) as string
+      const statsArray = JSON.parse(data) as DailyReadingStats[]
+      statsArray.forEach(stats => {
+        statsMap.set(stats.dateStr, stats)
+      })
+    } catch (error) {
+      logger.info(`${LOG_TAG.HISTORY_MANAGER}每日统计数据为空或读取失败`)
+    }
+
+    return statsMap
+  }
+
+  /**
+   * 获取指定日期范围内的每日阅读统计
+   * 
+   * @param days - 天数范围
+   * @returns 每日统计数组
+   */
+  async getDailyStatsInRange(days: number): Promise<DailyReadingStats[]> {
+    const statsMap = await this.getDailyStatsMap()
+    const result: DailyReadingStats[] = []
+    const today = new Date()
+
+    for (let i = 0; i < days; i++) {
+      const date = new Date(today)
+      date.setDate(today.getDate() - i)
+      const dateStr = this.formatDate(date)
+      
+      if (statsMap.has(dateStr)) {
+        result.push(statsMap.get(dateStr)!)
+      } else {
+        result.push({
+          dateStr: dateStr,
+          count: 0,
+          articleIds: []
+        })
+      }
+    }
+
+    return result.reverse() // 按时间正序排列
+  }
+
+  /**
+   * 获取指定日期的历史记录
+   * 
+   * @param dateStr - 日期字符串 (YYYY-MM-DD)
+   * @returns 该日期的历史记录列表
+   */
+  async getHistoryByDate(dateStr: string): Promise<HistoryItem[]> {
+    const historyList = await this.getHistoryList()
+    return historyList.filter(item => item.dateStr === dateStr)
+  }
+
+  /**
+   * 清空所有每日统计数据
+   */
+  async clearAllDailyStats(): Promise<boolean> {
+    if (!this.appKVDb) {
+      await this.init()
+    }
+
+    if (!this.appKVDb) {
+      logger.error(`${LOG_TAG.HISTORY_MANAGER}数据库未初始化`)
+      return false
+    }
+
+    try {
+      await this.appKVDb.put(KV_DB_KEYS.DAILY_READING_STATS, JSON.stringify([]))
+      logger.info(`${LOG_TAG.HISTORY_MANAGER}清空每日统计数据成功`)
+      return true
+    } catch (error) {
+      let err = error as BusinessError
+      logger.error(`${LOG_TAG.HISTORY_MANAGER}清空每日统计数据失败: ${err.message}`)
+      return false
+    }
+  }
+
+  /**
+   * 清空所有数据（历史记录 + 每日统计）
+   */
+  async clearAllData(): Promise<boolean> {
+    const historyCleared = await this.clearAllHistory()
+    const statsCleared = await this.clearAllDailyStats()
+    return historyCleared && statsCleared
   }
 }
 

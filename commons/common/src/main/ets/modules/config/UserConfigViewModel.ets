@@ -78,6 +78,8 @@
  * @see PreferenceEnum 偏好设置枚举，定义存储键名
  * @see APP_STORAGE_KEYS AppStorageV2 键值枚举
  */
+import { HeatmapColorScheme, HeatmapTimeRange, HeatmapColorRange } from '../models/DailyReadingStats'
+
 @ObservedV2
 export class UserConfigViewModel {
   /**
@@ -209,6 +211,32 @@ export class UserConfigViewModel {
    * @see ArticlePage 文章详情页
    */
   @Trace fontSize: number = 16
+
+  // ==================== 热力日历配置 ====================
+
+  /**
+   * 热力日历显示的时间范围（天数）
+   * @default 30
+   */
+  @Trace heatmapTimeRange: number = HeatmapTimeRange.DAYS_30
+
+  /**
+   * 热力日历颜色条的最大值范围
+   * @default 500
+   */
+  @Trace heatmapColorRange: number = HeatmapColorRange.RANGE_500
+
+  /**
+   * 点击热力日历方块是否跳转至对应日期的历史记录
+   * @default true
+   */
+  @Trace heatmapClickToHistory: boolean = true
+
+  /**
+   * 热力日历颜色系
+   * @default 'blue'
+   */
+  @Trace heatmapColorScheme: string = HeatmapColorScheme.BLUE
 }
 
 /**

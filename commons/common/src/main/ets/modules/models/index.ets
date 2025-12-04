@@ -28,6 +28,7 @@ export * from './NewsCategoryInfo'
 export * from './HistoryItem'
 export * from './FavoriteItem'
 export * from './LikeItem'
+export * from './DailyReadingStats'
 
 // 服务端相关模型
 export * from './ServerModels'

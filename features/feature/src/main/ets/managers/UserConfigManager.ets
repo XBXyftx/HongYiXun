@@ -20,7 +20,10 @@ import {
   LOG_TAG,
   preferenceDB,
   PreferenceEnum,
-  UserConfigViewModel
+  UserConfigViewModel,
+  HeatmapTimeRange,
+  HeatmapColorRange,
+  HeatmapColorScheme
 } from "common";
 import { AppStorageV2, promptAction } from "@kit.ArkUI";
 
@@ -38,6 +41,13 @@ export class UserConfigManager {
     preferenceDB.pushData(PreferenceEnum.COLOR_MODE, colorMode)
     const fontSize = UserConfig.fontSize
     preferenceDB.pushData(PreferenceEnum.FONT_SIZE, fontSize)
+    
+    // 热力日历配置持久化
+    preferenceDB.pushData(PreferenceEnum.HEATMAP_TIME_RANGE, UserConfig.heatmapTimeRange)
+    preferenceDB.pushData(PreferenceEnum.HEATMAP_COLOR_RANGE, UserConfig.heatmapColorRange)
+    preferenceDB.pushData(PreferenceEnum.HEATMAP_CLICK_TO_HISTORY, UserConfig.heatmapClickToHistory)
+    preferenceDB.pushData(PreferenceEnum.HEATMAP_COLOR_SCHEME, UserConfig.heatmapColorScheme)
+    
     if (preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE) === colorMode &&
       preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE) === fontSize) {
       logger.warn(`${LOG_TAG.USER_CONFIG_MANAGER}数据持久化成功,colorMode=${preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE)},fontSize=${preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE)}`)
@@ -51,20 +61,37 @@ export class UserConfigManager {
    * @returns 是否成功
    */
   syncDataToAppStorage(): boolean {
+    const userConfig = AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!
+    
     if (preferenceDB.hasData(PreferenceEnum.COLOR_MODE)) {
       logger.info(`${LOG_TAG.USER_CONFIG_MANAGER}检测到COLOR_MODE = ${preferenceDB.getData<number>(PreferenceEnum.COLOR_MODE)}`)
-      AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.colorModel = preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE)!
+      userConfig.colorModel = preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE)!
     }
     if (preferenceDB.hasData(PreferenceEnum.FONT_SIZE)) {
       logger.info(`${LOG_TAG.USER_CONFIG_MANAGER}检测到FONT_SIZE = ${preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE)}`)
-      AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.fontSize = preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE)!
+      userConfig.fontSize = preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE)!
     }
+    
+    // 热力日历配置恢复
+    if (preferenceDB.hasData(PreferenceEnum.HEATMAP_TIME_RANGE)) {
+      userConfig.heatmapTimeRange = preferenceDB.getData<number>(PreferenceEnum.HEATMAP_TIME_RANGE)!
+    }
+    if (preferenceDB.hasData(PreferenceEnum.HEATMAP_COLOR_RANGE)) {
+      userConfig.heatmapColorRange = preferenceDB.getData<number>(PreferenceEnum.HEATMAP_COLOR_RANGE)!
+    }
+    if (preferenceDB.hasData(PreferenceEnum.HEATMAP_CLICK_TO_HISTORY)) {
+      userConfig.heatmapClickToHistory = preferenceDB.getData<boolean>(PreferenceEnum.HEATMAP_CLICK_TO_HISTORY)!
+    }
+    if (preferenceDB.hasData(PreferenceEnum.HEATMAP_COLOR_SCHEME)) {
+      userConfig.heatmapColorScheme = preferenceDB.getData<string>(PreferenceEnum.HEATMAP_COLOR_SCHEME)!
+    }
+    
     if (!preferenceDB.hasData(PreferenceEnum.FONT_SIZE) || !preferenceDB.hasData(PreferenceEnum.COLOR_MODE)) {
       logger.warn(`${LOG_TAG.USER_CONFIG_MANAGER}无用户配置持久化数据，执行默认配置设置`)
       this.setConfigToDefault()
     }
-    const fontSize = AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.fontSize
-    const colorMode = AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!.colorModel
+    const fontSize = userConfig.fontSize
+    const colorMode = userConfig.colorModel
     if (preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE) === colorMode &&
       preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE) === fontSize) {
       logger.warn(`${LOG_TAG.USER_CONFIG_MANAGER}用户首选项持久化数据读取成功,colorMode=${colorMode},fontSize=${fontSize}`)

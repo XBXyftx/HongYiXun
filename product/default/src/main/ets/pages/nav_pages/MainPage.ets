@@ -14,7 +14,7 @@
  */
 
 import { AITabContent } from "../tab_contents/AITabContent"
-import { ForumTabContent } from "../tab_contents/CalenderTabContent"
+import { CalenderTabContent } from "../tab_contents/CalenderTabContent"
 import { NewsHistoryTabContent } from "../tab_contents/NewsHistoryTabContent"
 import { NewsListTabContent } from "../tab_contents/NewsListTabContent"
 import { SelfTabContent } from "../tab_contents/SelfTabContent"
@@ -64,11 +64,11 @@ export struct MainPage {
         }
         .tabBar(this.tabBarBuilder('历史', 1,$rawfile('TabBarNewsHistorySelected.svg'),$rawfile('TabBarNewsHistory.svg')))
 
-        // 论坛子页
+        // 热力日历子页
         TabContent() {
-          ForumTabContent()
+          CalenderTabContent()
         }
-        .tabBar(this.tabBarBuilder('论坛', 2,  $rawfile('TabBarForumSelected.svg'),$rawfile('TabBarForum.svg')))
+        .tabBar(this.tabBarBuilder('日历', 2,  $rawfile('TabBarForumSelected.svg'),$rawfile('TabBarForum.svg')))
 
         // 我的子页面
         TabContent() {
