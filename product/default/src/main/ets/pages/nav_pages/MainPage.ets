@@ -14,6 +14,8 @@
  */
 
 import { AITabContent } from "../tab_contents/AITabContent"
+import { ForumTabContent } from "../tab_contents/ForumTabContent"
+import { NewsHistoryTabContent } from "../tab_contents/NewsHistoryTabContent"
 import { NewsListTabContent } from "../tab_contents/NewsListTabContent"
 import { SelfTabContent } from "../tab_contents/SelfTabContent"
 
@@ -50,17 +52,29 @@ export struct MainPage {
         }
         .tabBar(this.tabBarBuilder('新闻', 0, $rawfile('TabBarNews.svg'), $rawfile('TabBarNewsSelected.svg')))
 
-        // AI问答子页面
+        // // AI问答子页面
+        // TabContent() {
+        //   AITabContent()
+        // }
+        // .tabBar(this.tabBarBuilder('鸿小易', 1, $rawfile('TabBarAI.svg'), $rawfile('TabBarAISelected.svg')))
+
+        // 历史记录子页
         TabContent() {
-          AITabContent()
+          NewsHistoryTabContent()
         }
-        .tabBar(this.tabBarBuilder('鸿小易', 1, $rawfile('TabBarAI.svg'), $rawfile('TabBarAISelected.svg')))
+        .tabBar(this.tabBarBuilder('历史', 1,$rawfile('TabBarNewsHistorySelected.svg'),$rawfile('TabBarNewsHistory.svg')))
+
+        // 论坛子页
+        TabContent() {
+          ForumTabContent()
+        }
+        .tabBar(this.tabBarBuilder('论坛', 2,  $rawfile('TabBarForumSelected.svg'),$rawfile('TabBarForum.svg')))
 
         // 我的子页面
         TabContent() {
           SelfTabContent()
         }
-        .tabBar(this.tabBarBuilder('我的', 2, $rawfile('TabBarSelf.svg'), $rawfile('TabBarSelfSelected.svg')))
+        .tabBar(this.tabBarBuilder('我的', 3, $rawfile('TabBarSelf.svg'), $rawfile('TabBarSelfSelected.svg')))
       }
       .barMode(BarMode.Fixed)
       .barPosition(BarPosition.End)

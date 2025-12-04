@@ -1,2 +1,0 @@
-"use strict";(self.webpackChunkapp_botstudio_main=self.webpackChunkapp_botstudio_main||[]).push([["55480"],{854214:function(a,u,t){t.r(u);var e=t(938809),s=t(800956),r=t(842197);u.default=()=>{var{cur_lib:a,cur_doc:u}=(0,r.useParams)();return(0,e.jsx)(s.CozeDocPage,{curLibPath:a||"",curDocPath:u||""})}}}]);
-//# sourceMappingURL=https://sourcemap-redirect.coze.cn/obj/coze-sourcemap/ol-sourcemap/bot/1.0.2.2507/page.2d42b58d.js.map
