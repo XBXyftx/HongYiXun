@@ -15,7 +15,8 @@
 import { AppStorageV2, promptAction } from '@kit.ArkUI'
 import { DEVICE_TYPES, APP_STORAGE_KEYS, NewsArticle, UserConfigViewModel, logger, LOG_TAG } from 'common'
 import { ColorModChoseButton, FontSizeAdjustButton, NewsArticleView, favoriteManager, likeManager } from 'feature'
-import { deviceInfo } from '@kit.BasicServicesKit'
+import { deviceInfo, commonEventManager } from '@kit.BasicServicesKit'
+import { common, Want } from '@kit.AbilityKit'
 
 @ComponentV2
 export struct ArticlePage {
@@ -101,6 +102,37 @@ export struct ArticlePage {
     }
   }
 
+  /**
+   * 分享文章
+   */
+  shareArticle(): void {
+    try {
+      const context = getContext(this) as common.UIAbilityContext
+      const shareText = `【${this.article.title}】\n${this.article.url}\n\n来自鸿易讯`
+
+      const want: Want = {
+        action: 'ohos.want.action.select',
+        type: 'text/plain',
+        parameters: {
+          'ability.picker.type': 'share',
+          'ability.picker.text': shareText,
+          'ability.picker.fileNames': [this.article.title],
+          'ability.picker.fileSizes': [shareText.length]
+        }
+      }
+
+      context.startAbility(want).then(() => {
+        logger.info(`${LOG_TAG.MAIN_PAGE}分享文章: ${this.article.title}`)
+      }).catch((err: Error) => {
+        logger.error(`${LOG_TAG.MAIN_PAGE}分享失败: ${err.message}`)
+        promptAction.openToast({ message: '分享失败', duration: 1500 })
+      })
+    } catch (error) {
+      logger.error(`${LOG_TAG.MAIN_PAGE}分享失败: ${JSON.stringify(error)}`)
+      promptAction.openToast({ message: '分享失败', duration: 1500 })
+    }
+  }
+
   @Builder
   ArticleContentBuilder() {
     Column() {
@@ -118,6 +150,21 @@ export struct ArticlePage {
     NavDestination() {
       Stack() {
         this.ArticleContentBuilder()
+
+        // 分享按钮 - 右上角
+        Stack({ alignContent: Alignment.Center }) {
+          Image($rawfile('share_icon.svg'))
+            .width('50%')
+            .height('50%')
+            .fillColor($r('app.color.color_change_button_font'))
+        }
+        .width(this.deviceType === DEVICE_TYPES.PHONE ? 35 : 45)
+        .height(this.deviceType === DEVICE_TYPES.PHONE ? 35 : 45)
+        .shadow({ color: Color.Black, radius: 10 })
+        .backgroundColor($r('app.color.color_change_button_background'))
+        .onClick(() => { this.shareArticle() })
+        .borderRadius(99)
+        .position({ right: this.deviceType === DEVICE_TYPES.PHONE ? 20 : 30, top: 60 })
 
         // 点赞按钮
         Stack({ alignContent: Alignment.Center }) {
