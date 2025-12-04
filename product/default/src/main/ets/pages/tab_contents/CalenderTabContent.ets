@@ -67,6 +67,16 @@ export struct CalenderTabContent {
     await this.loadDailyStats()
   }
 
+  @Monitor('userConfig.heatmapColorRange')
+  onColorRangeChange(): void {
+    this.generateHeatmapCells()
+  }
+
+  @Monitor('userConfig.heatmapColorScheme')
+  onColorSchemeChange(): void {
+    this.generateHeatmapCells()
+  }
+
   async loadDailyStats(): Promise<void> {
     this.isLoading = true
     try {
@@ -117,15 +127,25 @@ export struct CalenderTabContent {
     const ratio = Math.min(count / maxRange, 1)
     const scheme = this.userConfig.heatmapColorScheme
 
-    // 定义5个等级的颜色
+    // 定义5个等级的颜色（从无到最亮）
     const colorSchemes: Record<string, string[]> = {
-      [HeatmapColorScheme.BLUE]: ['#1a1a2e', '#16213e', '#0f3460', '#1a73e8', '#4fc3f7'],
-      [HeatmapColorScheme.GREEN]: ['#1a1a2e', '#1b3a2f', '#2d5a3f', '#3d8b5f', '#69f0ae'],
-      [HeatmapColorScheme.RED]: ['#1a1a2e', '#3d1a1a', '#5a2d2d', '#8b3d3d', '#ff6b6b'],
-      [HeatmapColorScheme.GRAY]: ['#1a1a2e', '#2a2a3e', '#3a3a4e', '#5a5a6e', '#8a8a9e']
+      [HeatmapColorScheme.BLUE]: ['#2d333b', '#0e4429', '#006d32', '#26a641', '#39d353'],
+      [HeatmapColorScheme.GREEN]: ['#2d333b', '#0e4429', '#006d32', '#26a641', '#39d353'],
+      [HeatmapColorScheme.RED]: ['#2d333b', '#5c2121', '#8b3d3d', '#d35f5f', '#ff8080'],
+      [HeatmapColorScheme.GRAY]: ['#2d333b', '#404040', '#606060', '#909090', '#c0c0c0']
     }
 
-    const colors = colorSchemes[scheme] || colorSchemes[HeatmapColorScheme.BLUE]
+    // 蓝色系使用GitHub风格的绿色，更容易区分
+    if (scheme === HeatmapColorScheme.BLUE) {
+      const blueColors = ['#2d333b', '#1e3a5f', '#2563eb', '#60a5fa', '#93c5fd']
+      if (count === 0) return blueColors[0]
+      if (ratio <= 0.25) return blueColors[1]
+      if (ratio <= 0.5) return blueColors[2]
+      if (ratio <= 0.75) return blueColors[3]
+      return blueColors[4]
+    }
+
+    const colors = colorSchemes[scheme] || colorSchemes[HeatmapColorScheme.GREEN]
 
     if (count === 0) return colors[0]
     if (ratio <= 0.25) return colors[1]
@@ -136,13 +156,17 @@ export struct CalenderTabContent {
 
   getLegendColors(): string[] {
     const scheme = this.userConfig.heatmapColorScheme
-    const colorSchemes: Record<string, string[]> = {
-      [HeatmapColorScheme.BLUE]: ['#1a1a2e', '#16213e', '#0f3460', '#1a73e8', '#4fc3f7'],
-      [HeatmapColorScheme.GREEN]: ['#1a1a2e', '#1b3a2f', '#2d5a3f', '#3d8b5f', '#69f0ae'],
-      [HeatmapColorScheme.RED]: ['#1a1a2e', '#3d1a1a', '#5a2d2d', '#8b3d3d', '#ff6b6b'],
-      [HeatmapColorScheme.GRAY]: ['#1a1a2e', '#2a2a3e', '#3a3a4e', '#5a5a6e', '#8a8a9e']
+    
+    if (scheme === HeatmapColorScheme.BLUE) {
+      return ['#2d333b', '#1e3a5f', '#2563eb', '#60a5fa', '#93c5fd']
     }
-    return colorSchemes[scheme] || colorSchemes[HeatmapColorScheme.BLUE]
+    
+    const colorSchemes: Record<string, string[]> = {
+      [HeatmapColorScheme.GREEN]: ['#2d333b', '#0e4429', '#006d32', '#26a641', '#39d353'],
+      [HeatmapColorScheme.RED]: ['#2d333b', '#5c2121', '#8b3d3d', '#d35f5f', '#ff8080'],
+      [HeatmapColorScheme.GRAY]: ['#2d333b', '#404040', '#606060', '#909090', '#c0c0c0']
+    }
+    return colorSchemes[scheme] || colorSchemes[HeatmapColorScheme.GREEN]
   }
 
   onCellClick(cell: HeatmapCell): void {

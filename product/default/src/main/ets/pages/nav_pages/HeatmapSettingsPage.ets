@@ -149,17 +149,16 @@ export struct HeatmapSettingsPage {
   }
 
   @Builder
-  OptionSelectorBuilder(title: string, options: OptionItem[], currentValue: number | string,
-    onSelect: (value: number | string) => void) {
+  TimeRangeSelector() {
     Column({ space: this.deviceType === DEVICE_TYPES.PHONE ? 8 : 12 }) {
-      ForEach(options, (option: OptionItem) => {
+      ForEach(this.timeRangeOptions, (option: OptionItem) => {
         Row() {
           Text(option.label)
             .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18)
             .fontColor($r('app.color.text_primary'))
             .layoutWeight(1)
 
-          if (currentValue === option.value) {
+          if (this.userConfig.heatmapTimeRange === option.value) {
             Image($rawfile('check_icon.svg'))
               .width(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
               .height(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
@@ -168,10 +167,80 @@ export struct HeatmapSettingsPage {
         }
         .width('100%')
         .padding(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16)
-        .backgroundColor(currentValue === option.value ? $r('app.color.brand_light') : Color.Transparent)
+        .backgroundColor(this.userConfig.heatmapTimeRange === option.value ? $r('app.color.brand_light') : Color.Transparent)
         .borderRadius(8)
         .onClick(() => {
-          onSelect(option.value)
+          this.userConfig.heatmapTimeRange = option.value as number
+          this.saveConfig()
+          promptAction.openToast({ message: '已更新时间范围', duration: 1500 })
+        })
+      })
+    }
+    .width('100%')
+    .padding(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16)
+    .backgroundColor($r('app.color.news_list_item_bg'))
+    .borderRadius(12)
+  }
+
+  @Builder
+  ColorRangeSelector() {
+    Column({ space: this.deviceType === DEVICE_TYPES.PHONE ? 8 : 12 }) {
+      ForEach(this.colorRangeOptions, (option: OptionItem) => {
+        Row() {
+          Text(option.label)
+            .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18)
+            .fontColor($r('app.color.text_primary'))
+            .layoutWeight(1)
+
+          if (this.userConfig.heatmapColorRange === option.value) {
+            Image($rawfile('check_icon.svg'))
+              .width(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
+              .height(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
+              .fillColor($r('app.color.brand'))
+          }
+        }
+        .width('100%')
+        .padding(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16)
+        .backgroundColor(this.userConfig.heatmapColorRange === option.value ? $r('app.color.brand_light') : Color.Transparent)
+        .borderRadius(8)
+        .onClick(() => {
+          this.userConfig.heatmapColorRange = option.value as number
+          this.saveConfig()
+          promptAction.openToast({ message: '已更新颜色范围', duration: 1500 })
+        })
+      })
+    }
+    .width('100%')
+    .padding(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16)
+    .backgroundColor($r('app.color.news_list_item_bg'))
+    .borderRadius(12)
+  }
+
+  @Builder
+  ColorSchemeSelector() {
+    Column({ space: this.deviceType === DEVICE_TYPES.PHONE ? 8 : 12 }) {
+      ForEach(this.colorSchemeOptions, (option: OptionItem) => {
+        Row() {
+          Text(option.label)
+            .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18)
+            .fontColor($r('app.color.text_primary'))
+            .layoutWeight(1)
+
+          if (this.userConfig.heatmapColorScheme === option.value) {
+            Image($rawfile('check_icon.svg'))
+              .width(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
+              .height(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
+              .fillColor($r('app.color.brand'))
+          }
+        }
+        .width('100%')
+        .padding(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16)
+        .backgroundColor(this.userConfig.heatmapColorScheme === option.value ? $r('app.color.brand_light') : Color.Transparent)
+        .borderRadius(8)
+        .onClick(() => {
+          this.userConfig.heatmapColorScheme = option.value as string
+          this.saveConfig()
+          promptAction.openToast({ message: '已更新颜色系', duration: 1500 })
         })
       })
     }
@@ -219,16 +288,7 @@ export struct HeatmapSettingsPage {
               .fontColor($r('app.color.text_secondary'))
               .margin({ left: 4, bottom: 4 })
 
-            this.OptionSelectorBuilder(
-              '时间范围',
-              this.timeRangeOptions,
-              this.userConfig.heatmapTimeRange,
-              (value: number | string) => {
-                this.userConfig.heatmapTimeRange = value as number
-                this.saveConfig()
-                promptAction.openToast({ message: '已更新时间范围', duration: 1500 })
-              }
-            )
+            this.TimeRangeSelector()
 
             // 颜色范围设置
             Text('颜色范围')
@@ -236,16 +296,7 @@ export struct HeatmapSettingsPage {
               .fontColor($r('app.color.text_secondary'))
               .margin({ left: 4, bottom: 4, top: 8 })
 
-            this.OptionSelectorBuilder(
-              '颜色范围',
-              this.colorRangeOptions,
-              this.userConfig.heatmapColorRange,
-              (value: number | string) => {
-                this.userConfig.heatmapColorRange = value as number
-                this.saveConfig()
-                promptAction.openToast({ message: '已更新颜色范围', duration: 1500 })
-              }
-            )
+            this.ColorRangeSelector()
 
             // 颜色系设置
             Text('颜色系')
@@ -253,16 +304,7 @@ export struct HeatmapSettingsPage {
               .fontColor($r('app.color.text_secondary'))
               .margin({ left: 4, bottom: 4, top: 8 })
 
-            this.OptionSelectorBuilder(
-              '颜色系',
-              this.colorSchemeOptions,
-              this.userConfig.heatmapColorScheme,
-              (value: number | string) => {
-                this.userConfig.heatmapColorScheme = value as string
-                this.saveConfig()
-                promptAction.openToast({ message: '已更新颜色系', duration: 1500 })
-              }
-            )
+            this.ColorSchemeSelector()
 
             // 点击跳转设置
             Text('交互设置')
