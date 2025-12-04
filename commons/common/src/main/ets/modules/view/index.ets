@@ -16,4 +16,5 @@
 export * from './NewsListHeaderIsSticky'
 export * from './HistoryUpdateTrigger'
 export * from './FavoriteUpdateTrigger'
+export * from './LikeUpdateTrigger'
 

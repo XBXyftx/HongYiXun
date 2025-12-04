@@ -27,6 +27,7 @@ export * from './NewsCategoryInfo'
 // 用户数据模型
 export * from './HistoryItem'
 export * from './FavoriteItem'
+export * from './LikeItem'
 
 // 服务端相关模型
 export * from './ServerModels'

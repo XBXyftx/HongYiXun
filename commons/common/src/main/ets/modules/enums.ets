@@ -45,7 +45,9 @@ export enum NAV_DESTS {
   /** 收藏列表页 - 显示用户收藏的新闻 */
   FAVORITES = 'Favorites',
   /** AI对话页 - AI智能问答对话 */
-  AI_CHAT = 'AIChat'
+  AI_CHAT = 'AIChat',
+  /** 点赞列表页 - 显示用户点赞的新闻 */
+  LIKES = 'Likes'
 }
 
 // ==================== 数据库相关枚举 ====================
@@ -80,7 +82,9 @@ export enum KV_DB_KEYS {
   /** 浏览历史记录 - 存储用户浏览过的新闻文章 */
   READING_HISTORY = 'ReadingHistory',
   /** 收藏列表 - 存储用户收藏的新闻文章 */
-  FAVORITE_LIST = 'FavoriteList'
+  FAVORITE_LIST = 'FavoriteList',
+  /** 点赞列表 - 存储用户点赞的新闻文章 */
+  LIKE_LIST = 'LikeList'
 }
 
 /**
@@ -264,7 +268,17 @@ export enum APP_STORAGE_KEYS {
    * 
    * @type FavoriteUpdateTrigger
    */
-  FAVORITE_UPDATE_TRIGGER = 'favoriteUpdateTrigger'
+  FAVORITE_UPDATE_TRIGGER = 'favoriteUpdateTrigger',
+  
+  /**
+   * 点赞更新触发器
+   * 
+   * 用于通知点赞页面刷新数据
+   * 每次点赞变化时递增该值
+   * 
+   * @type LikeUpdateTrigger
+   */
+  LIKE_UPDATE_TRIGGER = 'likeUpdateTrigger'
 }
 
 // ==================== 日志相关枚举 ====================
@@ -346,5 +360,7 @@ export enum LOG_TAG {
   /** 历史记录管理器 - 管理用户浏览历史 */
   HISTORY_MANAGER = 'HistoryManager: ',
   /** 收藏管理器 - 管理用户收藏 */
-  FAVORITE_MANAGER = 'FavoriteManager: '
+  FAVORITE_MANAGER = 'FavoriteManager: ',
+  /** 点赞管理器 - 管理用户点赞 */
+  LIKE_MANAGER = 'LikeManager: '
 }

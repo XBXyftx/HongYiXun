@@ -13,10 +13,12 @@
  * limitations under the License.
  */
 
-export * from './ColorModManager'
-export * from './NewsManager'
-export * from './UserConfigManager'
-export * from './HistoryManager'
-export * from './FavoriteManager'
-export * from './LikeManager'
-
+/**
+ * 点赞更新触发器
+ * 
+ * 用于实现跨组件的点赞数据同步
+ */
+@ObservedV2
+export class LikeUpdateTrigger {
+  @Trace trigger: number = 0
+}

@@ -33,6 +33,7 @@ import { FontSizeSettingsPage } from './nav_pages/FontSizeSettingsPage'
 import { ColorModeSettingsPage } from './nav_pages/ColorModeSettingsPage'
 import { FavoritesPage } from './nav_pages/FavoritesPage'
 import { AIChatPage } from './nav_pages/AIChatPage'
+import { LikesPage } from './nav_pages/LikesPage'
 
 @Builder
 function PlaceholderPage() {
@@ -111,6 +112,8 @@ struct Main {
       FavoritesPage()
     } else if (name === NAV_DESTS.AI_CHAT) {
       AIChatPage()
+    } else if (name === NAV_DESTS.LIKES) {
+      LikesPage()
     }
   }
 

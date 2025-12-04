@@ -13,10 +13,20 @@
  * limitations under the License.
  */
 
-export * from './ColorModManager'
-export * from './NewsManager'
-export * from './UserConfigManager'
-export * from './HistoryManager'
-export * from './FavoriteManager'
-export * from './LikeManager'
+import { NewsArticle } from './NewsArticle'
 
+/**
+ * 点赞项接口
+ * 
+ * 用于存储用户点赞新闻的信息
+ * 
+ * @interface LikeItem
+ */
+export interface LikeItem {
+  /** 新闻文章数据 */
+  article: NewsArticle
+  /** 点赞时间戳 */
+  timestamp: number
+  /** 格式化的日期字符串 */
+  dateStr: string
+}

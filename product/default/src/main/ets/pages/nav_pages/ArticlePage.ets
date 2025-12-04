@@ -14,7 +14,7 @@
  */
 import { AppStorageV2, promptAction } from '@kit.ArkUI'
 import { DEVICE_TYPES, APP_STORAGE_KEYS, NewsArticle, UserConfigViewModel, logger, LOG_TAG } from 'common'
-import { ColorModChoseButton, FontSizeAdjustButton, NewsArticleView, favoriteManager } from 'feature'
+import { ColorModChoseButton, FontSizeAdjustButton, NewsArticleView, favoriteManager, likeManager } from 'feature'
 import { deviceInfo } from '@kit.BasicServicesKit'
 
 @ComponentV2
@@ -31,12 +31,20 @@ export struct ArticlePage {
   @Local deviceType: DEVICE_TYPES =
     deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
   @Local isFavorite: boolean = false
+  @Local isLiked: boolean = false
 
   /**
    * 检查收藏状态
    */
   async checkFavoriteStatus(): Promise<void> {
     this.isFavorite = await favoriteManager.isFavorite(this.article.id)
+  }
+
+  /**
+   * 检查点赞状态
+   */
+  async checkLikeStatus(): Promise<void> {
+    this.isLiked = await likeManager.isLiked(this.article.id)
   }
 
   /**
@@ -72,6 +80,27 @@ export struct ArticlePage {
     }
   }
 
+  /**
+   * 切换点赞状态
+   */
+  async toggleLike(): Promise<void> {
+    if (this.isLiked) {
+      const success = await likeManager.removeLike(this.article.id)
+      if (success) {
+        this.isLiked = false
+        promptAction.openToast({ message: '已取消点赞', duration: 1500 })
+      }
+    } else {
+      const success = await likeManager.addLike(this.article)
+      if (success) {
+        this.isLiked = true
+        promptAction.openToast({ message: '已点赞', duration: 1500 })
+      } else {
+        promptAction.openToast({ message: '该文章已点赞', duration: 1500 })
+      }
+    }
+  }
+
   @Builder
   ArticleContentBuilder() {
     Column() {
@@ -90,6 +119,21 @@ export struct ArticlePage {
       Stack() {
         this.ArticleContentBuilder()
 
+        // 点赞按钮
+        Stack({ alignContent: Alignment.Center }) {
+          Image(this.isLiked ? $rawfile('like_filled.svg') : $rawfile('like_outline.svg'))
+            .width('50%')
+            .height('50%')
+            .fillColor(this.isLiked ? '#FF6B9D' : $r('app.color.color_change_button_font'))
+        }
+        .width(this.deviceType === DEVICE_TYPES.PHONE ? 35 : 45)
+        .height(this.deviceType === DEVICE_TYPES.PHONE ? 35 : 45)
+        .shadow({ color: Color.Black, radius: 10 })
+        .backgroundColor($r('app.color.color_change_button_background'))
+        .onClick(() => { this.toggleLike() })
+        .borderRadius(99)
+        .position({ right: this.deviceType === DEVICE_TYPES.PHONE ? 20 : 30, bottom: 280 })
+
         // 收藏按钮
         Stack({ alignContent: Alignment.Center }) {
           Image(this.isFavorite ? $rawfile('favorite_filled.svg') : $rawfile('favorite_outline.svg'))
@@ -99,14 +143,9 @@ export struct ArticlePage {
         }
         .width(this.deviceType === DEVICE_TYPES.PHONE ? 35 : 45)
         .height(this.deviceType === DEVICE_TYPES.PHONE ? 35 : 45)
-        .shadow({
-          color: Color.Black,
-          radius: 10
-        })
+        .shadow({ color: Color.Black, radius: 10 })
         .backgroundColor($r('app.color.color_change_button_background'))
-        .onClick(() => {
-          this.toggleFavorite()
-        })
+        .onClick(() => { this.toggleFavorite() })
         .borderRadius(99)
         .position({ right: this.deviceType === DEVICE_TYPES.PHONE ? 20 : 30, bottom: 220 })
 
@@ -125,6 +164,7 @@ export struct ArticlePage {
     .onReady((navDestinationContext: NavDestinationContext) => {
       this.article = navDestinationContext.pathInfo.param as NewsArticle
       this.checkFavoriteStatus()
+      this.checkLikeStatus()
     })
     .width('100%')
     .height('100%')

@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { DEVICE_TYPES, NAV_DESTS, APP_STORAGE_KEYS, HistoryUpdateTrigger, FavoriteUpdateTrigger } from "common"
+import { DEVICE_TYPES, NAV_DESTS, APP_STORAGE_KEYS, HistoryUpdateTrigger, FavoriteUpdateTrigger, LikeUpdateTrigger } from "common"
 import { deviceInfo } from "@kit.BasicServicesKit"
-import { historyManager, favoriteManager } from "feature"
+import { historyManager, favoriteManager, likeManager } from "feature"
 import { AppStorageV2 } from "@kit.ArkUI"
 
 interface MenuCardItem {
@@ -35,12 +35,16 @@ export struct SelfTabContent {
     AppStorageV2.connect(HistoryUpdateTrigger, APP_STORAGE_KEYS.HISTORY_UPDATE_TRIGGER, () => new HistoryUpdateTrigger())!
   @Local favoriteUpdateTrigger: FavoriteUpdateTrigger =
     AppStorageV2.connect(FavoriteUpdateTrigger, APP_STORAGE_KEYS.FAVORITE_UPDATE_TRIGGER, () => new FavoriteUpdateTrigger())!
+  @Local likeUpdateTrigger: LikeUpdateTrigger =
+    AppStorageV2.connect(LikeUpdateTrigger, APP_STORAGE_KEYS.LIKE_UPDATE_TRIGGER, () => new LikeUpdateTrigger())!
   @Local historyCount: number = 0
   @Local favoriteCount: number = 0
+  @Local likeCount: number = 0
 
   async aboutToAppear(): Promise<void> {
     await this.updateHistoryCount()
     await this.updateFavoriteCount()
+    await this.updateLikeCount()
   }
 
   @Monitor('historyUpdateTrigger.trigger')
@@ -53,6 +57,11 @@ export struct SelfTabContent {
     await this.updateFavoriteCount()
   }
 
+  @Monitor('likeUpdateTrigger.trigger')
+  async onLikeUpdate(): Promise<void> {
+    await this.updateLikeCount()
+  }
+
   async updateHistoryCount(): Promise<void> {
     const historyList = await historyManager.getHistoryList()
     this.historyCount = historyList.length
@@ -61,6 +70,11 @@ export struct SelfTabContent {
   async updateFavoriteCount(): Promise<void> {
     const favoriteList = await favoriteManager.getFavoriteList()
     this.favoriteCount = favoriteList.length
+  }
+
+  async updateLikeCount(): Promise<void> {
+    const likeList = await likeManager.getLikeList()
+    this.likeCount = likeList.length
   }
 
   // 获取菜单项配置
@@ -81,8 +95,15 @@ export struct SelfTabContent {
         onClick: () => this.navPathStuck.pushPath({ name: NAV_DESTS.FAVORITES })
       },
       {
-        icon: $rawfile('settings_icon.svg'),
+        icon: $rawfile('like_icon.svg'),
         iconBgColor: '#FF6B9D', // 粉色
+        title: '我的点赞',
+        subtitle: this.likeCount > 0 ? `${this.likeCount}篇点赞` : '暂无点赞内容',
+        onClick: () => this.navPathStuck.pushPath({ name: NAV_DESTS.LIKES })
+      },
+      {
+        icon: $rawfile('settings_icon.svg'),
+        iconBgColor: '#9C7CF4', // 紫色
         title: '设置',
         subtitle: '个性化配置',
         onClick: () => this.navPathStuck.pushPath({ name: NAV_DESTS.SETTINGS })
