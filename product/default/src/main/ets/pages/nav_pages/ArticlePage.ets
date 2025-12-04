@@ -124,7 +124,7 @@ export struct ArticlePage {
           Image(this.isLiked ? $rawfile('like_filled.svg') : $rawfile('like_outline.svg'))
             .width('50%')
             .height('50%')
-            .fillColor(this.isLiked ? '#FF6B9D' : $r('app.color.color_change_button_font'))
+            .fillColor(this.isLiked ? '#FFD700' : $r('app.color.color_change_button_font'))
         }
         .width(this.deviceType === DEVICE_TYPES.PHONE ? 35 : 45)
         .height(this.deviceType === DEVICE_TYPES.PHONE ? 35 : 45)
