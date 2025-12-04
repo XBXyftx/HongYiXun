@@ -252,6 +252,7 @@ export struct LikesPage {
               ListItem() {
                 this.LikeItemBuilder(item)
               }
+              .padding(4)
               .transition(TransitionEffect.OPACITY.animation({ duration: 300, curve: Curve.EaseInOut }))
             }, (item: LikeItem) => item.article.id + item.timestamp)
           }

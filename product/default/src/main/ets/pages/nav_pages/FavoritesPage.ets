@@ -296,6 +296,7 @@ export struct FavoritesPage {
               ListItem() {
                 this.FavoriteItemBuilder(item)
               }
+              .padding(4)
               .transition(TransitionEffect.OPACITY.animation({ duration: 300, curve: Curve.EaseInOut }))
             }, (item: FavoriteItem) => item.article.id + item.timestamp)
           }
