@@ -91,20 +91,27 @@ export struct CalenderTabContent {
   }
 
   generateHeatmapCells(): void {
-    this.heatmapCells = []
+    // 清空并重新生成
+    const newCells: HeatmapCell[] = []
     const statsMap = new Map<string, number>()
+    
+    // 从dailyStats构建统计Map
     this.dailyStats.forEach(stat => {
-      statsMap.set(stat.dateStr, stat.count)
+      if (stat.count > 0) {
+        statsMap.set(stat.dateStr, stat.count)
+      }
     })
 
     const today = new Date()
-    for (let i = this.userConfig.heatmapTimeRange - 1; i >= 0; i--) {
+    const timeRange = this.userConfig.heatmapTimeRange
+    
+    for (let i = timeRange - 1; i >= 0; i--) {
       const date = new Date(today)
       date.setDate(today.getDate() - i)
       const dateStr = this.formatDate(date)
       const count = statsMap.get(dateStr) || 0
 
-      this.heatmapCells.push({
+      newCells.push({
         dateStr: dateStr,
         count: count,
         color: this.getColorForCount(count),
@@ -113,6 +120,9 @@ export struct CalenderTabContent {
         month: date.getMonth() + 1
       })
     }
+    
+    // 一次性更新，触发UI刷新
+    this.heatmapCells = newCells
   }
 
   formatDate(date: Date): string {
@@ -346,9 +356,9 @@ export struct CalenderTabContent {
                         Column() {
                           ForEach(weekCells, (cell: HeatmapCell, dayIndex: number) => {
                             this.HeatmapCellBuilder(cell, weekIndex * 7 + dayIndex)
-                          }, (cell: HeatmapCell) => cell.dateStr || `empty_${cell.dayOfWeek}`)
+                          }, (cell: HeatmapCell, dayIdx: number) => `${this.userConfig.heatmapTimeRange}_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}`)
                         }
-                      }, (_: HeatmapCell[], idx: number) => `week_${idx}`)
+                      }, (weekCells: HeatmapCell[], idx: number) => `${this.userConfig.heatmapTimeRange}_week_${idx}_${weekCells.length}`)
                     }
                   }
                   .scrollable(ScrollDirection.Horizontal)
