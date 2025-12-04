@@ -14,7 +14,7 @@
  */
 
 import { AITabContent } from "../tab_contents/AITabContent"
-import { ForumTabContent } from "../tab_contents/ForumTabContent"
+import { ForumTabContent } from "../tab_contents/CalenderTabContent"
 import { NewsHistoryTabContent } from "../tab_contents/NewsHistoryTabContent"
 import { NewsListTabContent } from "../tab_contents/NewsListTabContent"
 import { SelfTabContent } from "../tab_contents/SelfTabContent"
