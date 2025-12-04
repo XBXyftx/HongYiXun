@@ -18,14 +18,22 @@ import { deviceInfo } from "@kit.BasicServicesKit"
 import { historyManager, favoriteManager } from "feature"
 import { AppStorageV2 } from "@kit.ArkUI"
 
+interface MenuCardItem {
+  icon: Resource
+  iconBgColor: ResourceColor
+  title: string
+  subtitle: string
+  onClick: () => void
+}
+
 @ComponentV2
 export struct SelfTabContent {
   @Local deviceType: DEVICE_TYPES =
     deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
   @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, APP_STORAGE_KEYS.NAV_PATH_STUCK, () => new NavPathStack())!
-  @Local historyUpdateTrigger: HistoryUpdateTrigger = 
+  @Local historyUpdateTrigger: HistoryUpdateTrigger =
     AppStorageV2.connect(HistoryUpdateTrigger, APP_STORAGE_KEYS.HISTORY_UPDATE_TRIGGER, () => new HistoryUpdateTrigger())!
-  @Local favoriteUpdateTrigger: FavoriteUpdateTrigger = 
+  @Local favoriteUpdateTrigger: FavoriteUpdateTrigger =
     AppStorageV2.connect(FavoriteUpdateTrigger, APP_STORAGE_KEYS.FAVORITE_UPDATE_TRIGGER, () => new FavoriteUpdateTrigger())!
   @Local historyCount: number = 0
   @Local favoriteCount: number = 0
@@ -35,97 +43,93 @@ export struct SelfTabContent {
     await this.updateFavoriteCount()
   }
 
-  /**
-   * 监听历史记录更新触发器
-   */
   @Monitor('historyUpdateTrigger.trigger')
   async onHistoryUpdate(): Promise<void> {
     await this.updateHistoryCount()
   }
 
-  /**
-   * 监听收藏更新触发器
-   */
   @Monitor('favoriteUpdateTrigger.trigger')
   async onFavoriteUpdate(): Promise<void> {
     await this.updateFavoriteCount()
   }
 
-  /**
-   * 更新历史记录数量
-   */
   async updateHistoryCount(): Promise<void> {
     const historyList = await historyManager.getHistoryList()
     this.historyCount = historyList.length
   }
 
-  /**
-   * 更新收藏数量
-   */
   async updateFavoriteCount(): Promise<void> {
     const favoriteList = await favoriteManager.getFavoriteList()
     this.favoriteCount = favoriteList.length
   }
 
-  @Builder
-  MenuCardBuilder(icon: Resource, title: string, subtitle: string, badge?: number, onClick?: () => void) {
-    Row() {
-      // 图标
-      Image(icon)
-        .width(this.deviceType === DEVICE_TYPES.PHONE ? 40 : 50)
-        .height(this.deviceType === DEVICE_TYPES.PHONE ? 40 : 50)
-        .fillColor($r('app.color.brand'))
-        .margin({ right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20 })
+  // 获取菜单项配置
+  getMenuItems(): MenuCardItem[] {
+    return [
+      {
+        icon: $rawfile('history_icon.svg'),
+        iconBgColor: '#1DB954', // 绿色
+        title: '浏览历史',
+        subtitle: this.historyCount > 0 ? `${this.historyCount}条记录` : '暂无浏览记录',
+        onClick: () => this.navPathStuck.pushPath({ name: NAV_DESTS.HISTORY })
+      },
+      {
+        icon: $rawfile('favorite_icon.svg'),
+        iconBgColor: '#00BCD4', // 青色
+        title: '我的收藏',
+        subtitle: this.favoriteCount > 0 ? `${this.favoriteCount}篇收藏` : '暂无收藏内容',
+        onClick: () => this.navPathStuck.pushPath({ name: NAV_DESTS.FAVORITES })
+      },
+      {
+        icon: $rawfile('settings_icon.svg'),
+        iconBgColor: '#FF6B9D', // 粉色
+        title: '设置',
+        subtitle: '个性化配置',
+        onClick: () => this.navPathStuck.pushPath({ name: NAV_DESTS.SETTINGS })
+      }
+    ]
+  }
 
-      // 文字信息
-      Column() {
-        Text(title)
-          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20)
+  @Builder
+  MenuCardBuilder(item: MenuCardItem) {
+    Column() {
+      Row() {
+        // 彩色圆形图标背景
+        Stack() {
+          Circle()
+            .width(this.deviceType === DEVICE_TYPES.PHONE ? 44 : 52)
+            .height(this.deviceType === DEVICE_TYPES.PHONE ? 44 : 52)
+            .fill(item.iconBgColor)
+
+          Image(item.icon)
+            .width(this.deviceType === DEVICE_TYPES.PHONE ? 22 : 26)
+            .height(this.deviceType === DEVICE_TYPES.PHONE ? 22 : 26)
+            .fillColor(Color.White)
+        }
+
+        // 标题
+        Text(item.title)
+          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 22)
           .fontWeight(600)
           .fontColor($r('app.color.text_primary'))
-        
-        Text(subtitle)
-          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16)
-          .fontColor($r('app.color.text_secondary'))
-          .margin({ top: 4 })
+          .margin({ left: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16 })
       }
-      .alignItems(HorizontalAlign.Start)
-      .layoutWeight(1)
+      .width('100%')
+      .alignItems(VerticalAlign.Center)
 
-      // 徽章和箭头
-      Row() {
-        if (badge !== undefined && badge > 0) {
-          Text(badge > 99 ? '99+' : badge.toString())
-            .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 14)
-            .fontColor(Color.White)
-            .backgroundColor($r('app.color.brand'))
-            .padding({ left: 8, right: 8, top: 2, bottom: 2 })
-            .borderRadius(10)
-            .margin({ right: 8 })
-        }
-        
-        Image($rawfile('arrow_right.svg'))
-          .width(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
-          .height(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
-          .fillColor($r('app.color.text_secondary'))
-      }
+      // 描述文字
+      Text(item.subtitle)
+        .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 13 : 16)
+        .fontColor($r('app.color.text_secondary'))
+        .margin({ top: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16 })
+        .width('100%')
     }
     .width('100%')
     .padding(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20)
     .backgroundColor($r('app.color.news_list_item_bg'))
-    .borderRadius(12)
-    .onClick(() => {
-      if (onClick) {
-        onClick()
-      }
-    })
-    .shadow({
-      radius: 16,
-      color: 'rgba(0, 0, 0, 0.15)',
-      offsetX: 0,
-      offsetY: 4
-    })
-    .transition(TransitionEffect.scale({ x: 0.95, y: 0.95 }).animation({ duration: 200, curve: Curve.EaseInOut }))
+    .borderRadius(16)
+    .alignItems(HorizontalAlign.Start)
+    .onClick(() => item.onClick())
   }
 
   build() {
@@ -145,51 +149,25 @@ export struct SelfTabContent {
         bottom: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20
       })
 
-      // 功能菜单列表
+      // 两列网格布局
       Scroll() {
-        Column({ space: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16 }) {
-          // 浏览历史卡片
-          this.MenuCardBuilder(
-            $rawfile('history_icon.svg'),
-            '浏览历史',
-            '查看你浏览过的新闻',
-            this.historyCount,
-            () => {
-              this.navPathStuck.replacePath({ name: NAV_DESTS.HISTORY })
-            }
-          )
-
-          // 我的收藏卡片
-          this.MenuCardBuilder(
-            $rawfile('favorite_icon.svg'),
-            '我的收藏',
-            '查看你收藏的新闻',
-            this.favoriteCount,
-            () => {
-              this.navPathStuck.replacePath({ name: NAV_DESTS.FAVORITES })
-            }
-          )
-
-          // 设置卡片
-          this.MenuCardBuilder(
-            $rawfile('settings_icon.svg'),
-            '设置',
-            '应用设置项',
-            undefined,
-            () => {
-              this.navPathStuck.replacePath({ name: NAV_DESTS.SETTINGS })
-            }
-          )
-
-          // 预留其他功能卡片位置
-          // 可以在这里添加更多功能入口，如：
-          // - 我的收藏
-          // - 阅读统计
-          // - 关于
+        Column() {
+          GridRow({
+            columns: 2,
+            gutter: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16
+          }) {
+            ForEach(this.getMenuItems(), (item: MenuCardItem, index: number) => {
+              GridCol() {
+                this.MenuCardBuilder(item)
+              }
+            })
+          }
+          .width('100%')
         }
         .padding({
           left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
-          right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24
+          right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+          bottom: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24
         })
       }
       .layoutWeight(1)
