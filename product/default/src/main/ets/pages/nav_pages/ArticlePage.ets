@@ -106,31 +106,54 @@ export struct ArticlePage {
    * 分享文章
    */
   shareArticle(): void {
-    try {
-      const context = getContext(this) as common.UIAbilityContext
-      const shareText = `【${this.article.title}】\n${this.article.url}\n\n来自鸿易讯`
+    const context = getContext(this) as common.UIAbilityContext
+    const shareText = `【${this.article.title}】\n${this.article.url}\n\n来自鸿易讯`
 
-      const want: Want = {
-        action: 'ohos.want.action.select',
-        type: 'text/plain',
-        parameters: {
-          'ability.picker.type': 'share',
-          'ability.picker.text': shareText,
-          'ability.picker.fileNames': [this.article.title],
-          'ability.picker.fileSizes': [shareText.length]
-        }
+    logger.info(`${LOG_TAG.MAIN_PAGE}开始分享文章: ${this.article.title}`)
+    logger.info(`${LOG_TAG.MAIN_PAGE}分享内容: ${shareText}`)
+    logger.info(`${LOG_TAG.MAIN_PAGE}文章URL: ${this.article.url}`)
+
+    // 使用系统分享面板
+    const want: Want = {
+      action: 'ohos.want.action.sendData',
+      type: 'text/plain',
+      parameters: {
+        'shareAbstract': this.article.title,
+        'stream': shareText
       }
+    }
 
-      context.startAbility(want).then(() => {
-        logger.info(`${LOG_TAG.MAIN_PAGE}分享文章: ${this.article.title}`)
+    logger.info(`${LOG_TAG.MAIN_PAGE}Want配置: ${JSON.stringify(want)}`)
+
+    context.startAbility(want).then(() => {
+      logger.info(`${LOG_TAG.MAIN_PAGE}分享面板已打开`)
+    }).catch((err: Error) => {
+      logger.error(`${LOG_TAG.MAIN_PAGE}startAbility失败: ${err.message}`)
+      logger.error(`${LOG_TAG.MAIN_PAGE}错误详情: ${JSON.stringify(err)}`)
+
+      // 尝试备用方案：复制到剪贴板
+      this.copyToClipboard(shareText)
+    })
+  }
+
+  /**
+   * 复制到剪贴板（备用方案）
+   */
+  copyToClipboard(text: string): void {
+    import('@ohos.pasteboard').then((pasteboard) => {
+      const pasteData = pasteboard.default.createData(pasteboard.default.MIMETYPE_TEXT_PLAIN, text)
+      const systemPasteboard = pasteboard.default.getSystemPasteboard()
+      systemPasteboard.setData(pasteData).then(() => {
+        logger.info(`${LOG_TAG.MAIN_PAGE}已复制到剪贴板`)
+        promptAction.openToast({ message: '链接已复制到剪贴板', duration: 2000 })
       }).catch((err: Error) => {
-        logger.error(`${LOG_TAG.MAIN_PAGE}分享失败: ${err.message}`)
+        logger.error(`${LOG_TAG.MAIN_PAGE}复制失败: ${err.message}`)
         promptAction.openToast({ message: '分享失败', duration: 1500 })
       })
-    } catch (error) {
-      logger.error(`${LOG_TAG.MAIN_PAGE}分享失败: ${JSON.stringify(error)}`)
+    }).catch((err: Error) => {
+      logger.error(`${LOG_TAG.MAIN_PAGE}导入pasteboard失败: ${err.message}`)
       promptAction.openToast({ message: '分享失败', duration: 1500 })
-    }
+    })
   }
 
   @Builder
