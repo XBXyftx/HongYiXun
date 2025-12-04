@@ -15,8 +15,7 @@
 import { AppStorageV2, promptAction } from '@kit.ArkUI'
 import { DEVICE_TYPES, APP_STORAGE_KEYS, NewsArticle, UserConfigViewModel, logger, LOG_TAG } from 'common'
 import { ColorModChoseButton, FontSizeAdjustButton, NewsArticleView, favoriteManager, likeManager } from 'feature'
-import { deviceInfo } from '@kit.BasicServicesKit'
-import { pasteboard } from '@kit.BasicServicesKit'
+import { deviceInfo, pasteboard } from '@kit.BasicServicesKit'
 
 @ComponentV2
 export struct ArticlePage {
@@ -107,7 +106,6 @@ export struct ArticlePage {
    */
   shareArticle(): void {
     const shareText = `【${this.article.title}】\n${this.article.url}\n\n来自鸿易讯`
-
     logger.info(`${LOG_TAG.MAIN_PAGE}分享文章: ${this.article.title}`)
 
     try {
