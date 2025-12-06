@@ -216,15 +216,15 @@ export class UserConfigViewModel {
 
   /**
    * 热力日历显示的时间范围（天数）
-   * @default 30
+   * @default 7
    */
-  @Trace heatmapTimeRange: number = HeatmapTimeRange.DAYS_30
+  @Trace heatmapTimeRange: number = HeatmapTimeRange.DAYS_7
 
   /**
    * 热力日历颜色条的最大值范围
-   * @default 500
+   * @default 10
    */
-  @Trace heatmapColorRange: number = HeatmapColorRange.RANGE_500
+  @Trace heatmapColorRange: number = HeatmapColorRange.RANGE_10
 
   /**
    * 点击热力日历方块是否跳转至对应日期的历史记录
@@ -234,9 +234,9 @@ export class UserConfigViewModel {
 
   /**
    * 热力日历颜色系
-   * @default 'blue'
+   * @default 'green'
    */
-  @Trace heatmapColorScheme: string = HeatmapColorScheme.BLUE
+  @Trace heatmapColorScheme: string = HeatmapColorScheme.GREEN
 }
 
 /**
