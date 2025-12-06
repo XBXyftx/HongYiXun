@@ -453,198 +453,199 @@ export struct CalenderTabContent {
   @Builder
   fullscreenContentBuilder() {
     Column() {
+      // 标题栏 - 放在Refresh外部，避开安全区域
+      Row() {
+        Text('阅读热力日历')
+          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 26)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
+          .layoutWeight(1)
+
+        // 关闭按钮
+        SymbolGlyph($r('sys.symbol.arrow_down_right_and_arrow_up_left'))
+          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 32)
+          .fontColor([$r('app.color.text_primary')])
+          .onClick(() => this.onFullscreenBack())
+      }
+      .width('100%')
+      .padding({
+        left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+        right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+        top: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16,
+        bottom: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16
+      })
+
       // 使用Refresh组件实现下拉返回手势
       Refresh({ refreshing: false, builder: this.refreshingBuilder, offset: 4 }) {
         Scroll() {
           Column() {
-            // 标题栏
+
+          // 统计信息卡片
+          Column() {
+            Text(`最近 ${this.userConfig.heatmapTimeRange} 天共阅读`)
+              .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18)
+              .fontColor($r('app.color.text_secondary'))
+
             Row() {
-              Text('阅读热力日历')
-                .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 26)
+              Text(`${this.totalReadCount}`)
+                .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 36 : 48)
+                .fontWeight(FontWeight.Bold)
+                .fontColor($r('app.color.brand'))
+
+              Text(' 篇文章')
+                .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20)
+                .fontColor($r('app.color.text_primary'))
+                .margin({ bottom: 4 })
+            }
+            .alignItems(VerticalAlign.Bottom)
+          }
+          .width('100%')
+          .padding(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 28)
+          .backgroundColor($r('app.color.news_list_item_bg'))
+          .borderRadius(16)
+          .alignItems(HorizontalAlign.Start)
+          .margin({
+            left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+            right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24
+          })
+
+          // 热力日历网格 - 共享元素
+          Column() {
+            // 热力格子
+            Scroll() {
+              Row() {
+                // 星期标签列
+                Column() {
+                  ForEach(['', '一', '', '三', '', '五', ''], (day: string) => {
+                    Text(day)
+                      .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 9 : 11)
+                      .fontColor($r('app.color.text_secondary'))
+                      .height(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18)
+                      .width(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20)
+                      .textAlign(TextAlign.End)
+                      .margin({ right: 4 })
+                  })
+                }
+
+                // 热力格子网格
+                Scroll() {
+                  Row() {
+                    ForEach(this.getWeekColumns(), (weekCells: HeatmapCell[], weekIndex: number) => {
+                      Column() {
+                        ForEach(weekCells, (cell: HeatmapCell, dayIndex: number) => {
+                          this.HeatmapCellBuilder(cell, weekIndex * 7 + dayIndex)
+                        }, (cell: HeatmapCell, dayIdx: number) => `fs_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}`)
+                      }
+                    }, (weekCells: HeatmapCell[], idx: number) => `fs_week_${idx}`)
+                  }
+                }
+                .scrollable(ScrollDirection.Horizontal)
+                .scrollBar(BarState.Off)
+                .layoutWeight(1)
+              }
+            }
+            .scrollable(ScrollDirection.Horizontal)
+            .scrollBar(BarState.Off)
+            .width('100%')
+
+            // 图例
+            this.LegendBuilder()
+
+            // 范围说明
+            Text(`颜色范围: 0 - ${this.userConfig.heatmapColorRange} 篇`)
+              .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 10 : 12)
+              .fontColor($r('app.color.text_secondary'))
+              .margin({ top: 8 })
+          }
+          .width('100%')
+          .padding(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24)
+          .backgroundColor($r('app.color.news_list_item_bg'))
+          .borderRadius(16)
+          .margin({
+            top: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16,
+            left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+            right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24
+          })
+          // 共享元素转场 - 与卡片的id对应
+          .geometryTransition(HEATMAP_SHARED_ID)
+          .transition(TransitionEffect.OPACITY.animation({ duration: 350, curve: Curve.Friction }))
+
+          // 月历视图
+          Column() {
+            // 月份导航
+            Row() {
+              Image($r('sys.media.ohos_ic_public_arrow_left'))
+                .width(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 32)
+                .height(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 32)
+                .fillColor($r('app.color.text_primary'))
+                .onClick(() => this.prevMonth())
+
+              Text(`${this.currentYear}年${this.currentMonth}月`)
+                .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 24)
                 .fontWeight(FontWeight.Bold)
                 .fontColor($r('app.color.text_primary'))
                 .layoutWeight(1)
+                .textAlign(TextAlign.Center)
 
-              // 关闭按钮
-              SymbolGlyph($r('sys.symbol.arrow_down_right_and_arrow_up_left'))
-                .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 32)
-                .fontColor([$r('app.color.text_primary')])
-                .onClick(() => this.onFullscreenBack())
+              Image($r('sys.media.ohos_ic_public_arrow_right'))
+                .width(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 32)
+                .height(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 32)
+                .fillColor($r('app.color.text_primary'))
+                .onClick(() => this.nextMonth())
             }
             .width('100%')
-            .padding({
-              left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
-              right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
-              top: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16,
-              bottom: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16
-            })
+            .padding({ bottom: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24 })
 
-            // 统计信息卡片
-            Column() {
-              Text(`最近 ${this.userConfig.heatmapTimeRange} 天共阅读`)
-                .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18)
-                .fontColor($r('app.color.text_secondary'))
-
-              Row() {
-                Text(`${this.totalReadCount}`)
-                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 36 : 48)
-                  .fontWeight(FontWeight.Bold)
-                  .fontColor($r('app.color.brand'))
-
-                Text(' 篇文章')
-                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20)
-                  .fontColor($r('app.color.text_primary'))
-                  .margin({ bottom: 4 })
-              }
-              .alignItems(VerticalAlign.Bottom)
-            }
-            .width('100%')
-            .padding(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 28)
-            .backgroundColor($r('app.color.news_list_item_bg'))
-            .borderRadius(16)
-            .alignItems(HorizontalAlign.Start)
-            .margin({
-              left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
-              right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24
-            })
-
-            // 热力日历网格 - 共享元素
-            Column() {
-              // 热力格子
-              Scroll() {
-                Row() {
-                  // 星期标签列
-                  Column() {
-                    ForEach(['', '一', '', '三', '', '五', ''], (day: string) => {
-                      Text(day)
-                        .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 9 : 11)
-                        .fontColor($r('app.color.text_secondary'))
-                        .height(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18)
-                        .width(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20)
-                        .textAlign(TextAlign.End)
-                        .margin({ right: 4 })
-                    })
-                  }
-
-                  // 热力格子网格
-                  Scroll() {
-                    Row() {
-                      ForEach(this.getWeekColumns(), (weekCells: HeatmapCell[], weekIndex: number) => {
-                        Column() {
-                          ForEach(weekCells, (cell: HeatmapCell, dayIndex: number) => {
-                            this.HeatmapCellBuilder(cell, weekIndex * 7 + dayIndex)
-                          }, (cell: HeatmapCell, dayIdx: number) => `fs_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}`)
-                        }
-                      }, (weekCells: HeatmapCell[], idx: number) => `fs_week_${idx}`)
-                    }
-                  }
-                  .scrollable(ScrollDirection.Horizontal)
-                  .scrollBar(BarState.Off)
-                  .layoutWeight(1)
-                }
-              }
-              .scrollable(ScrollDirection.Horizontal)
-              .scrollBar(BarState.Off)
-              .width('100%')
-
-              // 图例
-              this.LegendBuilder()
-
-              // 范围说明
-              Text(`颜色范围: 0 - ${this.userConfig.heatmapColorRange} 篇`)
-                .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 10 : 12)
-                .fontColor($r('app.color.text_secondary'))
-                .margin({ top: 8 })
-            }
-            .width('100%')
-            .padding(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24)
-            .backgroundColor($r('app.color.news_list_item_bg'))
-            .borderRadius(16)
-            .margin({
-              top: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16,
-              left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
-              right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24
-            })
-            // 共享元素转场 - 与卡片的id对应
-            .geometryTransition(HEATMAP_SHARED_ID)
-            .transition(TransitionEffect.OPACITY.animation({ duration: 350, curve: Curve.Friction }))
-
-            // 月历视图
-            Column() {
-              // 月份导航
-              Row() {
-                Image($r('sys.media.ohos_ic_public_arrow_left'))
-                  .width(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 32)
-                  .height(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 32)
-                  .fillColor($r('app.color.text_primary'))
-                  .onClick(() => this.prevMonth())
-
-                Text(`${this.currentYear}年${this.currentMonth}月`)
-                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 24)
-                  .fontWeight(FontWeight.Bold)
-                  .fontColor($r('app.color.text_primary'))
-                  .layoutWeight(1)
+            // 星期标题
+            Row() {
+              ForEach(['日', '一', '二', '三', '四', '五', '六'], (day: string) => {
+                Text(day)
+                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 14)
+                  .fontColor($r('app.color.text_secondary'))
+                  .width('14.28%')
                   .textAlign(TextAlign.Center)
-
-                Image($r('sys.media.ohos_ic_public_arrow_right'))
-                  .width(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 32)
-                  .height(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 32)
-                  .fillColor($r('app.color.text_primary'))
-                  .onClick(() => this.nextMonth())
-              }
-              .width('100%')
-              .padding({ bottom: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24 })
-
-              // 星期标题
-              Row() {
-                ForEach(['日', '一', '二', '三', '四', '五', '六'], (day: string) => {
-                  Text(day)
-                    .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 14)
-                    .fontColor($r('app.color.text_secondary'))
-                    .width('14.28%')
-                    .textAlign(TextAlign.Center)
-                })
-              }
-              .width('100%')
-              .padding({ bottom: this.deviceType === DEVICE_TYPES.PHONE ? 8 : 12 })
-
-              // 日期网格
-              Grid() {
-                ForEach(this.calendarDays, (cell: CalendarDayCell, index: number) => {
-                  GridItem() {
-                    this.CalendarDayCellBuilder(cell)
-                  }
-                }, (cell: CalendarDayCell, idx: number) => `cal_${cell.dateStr}_${idx}`)
-              }
-              .columnsTemplate('1fr 1fr 1fr 1fr 1fr 1fr 1fr')
-              .rowsGap(this.deviceType === DEVICE_TYPES.PHONE ? 4 : 8)
-              .columnsGap(this.deviceType === DEVICE_TYPES.PHONE ? 4 : 8)
-              .width('100%')
+              })
             }
             .width('100%')
-            .padding(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24)
-            .backgroundColor($r('app.color.news_list_item_bg'))
-            .borderRadius(16)
-            .margin({
-              top: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16,
-              left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
-              right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24
-            })
+            .padding({ bottom: this.deviceType === DEVICE_TYPES.PHONE ? 8 : 12 })
 
-            // 提示文字
-            if (this.userConfig.heatmapClickToHistory) {
-              Text('点击有阅读记录的日期可查看当天阅读的文章')
-                .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 14)
-                .fontColor($r('app.color.text_secondary'))
-                .margin({
-                  top: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16,
-                  left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
-                  right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
-                  bottom: this.deviceType === DEVICE_TYPES.PHONE ? 24 : 32
-                })
+            // 日期网格
+            Grid() {
+              ForEach(this.calendarDays, (cell: CalendarDayCell, index: number) => {
+                GridItem() {
+                  this.CalendarDayCellBuilder(cell)
+                }
+              }, (cell: CalendarDayCell, idx: number) => `cal_${cell.dateStr}_${idx}`)
             }
+            .columnsTemplate('1fr 1fr 1fr 1fr 1fr 1fr 1fr')
+            .rowsGap(this.deviceType === DEVICE_TYPES.PHONE ? 4 : 8)
+            .columnsGap(this.deviceType === DEVICE_TYPES.PHONE ? 4 : 8)
+            .width('100%')
+          }
+          .width('100%')
+          .padding(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24)
+          .backgroundColor($r('app.color.news_list_item_bg'))
+          .borderRadius(16)
+          .margin({
+            top: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16,
+            left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+            right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24
+          })
+
+          // 提示文字
+          if (this.userConfig.heatmapClickToHistory) {
+            Text('点击有阅读记录的日期可查看当天阅读的文章')
+              .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 14)
+              .fontColor($r('app.color.text_secondary'))
+              .margin({
+                top: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16,
+                left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+                right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+                bottom: this.deviceType === DEVICE_TYPES.PHONE ? 24 : 32
+              })
           }
         }
+      }
         .scrollable(ScrollDirection.Vertical)
         .scrollBar(BarState.Off)
         .edgeEffect(EdgeEffect.None)
@@ -659,7 +660,8 @@ export struct CalenderTabContent {
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
-    .expandSafeArea()
+    // 只扩展底部安全区域，顶部保持避开状态栏
+    .expandSafeArea([SafeAreaType.SYSTEM], [SafeAreaEdge.BOTTOM])
     .transition(TransitionEffect.asymmetric(
       TransitionEffect.opacity(1),
       TransitionEffect.OPACITY
