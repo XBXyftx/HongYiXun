@@ -286,6 +286,10 @@ export struct CalenderTabContent {
 
   onCellClick(cell: HeatmapCell): void {
     if (this.userConfig.heatmapClickToHistory && cell.count > 0) {
+      // 如果全屏模态打开，先收起再导航
+      if (this.isFullscreenShow) {
+        this.onFullscreenBack()
+      }
       this.navPathStuck.pushPath({
         name: NAV_DESTS.DATE_HISTORY,
         param: cell.dateStr
@@ -295,6 +299,10 @@ export struct CalenderTabContent {
 
   onCalendarCellClick(dateStr: string, count: number): void {
     if (this.userConfig.heatmapClickToHistory && count > 0) {
+      // 如果全屏模态打开，先收起再导航
+      if (this.isFullscreenShow) {
+        this.onFullscreenBack()
+      }
       this.navPathStuck.pushPath({
         name: NAV_DESTS.DATE_HISTORY,
         param: dateStr
