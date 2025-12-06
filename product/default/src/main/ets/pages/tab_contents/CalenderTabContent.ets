@@ -290,7 +290,7 @@ export struct CalenderTabContent {
       if (this.isFullscreenShow) {
         this.onFullscreenBack()
       }
-      this.navPathStuck.pushPath({
+      this.navPathStuck.replacePath({
         name: NAV_DESTS.DATE_HISTORY,
         param: cell.dateStr
       })
@@ -303,7 +303,7 @@ export struct CalenderTabContent {
       if (this.isFullscreenShow) {
         this.onFullscreenBack()
       }
-      this.navPathStuck.pushPath({
+      this.navPathStuck.replacePath({
         name: NAV_DESTS.DATE_HISTORY,
         param: dateStr
       })
