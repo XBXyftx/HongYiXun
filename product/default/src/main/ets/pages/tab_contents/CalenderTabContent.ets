@@ -26,6 +26,9 @@ import { deviceInfo } from "@kit.BasicServicesKit"
 import { historyManager } from "feature"
 import { AppStorageV2 } from "@kit.ArkUI"
 
+// 共享元素转场ID
+const HEATMAP_SHARED_ID = 'heatmap_shared_element'
+
 /**
  * 热力日历单元格数据
  */
@@ -331,59 +334,88 @@ export struct CalenderTabContent {
             .borderRadius(16)
             .alignItems(HorizontalAlign.Start)
 
-            // 热力日历网格
-            Column() {
-              // 热力格子 - 使用Grid布局，每行7天
-              Scroll() {
-                Row() {
-                  // 星期标签列
-                  Column() {
-                    ForEach(['', '一', '', '三', '', '五', ''], (day: string, index: number) => {
-                      Text(day)
-                        .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 9 : 11)
-                        .fontColor($r('app.color.text_secondary'))
-                        .height(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18)
-                        .width(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20)
-                        .textAlign(TextAlign.End)
-                        .margin({ right: 4 })
-                    })
-                  }
-
-                  // 热力格子网格
-                  Scroll() {
-                    Row() {
-                      ForEach(this.getWeekColumns(), (weekCells: HeatmapCell[], weekIndex: number) => {
-                        Column() {
-                          ForEach(weekCells, (cell: HeatmapCell, dayIndex: number) => {
-                            this.HeatmapCellBuilder(cell, weekIndex * 7 + dayIndex)
-                          }, (cell: HeatmapCell, dayIdx: number) => `${this.userConfig.heatmapTimeRange}_${this.userConfig.heatmapColorRange}_${this.userConfig.heatmapColorScheme}_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}_${cell.color}`)
-                        }
-                      }, (weekCells: HeatmapCell[], idx: number) => `${this.userConfig.heatmapTimeRange}_${this.userConfig.heatmapColorRange}_${this.userConfig.heatmapColorScheme}_week_${idx}_${weekCells.length}`)
+            // 热力日历网格 - 添加共享元素转场
+            Stack({ alignContent: Alignment.TopEnd }) {
+              Column() {
+                // 热力格子 - 使用Grid布局，每行7天
+                Scroll() {
+                  Row() {
+                    // 星期标签列
+                    Column() {
+                      ForEach(['', '一', '', '三', '', '五', ''], (day: string, index: number) => {
+                        Text(day)
+                          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 9 : 11)
+                          .fontColor($r('app.color.text_secondary'))
+                          .height(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18)
+                          .width(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20)
+                          .textAlign(TextAlign.End)
+                          .margin({ right: 4 })
+                      })
                     }
+
+                    // 热力格子网格
+                    Scroll() {
+                      Row() {
+                        ForEach(this.getWeekColumns(), (weekCells: HeatmapCell[], weekIndex: number) => {
+                          Column() {
+                            ForEach(weekCells, (cell: HeatmapCell, dayIndex: number) => {
+                              this.HeatmapCellBuilder(cell, weekIndex * 7 + dayIndex)
+                            }, (cell: HeatmapCell, dayIdx: number) => `${this.userConfig.heatmapTimeRange}_${this.userConfig.heatmapColorRange}_${this.userConfig.heatmapColorScheme}_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}_${cell.color}`)
+                          }
+                        }, (weekCells: HeatmapCell[], idx: number) => `${this.userConfig.heatmapTimeRange}_${this.userConfig.heatmapColorRange}_${this.userConfig.heatmapColorScheme}_week_${idx}_${weekCells.length}`)
+                      }
+                    }
+                    .scrollable(ScrollDirection.Horizontal)
+                    .scrollBar(BarState.Off)
+                    .layoutWeight(1)
                   }
-                  .scrollable(ScrollDirection.Horizontal)
-                  .scrollBar(BarState.Off)
-                  .layoutWeight(1)
                 }
+                .scrollable(ScrollDirection.Horizontal)
+                .scrollBar(BarState.Off)
+                .width('100%')
+
+                // 图例
+                this.LegendBuilder()
+
+                // 范围说明
+                Text(`颜色范围: 0 - ${this.userConfig.heatmapColorRange} 篇`)
+                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 10 : 12)
+                  .fontColor($r('app.color.text_secondary'))
+                  .margin({ top: 8 })
               }
-              .scrollable(ScrollDirection.Horizontal)
-              .scrollBar(BarState.Off)
               .width('100%')
+              .padding(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24)
+              .padding({ top: this.deviceType === DEVICE_TYPES.PHONE ? 40 : 48 })
 
-              // 图例
-              this.LegendBuilder()
-
-              // 范围说明
-              Text(`颜色范围: 0 - ${this.userConfig.heatmapColorRange} 篇`)
-                .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 10 : 12)
-                .fontColor($r('app.color.text_secondary'))
-                .margin({ top: 8 })
+              // 全屏按钮 - 右上角
+              Row() {
+                SymbolGlyph($r('sys.symbol.arrow_up_left_and_arrow_down_right'))
+                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 22)
+                  .fontColor([$r('app.color.text_secondary')])
+              }
+              .width(this.deviceType === DEVICE_TYPES.PHONE ? 32 : 40)
+              .height(this.deviceType === DEVICE_TYPES.PHONE ? 32 : 40)
+              .borderRadius(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20)
+              .backgroundColor($r('app.color.card_bg'))
+              .justifyContent(FlexAlign.Center)
+              .margin({
+                top: this.deviceType === DEVICE_TYPES.PHONE ? 8 : 12,
+                right: this.deviceType === DEVICE_TYPES.PHONE ? 8 : 12
+              })
+              .onClick(() => {
+                this.navPathStuck.pushPath({
+                  name: NAV_DESTS.HEATMAP_FULLSCREEN
+                }, {
+                  animated: true
+                })
+              })
             }
             .width('100%')
-            .padding(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24)
             .backgroundColor($r('app.color.news_list_item_bg'))
             .borderRadius(16)
             .margin({ top: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16 })
+            .geometryTransition(HEATMAP_SHARED_ID, { follow: true })
+            .transition(TransitionEffect.OPACITY.animation({ duration: 300, curve: Curve.EaseInOut }))
 
             // 提示文字
             if (this.userConfig.heatmapClickToHistory) {
