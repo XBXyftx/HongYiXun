@@ -167,6 +167,10 @@
     {
       "name": "error_light",
       "value": "#FFF2F0"
+    },
+    {
+      "name": "card_bg",
+      "value": "#FFFFFFFF"
     }
   ]
 }
