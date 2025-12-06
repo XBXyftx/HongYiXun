@@ -279,25 +279,24 @@ export struct NewsList {
           Column() {
             Column({ space: this.deviceType === DEVICE_TYPES.PHONE ? 10 : 20 }) {
               Text(news.title)
-                .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 25)
-                .fontWeight(900)
-              Column() {
-                Text(`来自于${news.source}`)
-                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18)
-                  .fontWeight(200)
-                  .textOverflow({
-                    overflow: TextOverflow.Ellipsis
-                  })
+                .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20)
+                .fontWeight(600)
+                .maxLines(2)
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+                .fontColor($r('app.color.text_primary'))
+              Row() {
+                Text(news.source ?? '')
+                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16)
+                  .fontColor($r('app.color.text_secondary'))
                   .maxLines(1)
-                Text(news.date)
-                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18)
-                  .fontWeight(200)
-                  .textOverflow({
-                    overflow: TextOverflow.Ellipsis
-                  })
-                  .maxLines(1)
+                Text('·')
+                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16)
+                  .fontColor($r('app.color.text_secondary'))
+                  .margin({ left: 5, right: 5 })
+                Text(news.date ?? '')
+                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16)
+                  .fontColor($r('app.color.text_secondary'))
               }
-              .alignItems(HorizontalAlign.Start)
             }
             .alignItems(HorizontalAlign.Start)
             .width('100%')
@@ -312,6 +311,7 @@ export struct NewsList {
           }
           .width('95%')
           .backgroundImage($rawfile('newsListItemBG.png'))
+          .backgroundImagePosition(Alignment.TopStart)
           .borderWidth(2)
           .borderColor($r('app.color.news_list_item_border'))
           .backgroundColor($r('app.color.news_list_item_bg'))

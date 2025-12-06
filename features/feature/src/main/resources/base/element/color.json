@@ -1,6 +1,14 @@
 {
   "color": [
     {
+      "name": "text_primary",
+      "value": "#FF000000"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#99000000"
+    },
+    {
       "name": "start_window_background",
       "value": "#062872"
     },
