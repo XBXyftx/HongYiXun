@@ -356,9 +356,9 @@ export struct CalenderTabContent {
                         Column() {
                           ForEach(weekCells, (cell: HeatmapCell, dayIndex: number) => {
                             this.HeatmapCellBuilder(cell, weekIndex * 7 + dayIndex)
-                          }, (cell: HeatmapCell, dayIdx: number) => `${this.userConfig.heatmapTimeRange}_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}`)
+                          }, (cell: HeatmapCell, dayIdx: number) => `${this.userConfig.heatmapTimeRange}_${this.userConfig.heatmapColorRange}_${this.userConfig.heatmapColorScheme}_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}_${cell.color}`)
                         }
-                      }, (weekCells: HeatmapCell[], idx: number) => `${this.userConfig.heatmapTimeRange}_week_${idx}_${weekCells.length}`)
+                      }, (weekCells: HeatmapCell[], idx: number) => `${this.userConfig.heatmapTimeRange}_${this.userConfig.heatmapColorRange}_${this.userConfig.heatmapColorScheme}_week_${idx}_${weekCells.length}`)
                     }
                   }
                   .scrollable(ScrollDirection.Horizontal)
