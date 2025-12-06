@@ -453,7 +453,7 @@ export struct CalenderTabContent {
   @Builder
   fullscreenContentBuilder() {
     Column() {
-      // 标题栏 - 放在Refresh外部，避开安全区域
+      // 标题栏
       Row() {
         Text('阅读热力日历')
           .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 26)
@@ -474,6 +474,7 @@ export struct CalenderTabContent {
         top: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16,
         bottom: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16
       })
+      .margin({ top: 48 }) // 固定顶部边距，避开状态栏
 
       // 使用Refresh组件实现下拉返回手势
       Refresh({ refreshing: false, builder: this.refreshingBuilder, offset: 4 }) {
