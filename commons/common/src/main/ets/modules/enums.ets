@@ -51,9 +51,7 @@ export enum NAV_DESTS {
   /** 热力日历设置页 - 配置热力日历显示选项 */
   HEATMAP_SETTINGS = 'HeatmapSettings',
   /** 日期历史记录页 - 显示指定日期的浏览历史 */
-  DATE_HISTORY = 'DateHistory',
-  /** 热力日历全屏页 - 全屏展示热力日历和月历视图 */
-  HEATMAP_FULLSCREEN = 'HeatmapFullscreen'
+  DATE_HISTORY = 'DateHistory'
 }
 
 // ==================== 数据库相关枚举 ====================
