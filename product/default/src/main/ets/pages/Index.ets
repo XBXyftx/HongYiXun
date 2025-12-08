@@ -40,10 +40,36 @@ import { DateHistoryPage } from './nav_pages/DateHistoryPage'
 
 @Builder
 function PlaceholderPage() {
-  Column() {
+  Column({ space: 20 }) {
+    // Logo
     Image($r('app.media.logo'))
-      .width('20%')
-      .borderRadius(20)
+      .width(180)
+      .height(180)
+      .borderRadius(24)
+      .shadow({
+        radius: 20,
+        color: '#3300BE53',
+        offsetX: 0,
+        offsetY: 8
+      })
+
+    // 应用名称
+    Text('鸿易讯')
+      .fontSize(42)
+      .fontWeight(700)
+      .fontColor($r('app.color.text_primary'))
+
+    // 副标题
+    Text('开源鸿蒙资讯聚合阅读')
+      .fontSize(26)
+      .fontColor($r('app.color.text_secondary'))
+      .margin({ top: -8 })
+
+
+    Text('从左侧选择文章开始阅读')
+      .fontSize(24)
+      .fontColor($r('app.color.text_secondary'))
+
   }
   .justifyContent(FlexAlign.Center)
   .width("100%")
@@ -53,7 +79,8 @@ function PlaceholderPage() {
 @Entry
 @ComponentV2
 struct Main {
-  @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, APP_STORAGE_KEYS.NAV_PATH_STUCK, () => new NavPathStack())!
+  @Local navPathStuck: NavPathStack =
+    AppStorageV2.connect(NavPathStack, APP_STORAGE_KEYS.NAV_PATH_STUCK, () => new NavPathStack())!
   @Local breakpointSystem: BreakpointSystem = BreakpointSystem.getInstance(this.getUIContext())
   @Local navMod: NavigationMode = NavigationMode.Stack
   @Local deviceType: DEVICE_TYPES =
