@@ -83,7 +83,6 @@ export struct NoteList {
     const date = new Date(timestamp)
     const now = new Date()
     const diff = now.getTime() - timestamp
-
     if (diff < 60000) return '刚刚'
     if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
     if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`
@@ -95,9 +94,7 @@ export struct NoteList {
 
   getPreviewText(note: NoteItem): string {
     const textBlocks = note.content.filter(b => b.type === NoteContentType.TEXT)
-    if (textBlocks.length > 0) {
-      return textBlocks[0].value.substring(0, 100)
-    }
+    if (textBlocks.length > 0) return textBlocks[0].value.substring(0, 100)
     const imageCount = note.content.filter(b => b.type === NoteContentType.IMAGE).length
     if (imageCount > 0) return `[${imageCount}张图片]`
     return '暂无内容'
@@ -179,10 +176,7 @@ export struct NoteList {
     .backgroundColor($r('app.color.card_bg'))
     .borderRadius(12)
     .onClick(() => this.viewNote(note))
-    .gesture(
-      LongPressGesture()
-        .onAction(() => this.deleteNote(note))
-    )
+    .gesture(LongPressGesture().onAction(() => this.deleteNote(note)))
   }
 
   @Builder
@@ -212,7 +206,7 @@ export struct NoteList {
 
 
   @Builder
-  EditorCoverBuilder() {
+  EditorSheetBuilder() {
     NoteEditor({
       note: this.editingNote,
       initialArticle: null,
@@ -229,7 +223,6 @@ export struct NoteList {
         this.isReadOnlyMode = false
       }
     })
-      .expandSafeArea()
   }
 
   build() {
@@ -238,13 +231,8 @@ export struct NoteList {
 
       if (this.isLoading) {
         Column() {
-          LoadingProgress()
-            .width(40)
-            .height(40)
-          Text('加载中...')
-            .fontSize(14)
-            .fontColor($r('app.color.text_secondary'))
-            .margin({ top: 12 })
+          LoadingProgress().width(40).height(40)
+          Text('加载中...').fontSize(14).fontColor($r('app.color.text_secondary')).margin({ top: 12 })
         }
         .layoutWeight(1)
         .justifyContent(FlexAlign.Center)
@@ -267,10 +255,15 @@ export struct NoteList {
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
-    .bindContentCover(
+    .bindSheet(
       $$this.showEditor,
-      this.EditorCoverBuilder(),
-      { modalTransition: ModalTransition.DEFAULT }
+      this.EditorSheetBuilder(),
+      {
+        height: SheetSize.LARGE,
+        dragBar: false,
+        showClose: false,
+        backgroundColor: $r('app.color.page_background')
+      }
     )
   }
 }

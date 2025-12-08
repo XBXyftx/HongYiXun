@@ -348,7 +348,7 @@ export struct ArticlePage {
   }
 
   @Builder
-  NoteEditorCoverBuilder() {
+  NoteEditorSheetBuilder() {
     NoteEditor({
       note: null,
       initialArticle: this.article,
@@ -398,11 +398,14 @@ export struct ArticlePage {
     })
     .width('100%')
     .height('100%')
-    .bindContentCover(
+    .bindSheet(
       $$this.showNoteEditor,
-      this.NoteEditorCoverBuilder(),
+      this.NoteEditorSheetBuilder(),
       {
-        modalTransition: ModalTransition.DEFAULT
+        height: SheetSize.LARGE,
+        dragBar: false,
+        showClose: false,
+        backgroundColor: $r('app.color.page_background')
       }
     )
   }
