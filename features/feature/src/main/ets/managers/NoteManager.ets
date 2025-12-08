@@ -10,10 +10,30 @@ import {
   LOG_TAG,
   APP_STORAGE_KEYS,
   NoteItem,
+  NoteContentBlock,
+  LinkedArticleInfo,
   NoteUpdateTrigger
 } from "common"
 import { distributedKVStore } from "@kit.ArkData"
 import { AppStorageV2 } from "@kit.ArkUI"
+
+/**
+ * 创建笔记的输入参数
+ */
+export interface CreateNoteInput {
+  title: string
+  content: NoteContentBlock[]
+  linkedArticles: LinkedArticleInfo[]
+}
+
+/**
+ * 更新笔记的输入参数
+ */
+export interface UpdateNoteInput {
+  title?: string
+  content?: NoteContentBlock[]
+  linkedArticles?: LinkedArticleInfo[]
+}
 
 export class NoteManager {
   private appKVDb: distributedKVStore.SingleKVStore | undefined = undefined
@@ -24,7 +44,10 @@ export class NoteManager {
    */
   async init(): Promise<boolean> {
     try {
-      this.appKVDb = await kvDatabase.getKVStoreById(APP_KV_DB)
+      const store = await kvDatabase.getKVStoreById(APP_KV_DB)
+      if (store) {
+        this.appKVDb = store
+      }
       this.noteUpdateTrigger = AppStorageV2.connect(
         NoteUpdateTrigger,
         APP_STORAGE_KEYS.NOTE_UPDATE_TRIGGER,
@@ -39,6 +62,7 @@ export class NoteManager {
     }
     return false
   }
+
 
   /**
    * 生成唯一ID
@@ -76,7 +100,7 @@ export class NoteManager {
   /**
    * 创建新笔记
    */
-  async createNote(note: Omit<NoteItem, 'id' | 'createTime' | 'updateTime'>): Promise<NoteItem | null> {
+  async createNote(input: CreateNoteInput): Promise<NoteItem | null> {
     if (!this.appKVDb) {
       return null
     }
@@ -86,9 +110,9 @@ export class NoteManager {
       const now = Date.now()
       const newNote: NoteItem = {
         id: this.generateId(),
-        title: note.title,
-        content: note.content,
-        linkedArticles: note.linkedArticles.slice(0, 5), // 最多5篇关联文章
+        title: input.title,
+        content: input.content,
+        linkedArticles: input.linkedArticles.slice(0, 5),
         createTime: now,
         updateTime: now
       }
@@ -107,7 +131,7 @@ export class NoteManager {
   /**
    * 更新笔记
    */
-  async updateNote(noteId: string, updates: Partial<Omit<NoteItem, 'id' | 'createTime'>>): Promise<boolean> {
+  async updateNote(noteId: string, updates: UpdateNoteInput): Promise<boolean> {
     if (!this.appKVDb) {
       return false
     }
@@ -119,12 +143,15 @@ export class NoteManager {
         return false
       }
 
+      const existing = notes[index]
       const updatedNote: NoteItem = {
-        ...notes[index],
-        ...updates,
-        linkedArticles: updates.linkedArticles 
-          ? updates.linkedArticles.slice(0, 5) 
-          : notes[index].linkedArticles,
+        id: existing.id,
+        title: updates.title !== undefined ? updates.title : existing.title,
+        content: updates.content !== undefined ? updates.content : existing.content,
+        linkedArticles: updates.linkedArticles !== undefined
+          ? updates.linkedArticles.slice(0, 5)
+          : existing.linkedArticles,
+        createTime: existing.createTime,
         updateTime: Date.now()
       }
 
@@ -173,18 +200,20 @@ export class NoteManager {
     if (note.id) {
       const existing = await this.getNoteById(note.id)
       if (existing) {
-        return await this.updateNote(note.id, {
+        const updateInput: UpdateNoteInput = {
           title: note.title,
           content: note.content,
           linkedArticles: note.linkedArticles
-        })
+        }
+        return await this.updateNote(note.id, updateInput)
       }
     }
-    const created = await this.createNote({
+    const createInput: CreateNoteInput = {
       title: note.title,
       content: note.content,
       linkedArticles: note.linkedArticles
-    })
+    }
+    const created = await this.createNote(createInput)
     return created !== null
   }
 }
