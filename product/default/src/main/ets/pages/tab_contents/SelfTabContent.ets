@@ -15,7 +15,7 @@
 
 import { DEVICE_TYPES, NAV_DESTS, APP_STORAGE_KEYS, HistoryUpdateTrigger, FavoriteUpdateTrigger, LikeUpdateTrigger, NoteUpdateTrigger } from "common"
 import { deviceInfo } from "@kit.BasicServicesKit"
-import { historyManager, favoriteManager, likeManager, noteManager, NoteList } from "feature"
+import { historyManager, favoriteManager, likeManager, noteManager } from "feature"
 import { AppStorageV2 } from "@kit.ArkUI"
 
 interface MenuCardItem {
@@ -43,7 +43,6 @@ export struct SelfTabContent {
   @Local favoriteCount: number = 0
   @Local likeCount: number = 0
   @Local noteCount: number = 0
-  @Local showNoteList: boolean = false
 
   async aboutToAppear(): Promise<void> {
     await this.updateHistoryCount()
@@ -93,33 +92,32 @@ export struct SelfTabContent {
     this.noteCount = noteList.length
   }
 
-  // 获取菜单项配置
   getMenuItems(): MenuCardItem[] {
     return [
       {
         icon: $rawfile('history_icon.svg'),
-        iconBgColor: '#1DB954', // 绿色
+        iconBgColor: '#1DB954',
         title: '浏览历史',
         subtitle: this.historyCount > 0 ? `${this.historyCount}条记录` : '暂无浏览记录',
         onClick: () => this.navPathStuck.pushPath({ name: NAV_DESTS.HISTORY })
       },
       {
         icon: $rawfile('favorite_icon.svg'),
-        iconBgColor: '#00BCD4', // 青色
+        iconBgColor: '#00BCD4',
         title: '我的收藏',
         subtitle: this.favoriteCount > 0 ? `${this.favoriteCount}篇收藏` : '暂无收藏内容',
         onClick: () => this.navPathStuck.pushPath({ name: NAV_DESTS.FAVORITES })
       },
       {
         icon: $rawfile('like_icon.svg'),
-        iconBgColor: '#FF6B9D', // 粉色
+        iconBgColor: '#FF6B9D',
         title: '我的点赞',
         subtitle: this.likeCount > 0 ? `${this.likeCount}篇点赞` : '暂无点赞内容',
         onClick: () => this.navPathStuck.pushPath({ name: NAV_DESTS.LIKES })
       },
       {
         icon: $rawfile('settings_icon.svg'),
-        iconBgColor: '#9C7CF4', // 紫色
+        iconBgColor: '#9C7CF4',
         title: '设置',
         subtitle: '个性化配置',
         onClick: () => this.navPathStuck.pushPath({ name: NAV_DESTS.SETTINGS })
@@ -127,11 +125,11 @@ export struct SelfTabContent {
     ]
   }
 
+
   @Builder
   MenuCardBuilder(item: MenuCardItem) {
     Column() {
       Row() {
-        // 彩色圆形图标背景
         Stack() {
           Circle()
             .width(this.deviceType === DEVICE_TYPES.PHONE ? 44 : 52)
@@ -144,7 +142,6 @@ export struct SelfTabContent {
             .fillColor(Color.White)
         }
 
-        // 标题
         Text(item.title)
           .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 22)
           .fontWeight(600)
@@ -154,7 +151,6 @@ export struct SelfTabContent {
       .width('100%')
       .alignItems(VerticalAlign.Center)
 
-      // 描述文字
       Text(item.subtitle)
         .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 13 : 16)
         .fontColor($r('app.color.text_secondary'))
@@ -188,7 +184,6 @@ export struct SelfTabContent {
 
       // 我的笔记入口 - 横条卡片
       Row() {
-        // 图标
         Stack() {
           Circle()
             .width(this.deviceType === DEVICE_TYPES.PHONE ? 48 : 56)
@@ -231,7 +226,7 @@ export struct SelfTabContent {
       .backgroundColor($r('app.color.news_list_item_bg'))
       .borderRadius(16)
       .onClick(() => {
-        this.showNoteList = true
+        this.navPathStuck.pushPath({ name: NAV_DESTS.NOTE_LIST })
       })
 
       // 两列网格布局
@@ -241,7 +236,7 @@ export struct SelfTabContent {
             columns: 2,
             gutter: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16
           }) {
-            ForEach(this.getMenuItems(), (item: MenuCardItem, index: number) => {
+            ForEach(this.getMenuItems(), (item: MenuCardItem) => {
               GridCol() {
                 this.MenuCardBuilder(item)
               }
@@ -262,21 +257,5 @@ export struct SelfTabContent {
     .width('100%')
     .height('100%')
     .expandSafeArea()
-    .bindContentCover(
-      $$this.showNoteList,
-      this.NoteListCoverBuilder(),
-      {
-        modalTransition: ModalTransition.DEFAULT
-      }
-    )
-  }
-
-  @Builder
-  NoteListCoverBuilder() {
-    NoteList({
-      onClose: () => {
-        this.showNoteList = false
-      }
-    })
   }
 }

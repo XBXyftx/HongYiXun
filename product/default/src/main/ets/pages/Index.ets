@@ -37,6 +37,7 @@ import { LikesPage } from './nav_pages/LikesPage'
 import { HeatmapSettingsPage } from './nav_pages/HeatmapSettingsPage'
 import { DateHistoryPage } from './nav_pages/DateHistoryPage'
 import { SearchPage } from './nav_pages/SearchPage'
+import { NotesPage } from './nav_pages/NotesPage'
 
 
 @Builder
@@ -151,6 +152,8 @@ struct Main {
       DateHistoryPage()
     } else if (name === NAV_DESTS.SEARCH) {
       SearchPage()
+    } else if (name === NAV_DESTS.NOTE_LIST) {
+      NotesPage()
     }
   }
 
