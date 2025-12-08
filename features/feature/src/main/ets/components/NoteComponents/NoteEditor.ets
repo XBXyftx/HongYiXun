@@ -47,188 +47,27 @@ export struct NoteEditor {
   @Local currentText: string = ''
   @Local isSaving: boolean = false
   @Local isInitialized: boolean = false
-  // 文章搜索相关
+
+  // 文章搜索相关 - 内联展开模式
+  @Local showSearchPanel: boolean = false
   @Local searchKeyword: string = ''
   @Local searchResults: NewsArticle[] = []
   @Local isSearching: boolean = false
   @Local hasSearched: boolean = false
 
-  // 自定义弹窗控制器
-  private articleSelectorDialog: CustomDialogController | null = null
-
-
-  /**
-   * 文章选择器弹窗内容构建器
-   */
-  @Builder
-  ArticleSelectorDialogBuilder() {
-    Column() {
-      // 弹窗头部
-      Row() {
-        Text('选择关联文章')
-          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 22)
-          .fontWeight(FontWeight.Bold)
-          .fontColor($r('app.color.text_primary'))
-          .layoutWeight(1)
-
-        Image($rawfile('close.svg'))
-          .width(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 28)
-          .height(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 28)
-          .fillColor($r('app.color.text_primary'))
-          .onClick(() => this.closeArticleSelector())
-      }
-      .width('100%')
-      .padding({ left: 20, right: 20, top: 20, bottom: 16 })
-
-      // 搜索输入框
-      Row() {
-        Image($rawfile('search.svg'))
-          .width(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
-          .height(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
-          .fillColor($r('app.color.text_secondary'))
-          .margin({ right: 8 })
-
-        TextInput({ placeholder: '搜索文章标题...', text: this.searchKeyword })
-          .layoutWeight(1)
-          .backgroundColor(Color.Transparent)
-          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 16)
-          .placeholderColor($r('app.color.text_secondary'))
-          .fontColor($r('app.color.text_primary'))
-          .padding({ left: 0, right: 0, top: 8, bottom: 8 })
-          .height(this.deviceType === DEVICE_TYPES.PHONE ? 40 : 48)
-          .onChange((value: string) => {
-            this.searchKeyword = value
-          })
-          .onSubmit(() => {
-            this.searchArticles()
-          })
-
-        if (this.searchKeyword.length > 0) {
-          Image($rawfile('close.svg'))
-            .width(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 22)
-            .height(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 22)
-            .fillColor($r('app.color.text_secondary'))
-            .onClick(() => {
-              this.searchKeyword = ''
-              this.hasSearched = false
-              this.searchResults = []
-            })
-        }
-
-        Text('搜索')
-          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 16)
-          .fontColor($r('app.color.brand'))
-          .margin({ left: 12 })
-          .onClick(() => {
-            this.searchArticles()
-          })
-      }
-      .width('100%')
-      .padding({ left: 16, right: 16 })
-      .height(this.deviceType === DEVICE_TYPES.PHONE ? 44 : 52)
-      .backgroundColor($r('app.color.news_list_item_bg'))
-      .borderRadius(22)
-      .margin({ left: 20, right: 20, bottom: 16 })
-
-      // 搜索结果列表
-      if (this.isSearching) {
-        Column() {
-          LoadingProgress()
-            .width(40)
-            .height(40)
-          Text('搜索中...')
-            .fontSize(14)
-            .fontColor($r('app.color.text_secondary'))
-            .margin({ top: 12 })
-        }
-        .width('100%')
-        .height(200)
-        .justifyContent(FlexAlign.Center)
-      } else if (this.searchResults.length > 0) {
-        List({ space: 10 }) {
-          ForEach(this.searchResults, (article: NewsArticle) => {
-            ListItem() {
-              Row() {
-                Column() {
-                  Text(article.title)
-                    .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 16)
-                    .fontWeight(500)
-                    .maxLines(2)
-                    .textOverflow({ overflow: TextOverflow.Ellipsis })
-                    .fontColor($r('app.color.text_primary'))
-
-                  Row() {
-                    Text(article.source || '')
-                      .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 11 : 13)
-                      .fontColor($r('app.color.text_secondary'))
-                      .maxLines(1)
-
-                    Text('·')
-                      .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 11 : 13)
-                      .fontColor($r('app.color.text_secondary'))
-                      .margin({ left: 4, right: 4 })
-
-                    Text(article.date || '')
-                      .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 11 : 13)
-                      .fontColor($r('app.color.text_secondary'))
-                  }
-                  .margin({ top: 6 })
-                }
-                .layoutWeight(1)
-                .alignItems(HorizontalAlign.Start)
-
-                Text('+')
-                  .fontSize(22)
-                  .fontColor($r('app.color.brand'))
-                  .fontWeight(FontWeight.Bold)
-                  .margin({ left: 10 })
-              }
-              .width('100%')
-              .padding(12)
-              .backgroundColor($r('app.color.news_list_item_bg'))
-              .borderRadius(10)
-              .onClick(() => {
-                this.selectArticleToLink(article)
-              })
-            }
-          }, (article: NewsArticle) => article.id)
-        }
-        .width('100%')
-        .height(280)
-        .padding({ left: 20, right: 20 })
-      } else {
-        Column() {
-          Text(this.hasSearched ? '未找到相关文章' : '输入关键词搜索文章')
-            .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 16)
-            .fontColor($r('app.color.text_secondary'))
-        }
-        .width('100%')
-        .height(120)
-        .justifyContent(FlexAlign.Center)
-      }
-    }
-    .width('90%')
-    .backgroundColor($r('app.color.card_bg'))
-    .borderRadius(16)
-    .padding({ bottom: 20 })
-  }
-
   async aboutToAppear(): Promise<void> {
     await noteManager.init()
 
     if (this.note) {
-      // 编辑现有笔记
       this.noteId = this.note.id
       this.title = this.note.title
       this.contentBlocks = [...this.note.content]
       this.linkedArticles = [...this.note.linkedArticles]
-      // 将内容块转换为可编辑文本
       this.currentText = this.contentBlocks
         .filter(b => b.type === NoteContentType.TEXT)
         .map(b => b.value)
         .join('\n')
     } else if (this.initialArticle) {
-      // 从文章页进入，自动关联当前文章
       this.linkedArticles = [{
         id: this.initialArticle.id,
         title: this.initialArticle.title,
@@ -240,16 +79,7 @@ export struct NoteEditor {
     this.isInitialized = true
   }
 
-  aboutToDisappear(): void {
-    if (this.articleSelectorDialog) {
-      this.articleSelectorDialog = null
-    }
-  }
 
-
-  /**
-   * 保存笔记
-   */
   async saveNote(): Promise<void> {
     if (!this.title.trim()) {
       promptAction.openToast({ message: '请输入笔记标题', duration: 1500 })
@@ -257,16 +87,10 @@ export struct NoteEditor {
     }
 
     this.isSaving = true
-
-    // 构建内容块
     const blocks: NoteContentBlock[] = []
     if (this.currentText.trim()) {
-      blocks.push({
-        type: NoteContentType.TEXT,
-        value: this.currentText.trim()
-      })
+      blocks.push({ type: NoteContentType.TEXT, value: this.currentText.trim() })
     }
-    // 保留图片块
     this.contentBlocks.filter(b => b.type === NoteContentType.IMAGE).forEach(b => blocks.push(b))
 
     const noteData: NoteItem = {
@@ -290,9 +114,6 @@ export struct NoteEditor {
     }
   }
 
-  /**
-   * 从相册选择图片
-   */
   async selectImage(): Promise<void> {
     try {
       const photoPicker = new picker.PhotoViewPicker()
@@ -300,13 +121,8 @@ export struct NoteEditor {
         MIMEType: picker.PhotoViewMIMETypes.IMAGE_TYPE,
         maxSelectNumber: 1
       })
-
       if (result.photoUris && result.photoUris.length > 0) {
-        const imageUri = result.photoUris[0]
-        this.contentBlocks.push({
-          type: NoteContentType.IMAGE,
-          value: imageUri
-        })
+        this.contentBlocks.push({ type: NoteContentType.IMAGE, value: result.photoUris[0] })
         promptAction.openToast({ message: '图片已添加', duration: 1000 })
       }
     } catch (error) {
@@ -314,9 +130,6 @@ export struct NoteEditor {
     }
   }
 
-  /**
-   * 删除图片
-   */
   removeImage(index: number): void {
     const imageBlocks = this.contentBlocks.filter(b => b.type === NoteContentType.IMAGE)
     if (index >= 0 && index < imageBlocks.length) {
@@ -327,16 +140,10 @@ export struct NoteEditor {
     }
   }
 
-  /**
-   * 移除关联文章
-   */
   removeLinkedArticle(articleId: string): void {
     this.linkedArticles = this.linkedArticles.filter(a => a.id !== articleId)
   }
 
-  /**
-   * 跳转到关联文章
-   */
   goToArticle(article: LinkedArticleInfo): void {
     const newsArticle: NewsArticle = {
       id: article.id,
@@ -347,65 +154,41 @@ export struct NoteEditor {
       content: []
     }
     this.onClose()
-    this.navPathStuck.pushPath({
-      name: NAV_DESTS.ARTICLE,
-      param: newsArticle
-    })
+    this.navPathStuck.pushPath({ name: NAV_DESTS.ARTICLE, param: newsArticle })
   }
 
-  /**
-   * 导出PDF（简化实现）
-   */
   async exportNote(): Promise<void> {
     promptAction.openToast({ message: '导出功能开发中', duration: 1500 })
   }
 
-  /**
-   * 打开文章选择器弹窗
-   */
-  openArticleSelector(): void {
-    logger.info(`${LOG_TAG.NEWS_LIST}openArticleSelector called`)
+  // 打开搜索面板
+  openSearchPanel(): void {
+    this.showSearchPanel = true
     this.searchKeyword = ''
     this.searchResults = []
-    this.isSearching = false
     this.hasSearched = false
-
-    if (this.articleSelectorDialog) {
-      this.articleSelectorDialog.open()
-    }
   }
 
-  /**
-   * 关闭文章选择器弹窗
-   */
-  closeArticleSelector(): void {
-    if (this.articleSelectorDialog) {
-      this.articleSelectorDialog.close()
-    }
+  // 关闭搜索面板
+  closeSearchPanel(): void {
+    this.showSearchPanel = false
+    this.searchKeyword = ''
+    this.searchResults = []
+    this.hasSearched = false
   }
 
-  /**
-   * 搜索文章
-   */
   async searchArticles(): Promise<void> {
-    if (!this.searchKeyword.trim()) {
-      return
-    }
+    if (!this.searchKeyword.trim()) return
     this.isSearching = true
     this.hasSearched = true
     await searchManager.init()
     const result: SearchResult = await searchManager.searchNews(this.searchKeyword)
-    // 过滤已关联的文章
     this.searchResults = result.articles.filter(
       article => !this.linkedArticles.some(a => a.id === article.id)
     )
     this.isSearching = false
-    logger.info(`${LOG_TAG.NEWS_LIST}搜索到 ${this.searchResults.length} 篇文章`)
   }
 
-  /**
-   * 选择文章添加到关联列表
-   */
   selectArticleToLink(article: NewsArticle): void {
     const linkedInfo: LinkedArticleInfo = {
       id: article.id,
@@ -414,40 +197,23 @@ export struct NoteEditor {
       date: article.date,
       url: article.url
     }
-    this.addLinkedArticle(linkedInfo)
-    this.closeArticleSelector()
-  }
-
-  /**
-   * 添加关联文章
-   */
-  addLinkedArticle(article: LinkedArticleInfo): void {
-    // 检查是否已存在
     if (this.linkedArticles.some(a => a.id === article.id)) {
       promptAction.openToast({ message: '该文章已关联', duration: 1500 })
       return
     }
-    // 检查数量限制
     if (this.linkedArticles.length >= 5) {
       promptAction.openToast({ message: '最多关联5篇文章', duration: 1500 })
       return
     }
-    this.linkedArticles.push(article)
+    this.linkedArticles.push(linkedInfo)
     promptAction.openToast({ message: '已添加关联文章', duration: 1000 })
-  }
-
-  /**
-   * 获取已关联文章的ID列表
-   */
-  getLinkedArticleIds(): string[] {
-    return this.linkedArticles.map(a => a.id)
+    this.closeSearchPanel()
   }
 
 
   @Builder
   HeaderBuilder() {
     Row() {
-      // 关闭按钮
       Image($rawfile('close.svg'))
         .width(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 28)
         .height(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 28)
@@ -461,7 +227,6 @@ export struct NoteEditor {
         .layoutWeight(1)
         .textAlign(TextAlign.Center)
 
-      // 导出按钮
       Image($rawfile('share_icon.svg'))
         .width(this.deviceType === DEVICE_TYPES.PHONE ? 22 : 26)
         .height(this.deviceType === DEVICE_TYPES.PHONE ? 22 : 26)
@@ -469,7 +234,6 @@ export struct NoteEditor {
         .margin({ right: 16 })
         .onClick(() => this.exportNote())
 
-      // 保存按钮
       Button('保存')
         .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 16)
         .fontColor(Color.White)
@@ -480,12 +244,7 @@ export struct NoteEditor {
         .onClick(() => this.saveNote())
     }
     .width('100%')
-    .padding({
-      left: 16,
-      right: 16,
-      top: 12,
-      bottom: 12
-    })
+    .padding({ left: 16, right: 16, top: 12, bottom: 12 })
     .margin({ top: 48 })
     .backgroundColor($r('app.color.card_bg'))
   }
@@ -506,14 +265,13 @@ export struct NoteEditor {
 
         Blank()
 
-        // 添加关联文章按钮（当少于5篇时显示）
-        if (this.linkedArticles.length < 5) {
+        // 添加按钮（少于5篇且未展开搜索时显示）
+        if (this.linkedArticles.length < 5 && !this.showSearchPanel) {
           Row() {
             Text('+')
               .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 18)
               .fontColor($r('app.color.brand'))
               .fontWeight(FontWeight.Bold)
-
             Text('添加')
               .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 14)
               .fontColor($r('app.color.brand'))
@@ -523,15 +281,18 @@ export struct NoteEditor {
           .borderRadius(16)
           .borderWidth(1)
           .borderColor($r('app.color.brand'))
-          .onClick(() => {
-            logger.info(`${LOG_TAG.NEWS_LIST}添加按钮被点击`)
-            this.openArticleSelector()
-          })
+          .onClick(() => this.openSearchPanel())
         }
       }
       .width('100%')
       .margin({ bottom: 12 })
 
+      // 内联搜索面板
+      if (this.showSearchPanel) {
+        this.InlineSearchPanelBuilder()
+      }
+
+      // 已关联文章列表
       if (this.linkedArticles.length > 0) {
         ForEach(this.linkedArticles, (article: LinkedArticleInfo) => {
           Row() {
@@ -541,7 +302,6 @@ export struct NoteEditor {
                 .fontColor($r('app.color.text_primary'))
                 .maxLines(1)
                 .textOverflow({ overflow: TextOverflow.Ellipsis })
-
               Text(`${article.source || ''} · ${article.date}`)
                 .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 11 : 13)
                 .fontColor($r('app.color.text_secondary'))
@@ -564,8 +324,8 @@ export struct NoteEditor {
           .borderRadius(8)
           .margin({ bottom: 8 })
         }, (article: LinkedArticleInfo) => article.id)
-      } else {
-        Text('暂无关联文章，点击右上角"添加"按钮')
+      } else if (!this.showSearchPanel) {
+        Text('暂无关联文章，点击"添加"按钮搜索')
           .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 13 : 15)
           .fontColor($r('app.color.text_secondary'))
           .padding(12)
@@ -578,6 +338,100 @@ export struct NoteEditor {
     .backgroundColor($r('app.color.card_bg'))
     .borderRadius(12)
     .margin({ bottom: 16 })
+  }
+
+  @Builder
+  InlineSearchPanelBuilder() {
+    Column() {
+      // 搜索输入行
+      Row() {
+        Image($rawfile('search.svg'))
+          .width(18)
+          .height(18)
+          .fillColor($r('app.color.text_secondary'))
+          .margin({ right: 8 })
+
+        TextInput({ placeholder: '搜索文章标题...', text: this.searchKeyword })
+          .layoutWeight(1)
+          .backgroundColor(Color.Transparent)
+          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 16)
+          .placeholderColor($r('app.color.text_secondary'))
+          .fontColor($r('app.color.text_primary'))
+          .padding({ left: 0, right: 0, top: 6, bottom: 6 })
+          .height(36)
+          .onChange((value: string) => { this.searchKeyword = value })
+          .onSubmit(() => { this.searchArticles() })
+
+        Text('搜索')
+          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 13 : 15)
+          .fontColor($r('app.color.brand'))
+          .margin({ left: 8 })
+          .onClick(() => this.searchArticles())
+
+        Text('取消')
+          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 13 : 15)
+          .fontColor($r('app.color.text_secondary'))
+          .margin({ left: 12 })
+          .onClick(() => this.closeSearchPanel())
+      }
+      .width('100%')
+      .padding({ left: 12, right: 12 })
+      .height(44)
+      .backgroundColor($r('app.color.news_list_item_bg'))
+      .borderRadius(22)
+      .margin({ bottom: 12 })
+
+      // 搜索结果
+      if (this.isSearching) {
+        Row() {
+          LoadingProgress().width(24).height(24)
+          Text('搜索中...').fontSize(13).fontColor($r('app.color.text_secondary')).margin({ left: 8 })
+        }
+        .width('100%')
+        .height(60)
+        .justifyContent(FlexAlign.Center)
+      } else if (this.searchResults.length > 0) {
+        Column() {
+          ForEach(this.searchResults.slice(0, 5), (article: NewsArticle) => {
+            Row() {
+              Column() {
+                Text(article.title)
+                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 13 : 15)
+                  .fontColor($r('app.color.text_primary'))
+                  .maxLines(1)
+                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+                Text(`${article.source || ''} · ${article.date}`)
+                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 11 : 13)
+                  .fontColor($r('app.color.text_secondary'))
+                  .margin({ top: 2 })
+              }
+              .layoutWeight(1)
+              .alignItems(HorizontalAlign.Start)
+
+              Text('+')
+                .fontSize(20)
+                .fontColor($r('app.color.brand'))
+                .fontWeight(FontWeight.Bold)
+            }
+            .width('100%')
+            .padding(10)
+            .backgroundColor($r('app.color.news_list_item_bg'))
+            .borderRadius(8)
+            .margin({ bottom: 6 })
+            .onClick(() => this.selectArticleToLink(article))
+          }, (article: NewsArticle) => article.id)
+        }
+      } else if (this.hasSearched) {
+        Text('未找到相关文章')
+          .fontSize(13)
+          .fontColor($r('app.color.text_secondary'))
+          .width('100%')
+          .textAlign(TextAlign.Center)
+          .padding(16)
+      }
+    }
+    .width('100%')
+    .padding({ top: 4, bottom: 8 })
   }
 
 
@@ -629,7 +483,6 @@ export struct NoteEditor {
   @Builder
   EditorBuilder() {
     Column() {
-      // 标题输入
       TextInput({ placeholder: '请输入笔记标题', text: this.title })
         .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 22)
         .fontWeight(FontWeight.Bold)
@@ -638,16 +491,13 @@ export struct NoteEditor {
         .backgroundColor(Color.Transparent)
         .padding({ left: 0, right: 0, top: 8, bottom: 8 })
         .height(this.deviceType === DEVICE_TYPES.PHONE ? 48 : 56)
-        .onChange((value: string) => {
-          this.title = value
-        })
+        .onChange((value: string) => { this.title = value })
 
       Divider()
         .color($r('app.color.text_secondary'))
         .opacity(0.3)
         .margin({ top: 4, bottom: 12 })
 
-      // 内容输入
       TextArea({ placeholder: '开始记录你的想法...', text: this.currentText })
         .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 15 : 17)
         .fontColor($r('app.color.text_primary'))
@@ -655,9 +505,7 @@ export struct NoteEditor {
         .backgroundColor(Color.Transparent)
         .padding({ left: 0, right: 0, top: 8, bottom: 8 })
         .layoutWeight(1)
-        .onChange((value: string) => {
-          this.currentText = value
-        })
+        .onChange((value: string) => { this.currentText = value })
     }
     .width('100%')
     .layoutWeight(1)
@@ -669,13 +517,11 @@ export struct NoteEditor {
   @Builder
   ToolbarBuilder() {
     Row() {
-      // 添加图片按钮
       Row() {
         Image($rawfile('image_icon.svg'))
           .width(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
           .height(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
           .fillColor($r('app.color.text_primary'))
-
         Text('添加图片')
           .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 13 : 15)
           .fontColor($r('app.color.text_primary'))
@@ -701,12 +547,7 @@ export struct NoteEditor {
           this.ImagePreviewBuilder()
           this.EditorBuilder()
         }
-        .padding({
-          left: 16,
-          right: 16,
-          top: 16,
-          bottom: 16
-        })
+        .padding({ left: 16, right: 16, top: 16, bottom: 16 })
       }
       .layoutWeight(1)
       .scrollBar(BarState.Off)
@@ -717,14 +558,5 @@ export struct NoteEditor {
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
-    .onAppear(() => {
-      // 在组件挂载后初始化弹窗控制器
-      this.articleSelectorDialog = new CustomDialogController({
-        builder: this.ArticleSelectorDialogBuilder(),
-        autoCancel: true,
-        alignment: DialogAlignment.Center,
-        customStyle: true
-      })
-    })
   }
 }
