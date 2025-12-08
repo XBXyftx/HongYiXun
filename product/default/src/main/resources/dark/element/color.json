@@ -26,7 +26,7 @@
     },
     {
       "name": "text_secondary",
-      "value": "#99FFFFFF"
+      "value": "#B3FFFFFF"
     },
     {
       "name": "text_primary",
@@ -170,7 +170,7 @@
     },
     {
       "name": "card_bg",
-      "value": "#1A1A1A"
+      "value": "#2A2A2A"
     }
   ]
 }
