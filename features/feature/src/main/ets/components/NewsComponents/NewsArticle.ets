@@ -46,36 +46,98 @@ function preprocessCodeBlock(code: string): string {
 
 /**
  * 格式化压缩的代码，智能添加换行
+ * 支持多种编程语言：C/C++, Java, JavaScript, TypeScript, Python, Go, Rust, C#, PHP, Swift, Kotlin 等
  */
 function formatCompressedCode(code: string): string {
   let result = code
 
-  // 在 { 后添加换行（但不在 ${ 后）
-  result = result.replace(/\{(?!\{)/g, '{\n')
+  // ========== 通用语句分隔符处理 ==========
+  // 在分号后添加换行（C系语言通用）
+  result = result.replace(/;(?!\s*$)/g, ';\n')
 
-  // 在 } 前添加换行（但不在 }} 前）
-  result = result.replace(/(?<!\})(\})/g, '\n$1')
+  // ========== 花括号处理（C系语言通用）==========
+  // 在 { 后添加换行
+  result = result.replace(/\{(?!\{|\s*\n)/g, '{\n')
+  // 在 } 后添加换行（除非后面是 else, catch, finally, while 等）
+  result = result.replace(/\}(?!\s*(else|catch|finally|while|,|\)|;|\]))/g, '}\n')
+  // 在 } 前添加换行
+  result = result.replace(/([^\n\s])\s*\}/g, '$1\n}')
 
-  // 在 ; 后添加换行（但不在字符串内）
-  result = result.replace(/;(?=\s*[a-zA-Z_])/g, ';\n')
+  // ========== 控制流关键字处理 ==========
+  // if/else/for/while/switch/case/do/try/catch/finally
+  const controlKeywords = ['if', 'else', 'for', 'while', 'switch', 'case', 'default', 'do', 'try', 'catch', 'finally']
+  for (const keyword of controlKeywords) {
+    const regex = new RegExp(`([;{}])\\s*(${keyword}[\\s(])`, 'g')
+    result = result.replace(regex, '$1\n$2')
+  }
 
-  // 在 C/C++ 风格的函数定义后添加换行
-  result = result.replace(/\)\s*\{/g, ')\n{')
+  // ========== 函数/方法定义处理 ==========
+  // C/C++/Java/C#/Go/Rust 等类型声明
+  const typeKeywords = [
+    'void', 'int', 'int8_t', 'int16_t', 'int32_t', 'int64_t',
+    'uint8_t', 'uint16_t', 'uint32_t', 'uint64_t',
+    'bool', 'char', 'wchar_t', 'double', 'float', 'long', 'short',
+    'auto', 'var', 'let', 'const', 'static', 'public', 'private', 'protected',
+    'class', 'struct', 'enum', 'interface', 'namespace', 'using',
+    'func', 'fn', 'def', 'function', 'async', 'await',
+    'return', 'throw', 'new', 'delete', 'import', 'export', 'from',
+    'package', 'module', 'require', 'include', 'extends', 'implements'
+  ]
+  for (const keyword of typeKeywords) {
+    const regex = new RegExp(`([;{}])\\s*(${keyword}\\s+)`, 'g')
+    result = result.replace(regex, '$1\n$2')
+  }
 
-  // 在 return 语句前添加换行
-  result = result.replace(/([^;\n])\s*(return\s)/g, '$1\n$2')
+  // ========== Python 特殊处理 ==========
+  // Python 的冒号后换行（def, class, if, for, while, try, except, with 等）
+  result = result.replace(/(def\s+\w+\s*\([^)]*\)\s*):/g, '$1:\n')
+  result = result.replace(/(class\s+\w+[^:]*)\s*:/g, '$1:\n')
+  result = result.replace(/(if\s+[^:]+)\s*:/g, '$1:\n')
+  result = result.replace(/(elif\s+[^:]+)\s*:/g, '$1:\n')
+  result = result.replace(/(else)\s*:/g, '$1:\n')
+  result = result.replace(/(for\s+[^:]+)\s*:/g, '$1:\n')
+  result = result.replace(/(while\s+[^:]+)\s*:/g, '$1:\n')
+  result = result.replace(/(try)\s*:/g, '$1:\n')
+  result = result.replace(/(except[^:]*)\s*:/g, '$1:\n')
+  result = result.replace(/(finally)\s*:/g, '$1:\n')
+  result = result.replace(/(with\s+[^:]+)\s*:/g, '$1:\n')
 
-  // 在 if/else/for/while 前添加换行
-  result = result.replace(/([;}])\s*(if\s*\(|else\s*\{|else\s+if|for\s*\(|while\s*\()/g, '$1\n$2')
+  // ========== Go 特殊处理 ==========
+  result = result.replace(/(func\s+[^{]+)\s*\{/g, '$1 {\n')
+  result = result.replace(/(type\s+\w+\s+struct)\s*\{/g, '$1 {\n')
+  result = result.replace(/(type\s+\w+\s+interface)\s*\{/g, '$1 {\n')
 
-  // 在 void/int/bool 等类型声明前添加换行（函数定义）
-  result = result.replace(/([;}])\s*(void\s+|int\s+|int32_t\s+|bool\s+|char\s+|double\s+|float\s+|auto\s+)/g, '$1\n$2')
+  // ========== Rust 特殊处理 ==========
+  result = result.replace(/(fn\s+\w+[^{]+)\s*\{/g, '$1 {\n')
+  result = result.replace(/(impl[^{]+)\s*\{/g, '$1 {\n')
+  result = result.replace(/(match\s+[^{]+)\s*\{/g, '$1 {\n')
 
-  // 清理多余的空行
+  // ========== 箭头函数处理（JS/TS）==========
+  result = result.replace(/(=>\s*)\{/g, '$1{\n')
+
+  // ========== 注释处理 ==========
+  // 单行注释后换行
+  result = result.replace(/(\/\/[^\n]*)/g, '$1\n')
+  // 多行注释后换行
+  result = result.replace(/(\*\/)/g, '$1\n')
+
+  // ========== 预处理指令（C/C++）==========
+  result = result.replace(/(#\w+[^\n]*)/g, '$1\n')
+
+  // ========== 清理和缩进 ==========
+  // 清理多余的空行和空格
   result = result.replace(/\n\s*\n\s*\n/g, '\n\n')
+  result = result.replace(/\n{3,}/g, '\n\n')
 
-  // 清理行首空白
-  const lines = result.split('\n')
+  // 智能缩进
+  return applySmartIndent(result)
+}
+
+/**
+ * 应用智能缩进
+ */
+function applySmartIndent(code: string): string {
+  const lines = code.split('\n')
   const formattedLines: string[] = []
   let indentLevel = 0
 
@@ -86,8 +148,14 @@ function formatCompressedCode(code: string): string {
       continue
     }
 
-    // 减少缩进（遇到 }）
-    if (trimmedLine.startsWith('}')) {
+    // 减少缩进的情况
+    if (trimmedLine.startsWith('}') || trimmedLine.startsWith(']') ||
+        trimmedLine.startsWith(')') || trimmedLine === 'end' ||
+        trimmedLine.startsWith('case ') || trimmedLine.startsWith('default:') ||
+        trimmedLine.startsWith('elif ') || trimmedLine.startsWith('else:') ||
+        trimmedLine.startsWith('except') || trimmedLine.startsWith('finally:') ||
+        trimmedLine.startsWith('catch') || trimmedLine.startsWith('else {') ||
+        trimmedLine.startsWith('else if')) {
       indentLevel = Math.max(0, indentLevel - 1)
     }
 
@@ -95,8 +163,17 @@ function formatCompressedCode(code: string): string {
     const indent = '    '.repeat(indentLevel)
     formattedLines.push(indent + trimmedLine)
 
-    // 增加缩进（遇到 {）
-    if (trimmedLine.endsWith('{')) {
+    // 增加缩进的情况
+    if (trimmedLine.endsWith('{') || trimmedLine.endsWith('[') ||
+        trimmedLine.endsWith(':') || trimmedLine.endsWith('(') ||
+        trimmedLine === 'begin' || trimmedLine.endsWith('then') ||
+        trimmedLine.endsWith('do')) {
+      indentLevel++
+    }
+
+    // 特殊情况：case/default 后面需要增加缩进
+    if ((trimmedLine.startsWith('case ') || trimmedLine.startsWith('default:')) &&
+        !trimmedLine.endsWith('{')) {
       indentLevel++
     }
   }
@@ -106,31 +183,88 @@ function formatCompressedCode(code: string): string {
 
 /**
  * 检测代码语言
+ * 支持：C, C++, Java, JavaScript, TypeScript, Python, Go, Rust, C#, PHP, Swift, Kotlin, Ruby, SQL 等
  */
 function detectCodeLanguage(code: string): string {
+  // Rust 特征（优先检测，因为有独特语法）
+  if (code.includes('fn ') && (code.includes('->') || code.includes('let mut') || code.includes('impl '))) {
+    return 'rust'
+  }
+
+  // Go 特征
+  if (code.includes('func ') && (code.includes('package ') || code.includes(':= ') || code.includes('go '))) {
+    return 'go'
+  }
+
+  // Swift 特征
+  if (code.includes('func ') && (code.includes('var ') || code.includes('let ')) && code.includes('->')) {
+    return 'swift'
+  }
+
+  // Kotlin 特征
+  if (code.includes('fun ') && (code.includes('val ') || code.includes('var '))) {
+    return 'kotlin'
+  }
+
+  // C# 特征
+  if (code.includes('using System') || code.includes('namespace ') && code.includes('class ') ||
+      code.includes('public static void Main')) {
+    return 'csharp'
+  }
+
   // C/C++ 特征
-  if (code.includes('#include') || code.includes('std::') || code.includes('::') ||
-      code.includes('void ') || code.includes('int32_t') || code.includes('nullptr')) {
+  if (code.includes('#include') || code.includes('std::') || code.includes('nullptr') ||
+      code.includes('int32_t') || code.includes('uint32_t') || code.includes('size_t') ||
+      (code.includes('::') && (code.includes('void ') || code.includes('int ')))) {
     return 'cpp'
   }
+
   // Java 特征
   if (code.includes('public class') || code.includes('private void') ||
-      code.includes('System.out') || code.includes('import java.')) {
+      code.includes('System.out') || code.includes('import java.') ||
+      code.includes('@Override') || code.includes('public static void main')) {
     return 'java'
   }
-  // JavaScript/TypeScript 特征
+
+  // TypeScript 特征（在 JavaScript 之前检测）
+  if (code.includes(': string') || code.includes(': number') || code.includes(': boolean') ||
+      code.includes('interface ') || code.includes(': void') || code.includes('<T>') ||
+      code.includes('as ') && (code.includes('const ') || code.includes('let '))) {
+    return 'typescript'
+  }
+
+  // JavaScript 特征
   if (code.includes('function ') || code.includes('const ') || code.includes('let ') ||
-      code.includes('=>') || code.includes('console.log')) {
-    if (code.includes(': string') || code.includes(': number') || code.includes('interface ')) {
-      return 'typescript'
-    }
+      code.includes('=>') || code.includes('console.log') || code.includes('require(') ||
+      code.includes('module.exports') || code.includes('async ') || code.includes('await ')) {
     return 'javascript'
   }
+
   // Python 特征
-  if (code.includes('def ') || code.includes('import ') || code.includes('print(') ||
-      code.includes('self.') || code.includes('__init__')) {
+  if (code.includes('def ') || code.includes('print(') || code.includes('self.') ||
+      code.includes('__init__') || code.includes('elif ') || code.includes('import ') && code.includes(':')) {
     return 'python'
   }
+
+  // Ruby 特征
+  if (code.includes('def ') && code.includes('end') || code.includes('puts ') ||
+      code.includes('require ') && code.includes("'") || code.includes('attr_')) {
+    return 'ruby'
+  }
+
+  // PHP 特征
+  if (code.includes('<?php') || code.includes('$_') || code.includes('echo ') ||
+      (code.includes('$') && code.includes('function '))) {
+    return 'php'
+  }
+
+  // SQL 特征
+  if (code.toUpperCase().includes('SELECT ') || code.toUpperCase().includes('INSERT ') ||
+      code.toUpperCase().includes('UPDATE ') || code.toUpperCase().includes('DELETE ') ||
+      code.toUpperCase().includes('CREATE TABLE') || code.toUpperCase().includes('FROM ')) {
+    return 'sql'
+  }
+
   // JSON 特征
   if ((code.startsWith('{') && code.endsWith('}')) || (code.startsWith('[') && code.endsWith(']'))) {
     try {
@@ -140,14 +274,38 @@ function detectCodeLanguage(code: string): string {
       // 不是有效 JSON
     }
   }
+
+  // YAML 特征
+  if (code.includes(': ') && !code.includes(';') && !code.includes('{') &&
+      (code.includes('- ') || code.match(/^\w+:/m))) {
+    return 'yaml'
+  }
+
   // XML/HTML 特征
   if (code.includes('</') && code.includes('>')) {
+    if (code.includes('<!DOCTYPE html') || code.includes('<html') || code.includes('<div') ||
+        code.includes('<span') || code.includes('<p>')) {
+      return 'html'
+    }
     return 'xml'
   }
-  // Shell 特征
-  if (code.startsWith('#!/') || code.includes('echo ') || code.includes('$ ')) {
+
+  // Shell/Bash 特征
+  if (code.startsWith('#!/') || code.includes('echo ') || code.includes('$ ') ||
+      code.includes('export ') || code.includes('chmod ') || code.includes('sudo ')) {
     return 'bash'
   }
+
+  // Makefile 特征
+  if (code.includes(':=') && code.includes('\t') || code.includes('.PHONY')) {
+    return 'makefile'
+  }
+
+  // Dockerfile 特征
+  if (code.includes('FROM ') && (code.includes('RUN ') || code.includes('CMD ') || code.includes('COPY '))) {
+    return 'dockerfile'
+  }
+
   // 默认不指定语言
   return ''
 }
