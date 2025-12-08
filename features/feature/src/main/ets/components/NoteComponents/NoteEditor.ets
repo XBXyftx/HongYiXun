@@ -21,18 +21,62 @@ import { picker } from '@kit.CoreFileKit'
 import { searchManager, SearchResult } from '../../managers/SearchManager'
 
 /**
+ * 可观察的内容块
+ */
+@ObservedV2
+export class ObservableContentBlock {
+  @Trace type: NoteContentType = NoteContentType.TEXT
+  @Trace value: string = ''
+
+  constructor(type: NoteContentType, value: string) {
+    this.type = type
+    this.value = value
+  }
+}
+
+/**
+ * 可观察的关联文章
+ */
+@ObservedV2
+export class ObservableLinkedArticle {
+  @Trace id: string = ''
+  @Trace title: string = ''
+  @Trace source: string = ''
+  @Trace date: string = ''
+  @Trace url: string = ''
+
+  constructor(info?: LinkedArticleInfo) {
+    if (info) {
+      this.id = info.id
+      this.title = info.title
+      this.source = info.source || ''
+      this.date = info.date
+      this.url = info.url
+    }
+  }
+
+  toLinkedArticleInfo(): LinkedArticleInfo {
+    return {
+      id: this.id,
+      title: this.title,
+      source: this.source || undefined,
+      date: this.date,
+      url: this.url
+    }
+  }
+}
+
+/**
  * 笔记编辑器组件
  */
 @ComponentV2
 export struct NoteEditor {
-  /** 要编辑的笔记（新建时为空） */
   @Param note: NoteItem | null = null
-  /** 初始关联的文章（从文章页进入时传入） */
   @Param initialArticle: NewsArticle | null = null
-  /** 关闭回调 */
+  @Param isReadOnly: boolean = false
   @Event onClose: () => void = () => {}
-  /** 保存成功回调 */
   @Event onSaved: () => void = () => {}
+  @Event onEdit: () => void = () => {}
 
   @Local deviceType: DEVICE_TYPES =
     deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
@@ -42,18 +86,22 @@ export struct NoteEditor {
   // 编辑状态
   @Local noteId: string = ''
   @Local title: string = ''
-  @Local contentBlocks: NoteContentBlock[] = []
-  @Local linkedArticles: LinkedArticleInfo[] = []
   @Local currentText: string = ''
   @Local isSaving: boolean = false
   @Local isInitialized: boolean = false
 
-  // 文章搜索相关 - 内联展开模式
+  // 使用可观察数组
+  @Local contentBlocks: ObservableContentBlock[] = []
+  @Local linkedArticles: ObservableLinkedArticle[] = []
+
+  // 搜索相关 - 使用触发器机制
   @Local showSearchPanel: boolean = false
   @Local searchKeyword: string = ''
   @Local searchResults: NewsArticle[] = []
   @Local isSearching: boolean = false
   @Local hasSearched: boolean = false
+  @Local refreshTrigger: number = 0
+
 
   async aboutToAppear(): Promise<void> {
     await noteManager.init()
@@ -61,24 +109,26 @@ export struct NoteEditor {
     if (this.note) {
       this.noteId = this.note.id
       this.title = this.note.title
-      this.contentBlocks = [...this.note.content]
-      this.linkedArticles = [...this.note.linkedArticles]
-      this.currentText = this.contentBlocks
+      // 转换为可观察对象
+      this.contentBlocks = this.note.content.map(b => new ObservableContentBlock(b.type, b.value))
+      this.linkedArticles = this.note.linkedArticles.map(a => new ObservableLinkedArticle(a))
+      this.currentText = this.note.content
         .filter(b => b.type === NoteContentType.TEXT)
         .map(b => b.value)
         .join('\n')
     } else if (this.initialArticle) {
-      this.linkedArticles = [{
+      const linkedArticle = new ObservableLinkedArticle({
         id: this.initialArticle.id,
         title: this.initialArticle.title,
         source: this.initialArticle.source || undefined,
         date: this.initialArticle.date,
         url: this.initialArticle.url
-      }]
+      })
+      this.linkedArticles = [linkedArticle]
     }
     this.isInitialized = true
+    this.refreshTrigger++
   }
-
 
   async saveNote(): Promise<void> {
     if (!this.title.trim()) {
@@ -91,13 +141,16 @@ export struct NoteEditor {
     if (this.currentText.trim()) {
       blocks.push({ type: NoteContentType.TEXT, value: this.currentText.trim() })
     }
-    this.contentBlocks.filter(b => b.type === NoteContentType.IMAGE).forEach(b => blocks.push(b))
+    // 添加图片块
+    this.contentBlocks.filter(b => b.type === NoteContentType.IMAGE).forEach(b => {
+      blocks.push({ type: b.type, value: b.value })
+    })
 
     const noteData: NoteItem = {
       id: this.noteId,
       title: this.title.trim(),
       content: blocks,
-      linkedArticles: this.linkedArticles,
+      linkedArticles: this.linkedArticles.map(a => a.toLinkedArticleInfo()),
       createTime: this.note?.createTime || Date.now(),
       updateTime: Date.now()
     }
@@ -122,7 +175,9 @@ export struct NoteEditor {
         maxSelectNumber: 1
       })
       if (result.photoUris && result.photoUris.length > 0) {
-        this.contentBlocks.push({ type: NoteContentType.IMAGE, value: result.photoUris[0] })
+        const newBlock = new ObservableContentBlock(NoteContentType.IMAGE, result.photoUris[0])
+        this.contentBlocks = [...this.contentBlocks, newBlock]
+        this.refreshTrigger++
         promptAction.openToast({ message: '图片已添加', duration: 1000 })
       }
     } catch (error) {
@@ -137,14 +192,16 @@ export struct NoteEditor {
       this.contentBlocks = this.contentBlocks.filter(b =>
         !(b.type === NoteContentType.IMAGE && b.value === targetValue)
       )
+      this.refreshTrigger++
     }
   }
 
   removeLinkedArticle(articleId: string): void {
     this.linkedArticles = this.linkedArticles.filter(a => a.id !== articleId)
+    this.refreshTrigger++
   }
 
-  goToArticle(article: LinkedArticleInfo): void {
+  goToArticle(article: ObservableLinkedArticle): void {
     const newsArticle: NewsArticle = {
       id: article.id,
       title: article.title,
@@ -161,42 +218,37 @@ export struct NoteEditor {
     promptAction.openToast({ message: '导出功能开发中', duration: 1500 })
   }
 
-  // 打开搜索面板
   openSearchPanel(): void {
     this.showSearchPanel = true
     this.searchKeyword = ''
     this.searchResults = []
     this.hasSearched = false
+    this.refreshTrigger++
   }
 
-  // 关闭搜索面板
   closeSearchPanel(): void {
     this.showSearchPanel = false
     this.searchKeyword = ''
     this.searchResults = []
     this.hasSearched = false
+    this.refreshTrigger++
   }
 
   async searchArticles(): Promise<void> {
     if (!this.searchKeyword.trim()) return
     this.isSearching = true
     this.hasSearched = true
+    this.refreshTrigger++
     await searchManager.init()
     const result: SearchResult = await searchManager.searchNews(this.searchKeyword)
     this.searchResults = result.articles.filter(
       article => !this.linkedArticles.some(a => a.id === article.id)
     )
     this.isSearching = false
+    this.refreshTrigger++
   }
 
   selectArticleToLink(article: NewsArticle): void {
-    const linkedInfo: LinkedArticleInfo = {
-      id: article.id,
-      title: article.title,
-      source: article.source || undefined,
-      date: article.date,
-      url: article.url
-    }
     if (this.linkedArticles.some(a => a.id === article.id)) {
       promptAction.openToast({ message: '该文章已关联', duration: 1500 })
       return
@@ -205,7 +257,15 @@ export struct NoteEditor {
       promptAction.openToast({ message: '最多关联5篇文章', duration: 1500 })
       return
     }
-    this.linkedArticles.push(linkedInfo)
+    const newLinked = new ObservableLinkedArticle({
+      id: article.id,
+      title: article.title,
+      source: article.source || undefined,
+      date: article.date,
+      url: article.url
+    })
+    this.linkedArticles = [...this.linkedArticles, newLinked]
+    this.refreshTrigger++
     promptAction.openToast({ message: '已添加关联文章', duration: 1000 })
     this.closeSearchPanel()
   }
@@ -220,34 +280,45 @@ export struct NoteEditor {
         .fillColor($r('app.color.text_primary'))
         .onClick(() => this.onClose())
 
-      Text(this.noteId ? '编辑笔记' : '新建笔记')
+      Text(this.isReadOnly ? '查看笔记' : (this.noteId ? '编辑笔记' : '新建笔记'))
         .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 22)
         .fontWeight(FontWeight.Bold)
         .fontColor($r('app.color.text_primary'))
         .layoutWeight(1)
         .textAlign(TextAlign.Center)
 
-      Image($rawfile('share_icon.svg'))
-        .width(this.deviceType === DEVICE_TYPES.PHONE ? 22 : 26)
-        .height(this.deviceType === DEVICE_TYPES.PHONE ? 22 : 26)
-        .fillColor($r('app.color.text_primary'))
-        .margin({ right: 16 })
-        .onClick(() => this.exportNote())
+      if (this.isReadOnly) {
+        Button('编辑')
+          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 16)
+          .fontColor(Color.White)
+          .backgroundColor($r('app.color.brand'))
+          .height(this.deviceType === DEVICE_TYPES.PHONE ? 32 : 38)
+          .borderRadius(16)
+          .onClick(() => this.onEdit())
+      } else {
+        Image($rawfile('share_icon.svg'))
+          .width(this.deviceType === DEVICE_TYPES.PHONE ? 22 : 26)
+          .height(this.deviceType === DEVICE_TYPES.PHONE ? 22 : 26)
+          .fillColor($r('app.color.text_primary'))
+          .margin({ right: 16 })
+          .onClick(() => this.exportNote())
 
-      Button('保存')
-        .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 16)
-        .fontColor(Color.White)
-        .backgroundColor($r('app.color.brand'))
-        .height(this.deviceType === DEVICE_TYPES.PHONE ? 32 : 38)
-        .borderRadius(16)
-        .enabled(!this.isSaving)
-        .onClick(() => this.saveNote())
+        Button('保存')
+          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 16)
+          .fontColor(Color.White)
+          .backgroundColor($r('app.color.brand'))
+          .height(this.deviceType === DEVICE_TYPES.PHONE ? 32 : 38)
+          .borderRadius(16)
+          .enabled(!this.isSaving)
+          .onClick(() => this.saveNote())
+      }
     }
     .width('100%')
     .padding({ left: 16, right: 16, top: 12, bottom: 12 })
     .margin({ top: 48 })
     .backgroundColor($r('app.color.card_bg'))
   }
+
 
   @Builder
   LinkedArticlesBuilder() {
@@ -265,8 +336,7 @@ export struct NoteEditor {
 
         Blank()
 
-        // 添加按钮（少于5篇且未展开搜索时显示）
-        if (this.linkedArticles.length < 5 && !this.showSearchPanel) {
+        if (!this.isReadOnly && this.linkedArticles.length < 5 && !this.showSearchPanel) {
           Row() {
             Text('+')
               .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 18)
@@ -287,14 +357,12 @@ export struct NoteEditor {
       .width('100%')
       .margin({ bottom: 12 })
 
-      // 内联搜索面板
-      if (this.showSearchPanel) {
+      if (this.showSearchPanel && !this.isReadOnly) {
         this.InlineSearchPanelBuilder()
       }
 
-      // 已关联文章列表
       if (this.linkedArticles.length > 0) {
-        ForEach(this.linkedArticles, (article: LinkedArticleInfo) => {
+        ForEach(this.linkedArticles, (article: ObservableLinkedArticle) => {
           Row() {
             Column() {
               Text(article.title)
@@ -311,21 +379,23 @@ export struct NoteEditor {
             .alignItems(HorizontalAlign.Start)
             .onClick(() => this.goToArticle(article))
 
-            Image($rawfile('close.svg'))
-              .width(16)
-              .height(16)
-              .fillColor($r('app.color.text_secondary'))
-              .margin({ left: 8 })
-              .onClick(() => this.removeLinkedArticle(article.id))
+            if (!this.isReadOnly) {
+              Image($rawfile('close.svg'))
+                .width(16)
+                .height(16)
+                .fillColor($r('app.color.text_secondary'))
+                .margin({ left: 8 })
+                .onClick(() => this.removeLinkedArticle(article.id))
+            }
           }
           .width('100%')
           .padding(12)
           .backgroundColor($r('app.color.news_list_item_bg'))
           .borderRadius(8)
           .margin({ bottom: 8 })
-        }, (article: LinkedArticleInfo) => article.id)
+        }, (article: ObservableLinkedArticle) => article.id + this.refreshTrigger)
       } else if (!this.showSearchPanel) {
-        Text('暂无关联文章，点击"添加"按钮搜索')
+        Text(this.isReadOnly ? '暂无关联文章' : '暂无关联文章，点击"添加"按钮搜索')
           .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 13 : 15)
           .fontColor($r('app.color.text_secondary'))
           .padding(12)
@@ -340,10 +410,10 @@ export struct NoteEditor {
     .margin({ bottom: 16 })
   }
 
+
   @Builder
   InlineSearchPanelBuilder() {
     Column() {
-      // 搜索输入行
       Row() {
         Image($rawfile('search.svg'))
           .width(18)
@@ -381,7 +451,6 @@ export struct NoteEditor {
       .borderRadius(22)
       .margin({ bottom: 12 })
 
-      // 搜索结果
       if (this.isSearching) {
         Row() {
           LoadingProgress().width(24).height(24)
@@ -419,7 +488,7 @@ export struct NoteEditor {
             .borderRadius(8)
             .margin({ bottom: 6 })
             .onClick(() => this.selectArticleToLink(article))
-          }, (article: NewsArticle) => article.id)
+          }, (article: NewsArticle) => article.id + this.refreshTrigger)
         }
       } else if (this.hasSearched) {
         Text('未找到相关文章')
@@ -449,26 +518,29 @@ export struct NoteEditor {
         Flex({ wrap: FlexWrap.Wrap }) {
           ForEach(
             this.contentBlocks.filter(b => b.type === NoteContentType.IMAGE),
-            (block: NoteContentBlock, index: number) => {
+            (block: ObservableContentBlock, index: number) => {
               Stack({ alignContent: Alignment.TopEnd }) {
                 Image(block.value)
                   .width(80)
                   .height(80)
                   .objectFit(ImageFit.Cover)
                   .borderRadius(8)
+                  .alt($rawfile('image_icon.svg'))
 
-                Image($rawfile('close.svg'))
-                  .width(18)
-                  .height(18)
-                  .fillColor(Color.White)
-                  .backgroundColor('#80000000')
-                  .borderRadius(9)
-                  .padding(2)
-                  .onClick(() => this.removeImage(index))
+                if (!this.isReadOnly) {
+                  Image($rawfile('close.svg'))
+                    .width(18)
+                    .height(18)
+                    .fillColor(Color.White)
+                    .backgroundColor('#80000000')
+                    .borderRadius(9)
+                    .padding(2)
+                    .onClick(() => this.removeImage(index))
+                }
               }
               .margin({ right: 8, bottom: 8 })
             },
-            (block: NoteContentBlock, index: number) => `img_${index}_${block.value}`
+            (block: ObservableContentBlock, index: number) => `img_${index}_${block.value}_${this.refreshTrigger}`
           )
         }
       }
@@ -480,32 +552,52 @@ export struct NoteEditor {
     }
   }
 
+
   @Builder
   EditorBuilder() {
     Column() {
-      TextInput({ placeholder: '请输入笔记标题', text: this.title })
-        .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 22)
-        .fontWeight(FontWeight.Bold)
-        .fontColor($r('app.color.text_primary'))
-        .placeholderColor($r('app.color.text_secondary'))
-        .backgroundColor(Color.Transparent)
-        .padding({ left: 0, right: 0, top: 8, bottom: 8 })
-        .height(this.deviceType === DEVICE_TYPES.PHONE ? 48 : 56)
-        .onChange((value: string) => { this.title = value })
+      if (this.isReadOnly) {
+        Text(this.title)
+          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 22)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
+          .width('100%')
+          .padding({ top: 8, bottom: 8 })
 
-      Divider()
-        .color($r('app.color.text_secondary'))
-        .opacity(0.3)
-        .margin({ top: 4, bottom: 12 })
+        Divider()
+          .color($r('app.color.text_secondary'))
+          .opacity(0.3)
+          .margin({ top: 4, bottom: 12 })
 
-      TextArea({ placeholder: '开始记录你的想法...', text: this.currentText })
-        .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 15 : 17)
-        .fontColor($r('app.color.text_primary'))
-        .placeholderColor($r('app.color.text_secondary'))
-        .backgroundColor(Color.Transparent)
-        .padding({ left: 0, right: 0, top: 8, bottom: 8 })
-        .layoutWeight(1)
-        .onChange((value: string) => { this.currentText = value })
+        Text(this.currentText || '暂无内容')
+          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 15 : 17)
+          .fontColor(this.currentText ? $r('app.color.text_primary') : $r('app.color.text_secondary'))
+          .width('100%')
+      } else {
+        TextInput({ placeholder: '请输入笔记标题', text: this.title })
+          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 22)
+          .fontWeight(FontWeight.Bold)
+          .fontColor($r('app.color.text_primary'))
+          .placeholderColor($r('app.color.text_secondary'))
+          .backgroundColor(Color.Transparent)
+          .padding({ left: 0, right: 0, top: 8, bottom: 8 })
+          .height(this.deviceType === DEVICE_TYPES.PHONE ? 48 : 56)
+          .onChange((value: string) => { this.title = value })
+
+        Divider()
+          .color($r('app.color.text_secondary'))
+          .opacity(0.3)
+          .margin({ top: 4, bottom: 12 })
+
+        TextArea({ placeholder: '开始记录你的想法...', text: this.currentText })
+          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 15 : 17)
+          .fontColor($r('app.color.text_primary'))
+          .placeholderColor($r('app.color.text_secondary'))
+          .backgroundColor(Color.Transparent)
+          .padding({ left: 0, right: 0, top: 8, bottom: 8 })
+          .layoutWeight(1)
+          .onChange((value: string) => { this.currentText = value })
+      }
     }
     .width('100%')
     .layoutWeight(1)
@@ -516,25 +608,27 @@ export struct NoteEditor {
 
   @Builder
   ToolbarBuilder() {
-    Row() {
+    if (!this.isReadOnly) {
       Row() {
-        Image($rawfile('image_icon.svg'))
-          .width(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
-          .height(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
-          .fillColor($r('app.color.text_primary'))
-        Text('添加图片')
-          .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 13 : 15)
-          .fontColor($r('app.color.text_primary'))
-          .margin({ left: 6 })
+        Row() {
+          Image($rawfile('image_icon.svg'))
+            .width(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
+            .height(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
+            .fillColor($r('app.color.text_primary'))
+          Text('添加图片')
+            .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 13 : 15)
+            .fontColor($r('app.color.text_primary'))
+            .margin({ left: 6 })
+        }
+        .padding({ left: 16, right: 16, top: 10, bottom: 10 })
+        .backgroundColor($r('app.color.card_bg'))
+        .borderRadius(20)
+        .onClick(() => this.selectImage())
       }
-      .padding({ left: 16, right: 16, top: 10, bottom: 10 })
-      .backgroundColor($r('app.color.card_bg'))
-      .borderRadius(20)
-      .onClick(() => this.selectImage())
+      .width('100%')
+      .padding(16)
+      .justifyContent(FlexAlign.Start)
     }
-    .width('100%')
-    .padding(16)
-    .justifyContent(FlexAlign.Start)
   }
 
   build() {

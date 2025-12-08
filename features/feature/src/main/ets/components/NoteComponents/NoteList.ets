@@ -1,6 +1,6 @@
 /**
  * 笔记列表组件
- * 显示用户的所有笔记，支持新建、编辑和删除
+ * 显示用户的所有笔记，支持新建、阅读和编辑
  */
 import {
   DEVICE_TYPES,
@@ -16,7 +16,6 @@ import { NoteEditor } from './NoteEditor'
 
 @ComponentV2
 export struct NoteList {
-  /** 关闭回调 */
   @Event onClose: () => void = () => {}
 
   @Local deviceType: DEVICE_TYPES =
@@ -27,6 +26,7 @@ export struct NoteList {
   @Local isLoading: boolean = true
   @Local showEditor: boolean = false
   @Local editingNote: NoteItem | null = null
+  @Local isReadOnlyMode: boolean = false
 
   async aboutToAppear(): Promise<void> {
     await noteManager.init()
@@ -44,26 +44,23 @@ export struct NoteList {
     this.isLoading = false
   }
 
-  /**
-   * 新建笔记
-   */
   createNewNote(): void {
     this.editingNote = null
+    this.isReadOnlyMode = false
     this.showEditor = true
   }
 
-  /**
-   * 编辑笔记
-   */
-  editNote(note: NoteItem): void {
+  viewNote(note: NoteItem): void {
     this.editingNote = note
+    this.isReadOnlyMode = true
     this.showEditor = true
   }
 
+  editNote(): void {
+    this.isReadOnlyMode = false
+  }
 
-  /**
-   * 删除笔记
-   */
+
   async deleteNote(note: NoteItem): Promise<void> {
     promptAction.showDialog({
       title: '删除笔记',
@@ -82,46 +79,33 @@ export struct NoteList {
     })
   }
 
-  /**
-   * 格式化时间
-   */
   formatTime(timestamp: number): string {
     const date = new Date(timestamp)
     const now = new Date()
     const diff = now.getTime() - timestamp
 
-    if (diff < 60000) {
-      return '刚刚'
-    } else if (diff < 3600000) {
-      return `${Math.floor(diff / 60000)}分钟前`
-    } else if (diff < 86400000) {
-      return `${Math.floor(diff / 3600000)}小时前`
-    } else if (date.getFullYear() === now.getFullYear()) {
+    if (diff < 60000) return '刚刚'
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`
+    if (date.getFullYear() === now.getFullYear()) {
       return `${date.getMonth() + 1}月${date.getDate()}日`
-    } else {
-      return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
     }
+    return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`
   }
 
-  /**
-   * 获取笔记预览文本
-   */
   getPreviewText(note: NoteItem): string {
     const textBlocks = note.content.filter(b => b.type === NoteContentType.TEXT)
     if (textBlocks.length > 0) {
       return textBlocks[0].value.substring(0, 100)
     }
     const imageCount = note.content.filter(b => b.type === NoteContentType.IMAGE).length
-    if (imageCount > 0) {
-      return `[${imageCount}张图片]`
-    }
+    if (imageCount > 0) return `[${imageCount}张图片]`
     return '暂无内容'
   }
 
   @Builder
   HeaderBuilder() {
     Row() {
-      // 返回按钮
       Image($rawfile('back.svg'))
         .width(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 28)
         .height(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 28)
@@ -135,7 +119,6 @@ export struct NoteList {
         .margin({ left: 12 })
         .layoutWeight(1)
 
-      // 新建按钮
       Button('新建')
         .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 16)
         .fontColor(Color.White)
@@ -145,14 +128,10 @@ export struct NoteList {
         .onClick(() => this.createNewNote())
     }
     .width('100%')
-    .padding({
-      left: 16,
-      right: 16,
-      top: 12,
-      bottom: 12
-    })
+    .padding({ left: 16, right: 16, top: 12, bottom: 12 })
     .backgroundColor($r('app.color.card_bg'))
   }
+
 
   @Builder
   NoteItemBuilder(note: NoteItem) {
@@ -199,7 +178,7 @@ export struct NoteList {
     .padding(16)
     .backgroundColor($r('app.color.card_bg'))
     .borderRadius(12)
-    .onClick(() => this.editNote(note))
+    .onClick(() => this.viewNote(note))
     .gesture(
       LongPressGesture()
         .onAction(() => this.deleteNote(note))
@@ -231,17 +210,23 @@ export struct NoteList {
     .justifyContent(FlexAlign.Center)
   }
 
+
   @Builder
   EditorCoverBuilder() {
     NoteEditor({
       note: this.editingNote,
       initialArticle: null,
+      isReadOnly: this.isReadOnlyMode,
       onClose: () => {
         this.showEditor = false
         this.editingNote = null
+        this.isReadOnlyMode = false
       },
       onSaved: () => {
         this.loadNotes()
+      },
+      onEdit: () => {
+        this.isReadOnlyMode = false
       }
     })
       .expandSafeArea()
@@ -275,24 +260,17 @@ export struct NoteList {
         }
         .width('100%')
         .layoutWeight(1)
-        .padding({
-          left: 16,
-          right: 16,
-          top: 16,
-          bottom: 16
-        })
+        .padding({ left: 16, right: 16, top: 16, bottom: 16 })
       }
     }
-    .padding({top:48})
+    .padding({ top: 48 })
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
     .bindContentCover(
       $$this.showEditor,
       this.EditorCoverBuilder(),
-      {
-        modalTransition: ModalTransition.DEFAULT
-      }
+      { modalTransition: ModalTransition.DEFAULT }
     )
   }
 }
