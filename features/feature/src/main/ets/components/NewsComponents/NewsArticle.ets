@@ -26,17 +26,82 @@ import { historyManager } from '../../managers/HistoryManager'
 function preprocessCodeBlock(code: string): string {
   // 去除首尾空白
   let cleanCode = code.trim()
-  
+
   // 如果已经是 Markdown 代码块格式，直接返回
   if (cleanCode.startsWith('```') && cleanCode.endsWith('```')) {
     return cleanCode
   }
-  
+
+  // 如果代码没有换行符，尝试智能添加换行
+  if (!cleanCode.includes('\n')) {
+    cleanCode = formatCompressedCode(cleanCode)
+  }
+
   // 尝试检测代码语言
   const language = detectCodeLanguage(cleanCode)
-  
+
   // 包装成 Markdown 代码块
   return '```' + language + '\n' + cleanCode + '\n```'
+}
+
+/**
+ * 格式化压缩的代码，智能添加换行
+ */
+function formatCompressedCode(code: string): string {
+  let result = code
+
+  // 在 { 后添加换行（但不在 ${ 后）
+  result = result.replace(/\{(?!\{)/g, '{\n')
+
+  // 在 } 前添加换行（但不在 }} 前）
+  result = result.replace(/(?<!\})(\})/g, '\n$1')
+
+  // 在 ; 后添加换行（但不在字符串内）
+  result = result.replace(/;(?=\s*[a-zA-Z_])/g, ';\n')
+
+  // 在 C/C++ 风格的函数定义后添加换行
+  result = result.replace(/\)\s*\{/g, ')\n{')
+
+  // 在 return 语句前添加换行
+  result = result.replace(/([^;\n])\s*(return\s)/g, '$1\n$2')
+
+  // 在 if/else/for/while 前添加换行
+  result = result.replace(/([;}])\s*(if\s*\(|else\s*\{|else\s+if|for\s*\(|while\s*\()/g, '$1\n$2')
+
+  // 在 void/int/bool 等类型声明前添加换行（函数定义）
+  result = result.replace(/([;}])\s*(void\s+|int\s+|int32_t\s+|bool\s+|char\s+|double\s+|float\s+|auto\s+)/g, '$1\n$2')
+
+  // 清理多余的空行
+  result = result.replace(/\n\s*\n\s*\n/g, '\n\n')
+
+  // 清理行首空白
+  const lines = result.split('\n')
+  const formattedLines: string[] = []
+  let indentLevel = 0
+
+  for (const line of lines) {
+    const trimmedLine = line.trim()
+    if (trimmedLine.length === 0) {
+      formattedLines.push('')
+      continue
+    }
+
+    // 减少缩进（遇到 }）
+    if (trimmedLine.startsWith('}')) {
+      indentLevel = Math.max(0, indentLevel - 1)
+    }
+
+    // 添加缩进
+    const indent = '    '.repeat(indentLevel)
+    formattedLines.push(indent + trimmedLine)
+
+    // 增加缩进（遇到 {）
+    if (trimmedLine.endsWith('{')) {
+      indentLevel++
+    }
+  }
+
+  return formattedLines.join('\n')
 }
 
 /**
