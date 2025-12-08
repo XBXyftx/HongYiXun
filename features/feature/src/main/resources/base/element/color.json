@@ -115,6 +115,10 @@
     {
       "name": "font_adjust_slider_selected",
       "value": "#FF007DFF"
+    },
+    {
+      "name": "brand",
+      "value": "#FF007DFF"
     }
   ]
 }
