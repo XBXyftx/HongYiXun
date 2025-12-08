@@ -195,7 +195,7 @@ export struct SettingsPage {
               '文章字体大小',
               `${this.userConfig.fontSize}`,
               () => {
-                this.navPathStuck.replacePath({ name: NAV_DESTS.FONT_SIZE_SETTINGS })
+                this.navPathStuck.pushPath({ name: NAV_DESTS.FONT_SIZE_SETTINGS })
               }
             )
 
@@ -205,7 +205,7 @@ export struct SettingsPage {
               '深浅色模式',
               this.getColorModeText(),
               () => {
-                this.navPathStuck.replacePath({ name: NAV_DESTS.COLOR_MODE_SETTINGS })
+                this.navPathStuck.pushPath({ name: NAV_DESTS.COLOR_MODE_SETTINGS })
               }
             )
 
@@ -235,7 +235,7 @@ export struct SettingsPage {
               '热力日历设置',
               '',
               () => {
-                this.navPathStuck.replacePath({ name: NAV_DESTS.HEATMAP_SETTINGS })
+                this.navPathStuck.pushPath({ name: NAV_DESTS.HEATMAP_SETTINGS })
               }
             )
 

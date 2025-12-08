@@ -99,28 +99,28 @@ export struct SelfTabContent {
         iconBgColor: '#1DB954',
         title: '浏览历史',
         subtitle: this.historyCount > 0 ? `${this.historyCount}条记录` : '暂无浏览记录',
-        onClick: () => this.navPathStuck.pushPath({ name: NAV_DESTS.HISTORY })
+        onClick: () => this.navPathStuck.replacePath({ name: NAV_DESTS.HISTORY })
       },
       {
         icon: $rawfile('favorite_icon.svg'),
         iconBgColor: '#00BCD4',
         title: '我的收藏',
         subtitle: this.favoriteCount > 0 ? `${this.favoriteCount}篇收藏` : '暂无收藏内容',
-        onClick: () => this.navPathStuck.pushPath({ name: NAV_DESTS.FAVORITES })
+        onClick: () => this.navPathStuck.replacePath({ name: NAV_DESTS.FAVORITES })
       },
       {
         icon: $rawfile('like_icon.svg'),
         iconBgColor: '#FF6B9D',
         title: '我的点赞',
         subtitle: this.likeCount > 0 ? `${this.likeCount}篇点赞` : '暂无点赞内容',
-        onClick: () => this.navPathStuck.pushPath({ name: NAV_DESTS.LIKES })
+        onClick: () => this.navPathStuck.replacePath({ name: NAV_DESTS.LIKES })
       },
       {
         icon: $rawfile('settings_icon.svg'),
         iconBgColor: '#9C7CF4',
         title: '设置',
         subtitle: '个性化配置',
-        onClick: () => this.navPathStuck.pushPath({ name: NAV_DESTS.SETTINGS })
+        onClick: () => this.navPathStuck.replacePath({ name: NAV_DESTS.SETTINGS })
       }
     ]
   }
