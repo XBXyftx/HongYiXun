@@ -10,7 +10,9 @@ import {
   LinkedArticleInfo,
   NewsArticle,
   NAV_DESTS,
-  APP_STORAGE_KEYS
+  APP_STORAGE_KEYS,
+  logger,
+  LOG_TAG
 } from "common"
 import { deviceInfo } from "@kit.BasicServicesKit"
 import { noteManager } from '../../managers/NoteManager'
@@ -242,7 +244,9 @@ export struct NoteEditor {
    * 打开文章选择器
    */
   openArticleSelector(): void {
+    logger.info(`${LOG_TAG.NEWS_LIST}openArticleSelector called, current showArticleSelector: ${this.showArticleSelector}`)
     this.showArticleSelector = true
+    logger.info(`${LOG_TAG.NEWS_LIST}showArticleSelector set to: ${this.showArticleSelector}`)
   }
 
   /**
@@ -303,7 +307,10 @@ export struct NoteEditor {
           .borderRadius(16)
           .borderWidth(1)
           .borderColor($r('app.color.brand'))
-          .onClick(() => this.openArticleSelector())
+          .onClick(() => {
+            logger.info(`${LOG_TAG.NEWS_LIST}添加按钮被点击`)
+            this.openArticleSelector()
+          })
         }
       }
       .width('100%')
@@ -494,11 +501,12 @@ export struct NoteEditor {
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
     .bindContentCover(
-      this.showArticleSelector,
+      $$this.showArticleSelector,
       this.ArticleSelectorCoverBuilder(),
       {
         modalTransition: ModalTransition.DEFAULT,
         onDisappear: () => {
+          logger.info(`${LOG_TAG.NEWS_LIST}ArticleSelector onDisappear`)
           this.showArticleSelector = false
         }
       }
