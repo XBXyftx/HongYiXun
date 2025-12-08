@@ -231,9 +231,20 @@ export struct NoteEditor {
       top: 12,
       bottom: 12
     })
+    .margin({top:48})
     .backgroundColor($r('app.color.card_bg'))
   }
 
+
+  /**
+   * 添加关联文章（提示用户功能）
+   */
+  addLinkedArticle(): void {
+    promptAction.openToast({
+      message: '请从文章详情页点击笔记按钮来关联文章',
+      duration: 2000
+    })
+  }
 
   @Builder
   LinkedArticlesBuilder() {
@@ -248,9 +259,31 @@ export struct NoteEditor {
           .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 14)
           .fontColor($r('app.color.text_secondary'))
           .margin({ left: 8 })
+
+        Blank()
+
+        // 添加关联文章按钮（当少于5篇时显示）
+        if (this.linkedArticles.length < 5) {
+          Row() {
+            Text('+')
+              .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 18)
+              .fontColor($r('app.color.brand'))
+              .fontWeight(FontWeight.Bold)
+
+            Text('添加')
+              .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 14)
+              .fontColor($r('app.color.brand'))
+              .margin({ left: 4 })
+          }
+          .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+          .borderRadius(16)
+          .borderWidth(1)
+          .borderColor($r('app.color.brand'))
+          .onClick(() => this.addLinkedArticle())
+        }
       }
       .width('100%')
-      .margin({ bottom: 8 })
+      .margin({ bottom: 12 })
 
       if (this.linkedArticles.length > 0) {
         ForEach(this.linkedArticles, (article: LinkedArticleInfo) => {
@@ -285,10 +318,12 @@ export struct NoteEditor {
           .margin({ bottom: 8 })
         }, (article: LinkedArticleInfo) => article.id)
       } else {
-        Text('暂无关联文章')
+        Text('暂无关联文章，点击右上角"添加"按钮')
           .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 13 : 15)
           .fontColor($r('app.color.text_secondary'))
           .padding(12)
+          .width('100%')
+          .textAlign(TextAlign.Center)
       }
     }
     .width('100%')
@@ -353,7 +388,8 @@ export struct NoteEditor {
         .fontColor($r('app.color.text_primary'))
         .placeholderColor($r('app.color.text_secondary'))
         .backgroundColor(Color.Transparent)
-        .padding(0)
+        .padding({ left: 0, right: 0, top: 8, bottom: 8 })
+        .height(this.deviceType === DEVICE_TYPES.PHONE ? 48 : 56)
         .onChange((value: string) => {
           this.title = value
         })
@@ -361,7 +397,7 @@ export struct NoteEditor {
       Divider()
         .color($r('app.color.text_secondary'))
         .opacity(0.3)
-        .margin({ top: 12, bottom: 12 })
+        .margin({ top: 4, bottom: 12 })
 
       // 内容输入
       TextArea({ placeholder: '开始记录你的想法...', text: this.currentText })
@@ -369,7 +405,7 @@ export struct NoteEditor {
         .fontColor($r('app.color.text_primary'))
         .placeholderColor($r('app.color.text_secondary'))
         .backgroundColor(Color.Transparent)
-        .padding(0)
+        .padding({ left: 0, right: 0, top: 8, bottom: 8 })
         .layoutWeight(1)
         .onChange((value: string) => {
           this.currentText = value
@@ -429,6 +465,7 @@ export struct NoteEditor {
 
       this.ToolbarBuilder()
     }
+    .expandSafeArea()
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
