@@ -30,6 +30,83 @@ export interface SearchResult {
   keyword: string
 }
 
+/**
+ * 带匹配度的文章
+ */
+interface ArticleWithScore {
+  article: NewsArticle
+  score: number
+}
+
+/**
+ * 计算模糊匹配分数
+ * @param text 待匹配文本
+ * @param keyword 搜索关键词
+ * @returns 匹配分数（0-100），越高越匹配
+ */
+function calculateFuzzyScore(text: string, keyword: string): number {
+  if (!text || !keyword) {
+    return 0
+  }
+
+  const lowerText = text.toLowerCase()
+  const lowerKeyword = keyword.toLowerCase()
+
+  // 完全匹配，最高分
+  if (lowerText.includes(lowerKeyword)) {
+    // 标题开头匹配加分
+    if (lowerText.startsWith(lowerKeyword)) {
+      return 100
+    }
+    // 完整包含
+    return 90
+  }
+
+  // 分词匹配（按空格、标点分割关键词）
+  const keywordParts = lowerKeyword.split(/[\s,，.。!！?？;；:：、]+/).filter(p => p.length > 0)
+  if (keywordParts.length > 1) {
+    let matchedParts = 0
+    for (const part of keywordParts) {
+      if (lowerText.includes(part)) {
+        matchedParts++
+      }
+    }
+    if (matchedParts > 0) {
+      // 按匹配的分词比例计算分数
+      return Math.floor((matchedParts / keywordParts.length) * 80)
+    }
+  }
+
+  // 字符级模糊匹配（关键词字符在文本中按顺序出现）
+  let keywordIndex = 0
+  let consecutiveMatches = 0
+  let maxConsecutive = 0
+
+  for (let i = 0; i < lowerText.length && keywordIndex < lowerKeyword.length; i++) {
+    if (lowerText[i] === lowerKeyword[keywordIndex]) {
+      keywordIndex++
+      consecutiveMatches++
+      maxConsecutive = Math.max(maxConsecutive, consecutiveMatches)
+    } else {
+      consecutiveMatches = 0
+    }
+  }
+
+  // 所有字符都按顺序匹配到了
+  if (keywordIndex === lowerKeyword.length) {
+    // 根据连续匹配程度给分
+    const continuityBonus = (maxConsecutive / lowerKeyword.length) * 30
+    return Math.floor(50 + continuityBonus)
+  }
+
+  // 部分字符匹配
+  if (keywordIndex > 0) {
+    return Math.floor((keywordIndex / lowerKeyword.length) * 40)
+  }
+
+  return 0
+}
+
 export class SearchManager {
   private appKVDb: distributedKVStore.SingleKVStore | undefined = undefined
   private maxHistoryCount: number = 20
@@ -97,15 +174,35 @@ export class SearchManager {
         }
       })
 
-      // 搜索匹配
-      const matchedArticles = Array.from(uniqueMap.values()).filter(article => {
-        const titleMatch = article.title?.toLowerCase().includes(searchKeyword)
-        const sourceMatch = article.source?.toLowerCase().includes(searchKeyword)
-        return titleMatch || sourceMatch
+      // 模糊搜索匹配并计算分数
+      const scoredArticles: ArticleWithScore[] = []
+
+      for (const article of Array.from(uniqueMap.values())) {
+        // 计算标题匹配分数（权重更高）
+        const titleScore = calculateFuzzyScore(article.title || '', searchKeyword) * 1.5
+        // 计算来源匹配分数
+        const sourceScore = calculateFuzzyScore(article.source || '', searchKeyword)
+        // 取最高分
+        const maxScore = Math.max(titleScore, sourceScore)
+
+        // 只保留有匹配的文章（分数 > 0）
+        if (maxScore > 0) {
+          scoredArticles.push({
+            article: article,
+            score: maxScore
+          })
+        }
+      }
+
+      // 按匹配度降序排序，相同匹配度按日期降序
+      scoredArticles.sort((a, b) => {
+        if (b.score !== a.score) {
+          return b.score - a.score
+        }
+        return b.article.date.localeCompare(a.article.date)
       })
 
-      // 按日期倒序排序
-      matchedArticles.sort((a, b) => b.date.localeCompare(a.date))
+      const matchedArticles = scoredArticles.map(item => item.article)
 
       result.articles = matchedArticles
       result.total = matchedArticles.length
