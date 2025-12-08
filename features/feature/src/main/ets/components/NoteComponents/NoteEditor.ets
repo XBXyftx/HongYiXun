@@ -78,7 +78,7 @@ export struct NoteEditor {
    */
   async saveNote(): Promise<void> {
     if (!this.title.trim()) {
-      promptAction.showToast({ message: '请输入笔记标题', duration: 1500 })
+      promptAction.openToast({ message: '请输入笔记标题', duration: 1500 })
       return
     }
 
@@ -108,11 +108,11 @@ export struct NoteEditor {
     this.isSaving = false
 
     if (success) {
-      promptAction.showToast({ message: '保存成功', duration: 1500 })
+      promptAction.openToast({ message: '保存成功', duration: 1500 })
       this.onSaved()
       this.onClose()
     } else {
-      promptAction.showToast({ message: '保存失败', duration: 1500 })
+      promptAction.openToast({ message: '保存失败', duration: 1500 })
     }
   }
 
@@ -133,10 +133,10 @@ export struct NoteEditor {
           type: NoteContentType.IMAGE,
           value: imageUri
         })
-        promptAction.showToast({ message: '图片已添加', duration: 1000 })
+        promptAction.openToast({ message: '图片已添加', duration: 1000 })
       }
     } catch (error) {
-      promptAction.showToast({ message: '选择图片失败', duration: 1500 })
+      promptAction.openToast({ message: '选择图片失败', duration: 1500 })
     }
   }
 
@@ -186,7 +186,7 @@ export struct NoteEditor {
     const content = `${this.title}\n\n${this.currentText}\n\n关联文章：\n${
       this.linkedArticles.map(a => `- ${a.title}`).join('\n')
     }`
-    promptAction.showToast({ message: '导出功能开发中', duration: 1500 })
+    promptAction.openToast({ message: '导出功能开发中', duration: 1500 })
   }
 
   @Builder
