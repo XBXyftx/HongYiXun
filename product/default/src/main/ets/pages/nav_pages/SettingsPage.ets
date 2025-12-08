@@ -25,6 +25,11 @@ export struct SettingsPage {
   @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, APP_STORAGE_KEYS.NAV_PATH_STUCK, () => new NavPathStack())!
   @Local userConfig: UserConfigViewModel = AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!
   @Local showClearDialog: boolean = false
+  @Local noteEditorSheetTypeText: string = '底部弹窗'
+
+  aboutToAppear(): void {
+    this.noteEditorSheetTypeText = this.getNoteEditorSheetTypeText()
+  }
 
   /**
    * 获取颜色模式显示文本
@@ -79,7 +84,8 @@ export struct SettingsPage {
     }).then((result) => {
       if (result.index >= 0 && result.index <= 4) {
         this.userConfig.noteEditorSheetType = result.index
-        promptAction.openToast({ message: `已切换为${options[result.index]}`, duration: 1500 })
+        this.noteEditorSheetTypeText = this.getNoteEditorSheetTypeText()
+        promptAction.openToast({ message: `已切换为${this.noteEditorSheetTypeText}`, duration: 1500 })
       }
     }).catch(() => {
       // 用户取消选择
@@ -213,7 +219,7 @@ export struct SettingsPage {
             this.SettingItemBuilder(
               $rawfile('note_icon.svg'),
               '笔记编辑页样式',
-              this.getNoteEditorSheetTypeText(),
+              this.noteEditorSheetTypeText,
               () => {
                 this.showNoteEditorSheetTypeDialog()
               }
