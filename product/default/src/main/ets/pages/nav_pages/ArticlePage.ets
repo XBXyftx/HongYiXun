@@ -14,7 +14,7 @@
  */
 import { AppStorageV2, promptAction } from '@kit.ArkUI'
 import { DEVICE_TYPES, APP_STORAGE_KEYS, NewsArticle, UserConfigViewModel, logger, LOG_TAG } from 'common'
-import { NewsArticleView, favoriteManager, likeManager } from 'feature'
+import { NewsArticleView, favoriteManager, likeManager, colorModManager } from 'feature'
 import { deviceInfo, pasteboard } from '@kit.BasicServicesKit'
 import { CircleNavigation, CircleType } from '@abner/circle_navigation'
 
@@ -174,8 +174,7 @@ export struct ArticlePage {
   handleMenuClick(position: number): void {
     switch (position) {
       case 0: // 深浅色切换
-        // 0=浅色, 1=深色, 2=跟随系统，在浅色和深色之间切换
-        this.userConfig.colorModel = this.userConfig.colorModel === 1 ? 0 : 1
+        this.toggleColorMode()
         break
       case 1: // 字号调整
         this.showFontSizeSheet()
@@ -192,6 +191,22 @@ export struct ArticlePage {
     }
     // 点击后收起菜单
     this.menuExpanded = false
+  }
+
+  /**
+   * 切换深浅色模式
+   */
+  toggleColorMode(): void {
+    // 0=浅色, 1=深色, 2=跟随系统，在浅色和深色之间切换
+    if (this.userConfig.colorModel === 1) {
+      this.userConfig.colorModel = 0
+      colorModManager.setLightMod()
+      promptAction.openToast({ message: '已切换为浅色模式', duration: 1500 })
+    } else {
+      this.userConfig.colorModel = 1
+      colorModManager.setDarkMod()
+      promptAction.openToast({ message: '已切换为深色模式', duration: 1500 })
+    }
   }
 
   /**
