@@ -9,6 +9,10 @@
       "value": "#99000000"
     },
     {
+      "name": "card_bg",
+      "value": "#FFF5F5F5"
+    },
+    {
       "name": "start_window_background",
       "value": "#062872"
     },
