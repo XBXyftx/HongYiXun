@@ -36,6 +36,7 @@ import { AIChatPage } from './nav_pages/AIChatPage'
 import { LikesPage } from './nav_pages/LikesPage'
 import { HeatmapSettingsPage } from './nav_pages/HeatmapSettingsPage'
 import { DateHistoryPage } from './nav_pages/DateHistoryPage'
+import { SearchPage } from './nav_pages/SearchPage'
 
 
 @Builder
@@ -148,6 +149,8 @@ struct Main {
       HeatmapSettingsPage()
     } else if (name === NAV_DESTS.DATE_HISTORY) {
       DateHistoryPage()
+    } else if (name === NAV_DESTS.SEARCH) {
+      SearchPage()
     }
   }
 

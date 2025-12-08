@@ -51,7 +51,9 @@ export enum NAV_DESTS {
   /** 热力日历设置页 - 配置热力日历显示选项 */
   HEATMAP_SETTINGS = 'HeatmapSettings',
   /** 日期历史记录页 - 显示指定日期的浏览历史 */
-  DATE_HISTORY = 'DateHistory'
+  DATE_HISTORY = 'DateHistory',
+  /** 搜索页 - 本地新闻搜索 */
+  SEARCH = 'Search'
 }
 
 // ==================== 数据库相关枚举 ====================
@@ -90,7 +92,9 @@ export enum KV_DB_KEYS {
   /** 点赞列表 - 存储用户点赞的新闻文章 */
   LIKE_LIST = 'LikeList',
   /** 每日阅读统计 - 存储用户每天阅读的新闻数量统计 */
-  DAILY_READING_STATS = 'DailyReadingStats'
+  DAILY_READING_STATS = 'DailyReadingStats',
+  /** 搜索历史记录 - 存储用户的搜索关键词历史 */
+  SEARCH_HISTORY = 'SearchHistory'
 }
 
 /**

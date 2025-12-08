@@ -15,4 +15,5 @@
 
 export * from './ConfigeComponents'
 export * from './NewsComponents'
+export * from './SearchComponents/SearchBar'
 

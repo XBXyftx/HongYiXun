@@ -1,5 +1,5 @@
 import { APP_STORAGE_KEYS, NewsArticle, NewsListHeaderIsSticky, logger, LOG_TAG } from "common"
-import { NewsList, newsManager, NewsSwiper } from "feature"
+import { NewsList, newsManager, NewsSwiper, SearchBar } from "feature"
 import { AppStorageV2, promptAction } from "@kit.ArkUI"
 
 @ComponentV2
@@ -99,7 +99,11 @@ export struct NewsListTabContent{
       List({ space: 20, scroller: this.listScroller }) {
         ListItemGroup() {
           ListItem() {
-            NewsSwiper({ swiperData: this.newsSwiperData ?? [] })
+            Column() {
+              SearchBar()
+              NewsSwiper({ swiperData: this.newsSwiperData ?? [] })
+            }
+            .width('100%')
           }
         }
 
