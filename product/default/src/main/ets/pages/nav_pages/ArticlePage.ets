@@ -323,8 +323,9 @@ export struct ArticlePage {
         CircleNavigation({
           clickStatus: this.menuExpanded,
           quantity: 5,
-          radius: this.deviceType === DEVICE_TYPES.PHONE ? 80 : 100,
-          circleType: CircleType.TOP_LEFT_QUARTER,
+          radius: this.deviceType === DEVICE_TYPES.PHONE ? 100 : 120,
+          circleType: CircleType.LEFT_HALF,
+          circleOffset: 0.15,
           duration: 300,
           parentLayout: () => {
             this.menuTriggerBuilder()
