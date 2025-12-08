@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { DEVICE_TYPES, NAV_DESTS, APP_STORAGE_KEYS, HistoryUpdateTrigger, FavoriteUpdateTrigger, LikeUpdateTrigger } from "common"
+import { DEVICE_TYPES, NAV_DESTS, APP_STORAGE_KEYS, HistoryUpdateTrigger, FavoriteUpdateTrigger, LikeUpdateTrigger, NoteUpdateTrigger } from "common"
 import { deviceInfo } from "@kit.BasicServicesKit"
-import { historyManager, favoriteManager, likeManager } from "feature"
+import { historyManager, favoriteManager, likeManager, noteManager, NoteList } from "feature"
 import { AppStorageV2 } from "@kit.ArkUI"
 
 interface MenuCardItem {
@@ -37,14 +37,19 @@ export struct SelfTabContent {
     AppStorageV2.connect(FavoriteUpdateTrigger, APP_STORAGE_KEYS.FAVORITE_UPDATE_TRIGGER, () => new FavoriteUpdateTrigger())!
   @Local likeUpdateTrigger: LikeUpdateTrigger =
     AppStorageV2.connect(LikeUpdateTrigger, APP_STORAGE_KEYS.LIKE_UPDATE_TRIGGER, () => new LikeUpdateTrigger())!
+  @Local noteUpdateTrigger: NoteUpdateTrigger =
+    AppStorageV2.connect(NoteUpdateTrigger, APP_STORAGE_KEYS.NOTE_UPDATE_TRIGGER, () => new NoteUpdateTrigger())!
   @Local historyCount: number = 0
   @Local favoriteCount: number = 0
   @Local likeCount: number = 0
+  @Local noteCount: number = 0
+  @Local showNoteList: boolean = false
 
   async aboutToAppear(): Promise<void> {
     await this.updateHistoryCount()
     await this.updateFavoriteCount()
     await this.updateLikeCount()
+    await this.updateNoteCount()
   }
 
   @Monitor('historyUpdateTrigger.trigger')
@@ -62,6 +67,11 @@ export struct SelfTabContent {
     await this.updateLikeCount()
   }
 
+  @Monitor('noteUpdateTrigger.trigger')
+  async onNoteUpdate(): Promise<void> {
+    await this.updateNoteCount()
+  }
+
   async updateHistoryCount(): Promise<void> {
     const historyList = await historyManager.getHistoryList()
     this.historyCount = historyList.length
@@ -75,6 +85,12 @@ export struct SelfTabContent {
   async updateLikeCount(): Promise<void> {
     const likeList = await likeManager.getLikeList()
     this.likeCount = likeList.length
+  }
+
+  async updateNoteCount(): Promise<void> {
+    await noteManager.init()
+    const noteList = await noteManager.getNoteList()
+    this.noteCount = noteList.length
   }
 
   // 获取菜单项配置
@@ -170,6 +186,54 @@ export struct SelfTabContent {
         bottom: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20
       })
 
+      // 我的笔记入口 - 横条卡片
+      Row() {
+        // 图标
+        Stack() {
+          Circle()
+            .width(this.deviceType === DEVICE_TYPES.PHONE ? 48 : 56)
+            .height(this.deviceType === DEVICE_TYPES.PHONE ? 48 : 56)
+            .fill('#FF9500')
+
+          Image($rawfile('note_icon.svg'))
+            .width(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 28)
+            .height(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 28)
+            .fillColor(Color.White)
+        }
+
+        Column() {
+          Text('我的笔记')
+            .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 22)
+            .fontWeight(600)
+            .fontColor($r('app.color.text_primary'))
+
+          Text(this.noteCount > 0 ? `${this.noteCount}篇笔记` : '记录阅读心得')
+            .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 13 : 16)
+            .fontColor($r('app.color.text_secondary'))
+            .margin({ top: 4 })
+        }
+        .alignItems(HorizontalAlign.Start)
+        .margin({ left: this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18 })
+        .layoutWeight(1)
+
+        Image($rawfile('arrow_right.svg'))
+          .width(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
+          .height(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
+          .fillColor($r('app.color.text_secondary'))
+      }
+      .width('100%')
+      .padding(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20)
+      .margin({
+        left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+        right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
+        bottom: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16
+      })
+      .backgroundColor($r('app.color.news_list_item_bg'))
+      .borderRadius(16)
+      .onClick(() => {
+        this.showNoteList = true
+      })
+
       // 两列网格布局
       Scroll() {
         Column() {
@@ -198,5 +262,21 @@ export struct SelfTabContent {
     .width('100%')
     .height('100%')
     .expandSafeArea()
+    .bindContentCover(
+      $$this.showNoteList,
+      this.NoteListCoverBuilder(),
+      {
+        modalTransition: ModalTransition.DEFAULT
+      }
+    )
+  }
+
+  @Builder
+  NoteListCoverBuilder() {
+    NoteList({
+      onClose: () => {
+        this.showNoteList = false
+      }
+    })
   }
 }

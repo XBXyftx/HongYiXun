@@ -14,7 +14,7 @@
  */
 import { AppStorageV2, promptAction } from '@kit.ArkUI'
 import { DEVICE_TYPES, APP_STORAGE_KEYS, NewsArticle, UserConfigViewModel, logger, LOG_TAG } from 'common'
-import { NewsArticleView, favoriteManager, likeManager, colorModManager } from 'feature'
+import { NewsArticleView, favoriteManager, likeManager, colorModManager, NoteEditor } from 'feature'
 import { deviceInfo, pasteboard } from '@kit.BasicServicesKit'
 import { CircleNavigation, CircleType } from '@abner/circle_navigation'
 
@@ -42,6 +42,7 @@ export struct ArticlePage {
   @Local isFavorite: boolean = false
   @Local isLiked: boolean = false
   @Local menuExpanded: boolean = false
+  @Local showNoteEditor: boolean = false
 
   /**
    * 检查收藏状态
@@ -141,6 +142,11 @@ export struct ArticlePage {
   getMenuItems(): MenuItemInfo[] {
     return [
       {
+        icon: $rawfile('note_icon.svg'),
+        label: '笔记',
+        isActive: false
+      },
+      {
         icon: $rawfile('color_mode.svg'),
         label: '深浅色',
         isActive: false
@@ -173,24 +179,34 @@ export struct ArticlePage {
    */
   handleMenuClick(position: number): void {
     switch (position) {
-      case 0: // 深浅色切换
+      case 0: // 笔记
+        this.openNoteEditor()
+        break
+      case 1: // 深浅色切换
         this.toggleColorMode()
         break
-      case 1: // 字号调整
+      case 2: // 字号调整
         this.showFontSizeSheet()
         break
-      case 2: // 点赞
+      case 3: // 点赞
         this.toggleLike()
         break
-      case 3: // 收藏
+      case 4: // 收藏
         this.toggleFavorite()
         break
-      case 4: // 分享
+      case 5: // 分享
         this.shareArticle()
         break
     }
     // 点击后收起菜单
     this.menuExpanded = false
+  }
+
+  /**
+   * 打开笔记编辑器
+   */
+  openNoteEditor(): void {
+    this.showNoteEditor = true
   }
 
   /**
@@ -319,14 +335,30 @@ export struct ArticlePage {
    * 获取菜单项颜色
    */
   getMenuItemColor(position: number): ResourceColor {
-    const items = this.getMenuItems()
-    if (position === 2 && this.isLiked) {
+    if (position === 0) {
+      return '#FF9500' // 笔记橙色
+    }
+    if (position === 3 && this.isLiked) {
       return '#FFD700' // 点赞激活色
     }
-    if (position === 3 && this.isFavorite) {
+    if (position === 4 && this.isFavorite) {
       return '#FF0000' // 收藏激活色
     }
     return $r('app.color.color_change_button_font')
+  }
+
+  @Builder
+  NoteEditorCoverBuilder() {
+    NoteEditor({
+      note: null,
+      initialArticle: this.article,
+      onClose: () => {
+        this.showNoteEditor = false
+      },
+      onSaved: () => {
+        promptAction.openToast({ message: '笔记已保存', duration: 1500 })
+      }
+    })
   }
 
   build() {
@@ -337,7 +369,7 @@ export struct ArticlePage {
         // 圆形导航菜单 - 右下角
         CircleNavigation({
           clickStatus: this.menuExpanded,
-          quantity: 5,
+          quantity: 6,
           radius: this.deviceType === DEVICE_TYPES.PHONE ? 100 : 120,
           circleType: CircleType.LEFT_HALF,
           circleOffset: 0.15,
@@ -366,5 +398,12 @@ export struct ArticlePage {
     })
     .width('100%')
     .height('100%')
+    .bindContentCover(
+      $$this.showNoteEditor,
+      this.NoteEditorCoverBuilder(),
+      {
+        modalTransition: ModalTransition.DEFAULT
+      }
+    )
   }
 }

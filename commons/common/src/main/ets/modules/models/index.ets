@@ -39,3 +39,6 @@ export * from './InitStatus'
 
 // 管理器相关模型
 export * from './NewsManagerModels'
+
+// 笔记相关模型
+export * from './NoteItem'

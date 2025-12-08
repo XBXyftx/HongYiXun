@@ -53,7 +53,9 @@ export enum NAV_DESTS {
   /** 日期历史记录页 - 显示指定日期的浏览历史 */
   DATE_HISTORY = 'DateHistory',
   /** 搜索页 - 本地新闻搜索 */
-  SEARCH = 'Search'
+  SEARCH = 'Search',
+  /** 笔记列表页 - 显示用户的笔记列表 */
+  NOTE_LIST = 'NoteList'
 }
 
 // ==================== 数据库相关枚举 ====================
@@ -94,7 +96,9 @@ export enum KV_DB_KEYS {
   /** 每日阅读统计 - 存储用户每天阅读的新闻数量统计 */
   DAILY_READING_STATS = 'DailyReadingStats',
   /** 搜索历史记录 - 存储用户的搜索关键词历史 */
-  SEARCH_HISTORY = 'SearchHistory'
+  SEARCH_HISTORY = 'SearchHistory',
+  /** 笔记列表 - 存储用户的笔记数据 */
+  NOTE_LIST = 'NoteList'
 }
 
 /**
@@ -312,7 +316,17 @@ export enum APP_STORAGE_KEYS {
    * 
    * @type LikeUpdateTrigger
    */
-  LIKE_UPDATE_TRIGGER = 'likeUpdateTrigger'
+  LIKE_UPDATE_TRIGGER = 'likeUpdateTrigger',
+  
+  /**
+   * 笔记更新触发器
+   * 
+   * 用于通知笔记页面刷新数据
+   * 每次笔记变化时递增该值
+   * 
+   * @type NoteUpdateTrigger
+   */
+  NOTE_UPDATE_TRIGGER = 'noteUpdateTrigger'
 }
 
 // ==================== 日志相关枚举 ====================

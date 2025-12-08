@@ -20,4 +20,5 @@ export * from './HistoryManager'
 export * from './FavoriteManager'
 export * from './LikeManager'
 export * from './SearchManager'
+export * from './NoteManager'
 

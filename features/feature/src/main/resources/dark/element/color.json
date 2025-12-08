@@ -119,6 +119,10 @@
     {
       "name": "brand",
       "value": "#FF00FFFF"
+    },
+    {
+      "name": "page_background",
+      "value": "#FF121212"
     }
   ]
 }
