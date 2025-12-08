@@ -16,6 +16,7 @@ import { deviceInfo } from "@kit.BasicServicesKit"
 import { noteManager } from '../../managers/NoteManager'
 import { promptAction, AppStorageV2 } from "@kit.ArkUI"
 import { picker } from '@kit.CoreFileKit'
+import { ArticleSelector } from './ArticleSelector'
 
 /**
  * 笔记编辑器组件
@@ -44,6 +45,7 @@ export struct NoteEditor {
   @Local currentText: string = ''
   @Local isSaving: boolean = false
   @Local isInitialized: boolean = false
+  @Local showArticleSelector: boolean = false
 
   async aboutToAppear(): Promise<void> {
     await noteManager.init()
@@ -237,13 +239,35 @@ export struct NoteEditor {
 
 
   /**
-   * 添加关联文章（提示用户功能）
+   * 打开文章选择器
    */
-  addLinkedArticle(): void {
-    promptAction.openToast({
-      message: '请从文章详情页点击笔记按钮来关联文章',
-      duration: 2000
-    })
+  openArticleSelector(): void {
+    this.showArticleSelector = true
+  }
+
+  /**
+   * 添加关联文章
+   */
+  addLinkedArticle(article: LinkedArticleInfo): void {
+    // 检查是否已存在
+    if (this.linkedArticles.some(a => a.id === article.id)) {
+      promptAction.openToast({ message: '该文章已关联', duration: 1500 })
+      return
+    }
+    // 检查数量限制
+    if (this.linkedArticles.length >= 5) {
+      promptAction.openToast({ message: '最多关联5篇文章', duration: 1500 })
+      return
+    }
+    this.linkedArticles.push(article)
+    promptAction.openToast({ message: '已添加关联文章', duration: 1000 })
+  }
+
+  /**
+   * 获取已关联文章的ID列表
+   */
+  getLinkedArticleIds(): string[] {
+    return this.linkedArticles.map(a => a.id)
   }
 
   @Builder
@@ -279,7 +303,7 @@ export struct NoteEditor {
           .borderRadius(16)
           .borderWidth(1)
           .borderColor($r('app.color.brand'))
-          .onClick(() => this.addLinkedArticle())
+          .onClick(() => this.openArticleSelector())
         }
       }
       .width('100%')
@@ -469,5 +493,28 @@ export struct NoteEditor {
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
+    .bindContentCover(
+      this.showArticleSelector,
+      this.ArticleSelectorCoverBuilder(),
+      {
+        modalTransition: ModalTransition.DEFAULT,
+        onDisappear: () => {
+          this.showArticleSelector = false
+        }
+      }
+    )
+  }
+
+  @Builder
+  ArticleSelectorCoverBuilder() {
+    ArticleSelector({
+      linkedArticleIds: this.getLinkedArticleIds(),
+      onClose: () => {
+        this.showArticleSelector = false
+      },
+      onSelect: (article: LinkedArticleInfo) => {
+        this.addLinkedArticle(article)
+      }
+    })
   }
 }

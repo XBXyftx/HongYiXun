@@ -244,6 +244,7 @@ export struct NoteList {
         this.loadNotes()
       }
     })
+      .expandSafeArea()
   }
 
   build() {
@@ -282,6 +283,7 @@ export struct NoteList {
         })
       }
     }
+    .padding({top:48})
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
