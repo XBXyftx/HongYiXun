@@ -18,6 +18,89 @@ import {
 import { deviceInfo } from "@kit.BasicServicesKit"
 import { LvMarkdownIn } from '@luvi/lv-markdown-in'
 import { historyManager } from '../../managers/HistoryManager'
+import { common, Want } from '@kit.AbilityKit'
+
+/**
+ * 文本片段类型
+ */
+interface TextSegment {
+  type: 'text' | 'link'
+  content: string
+  url?: string
+}
+
+/**
+ * 解析文本中的链接
+ * 将文本拆分为普通文本和链接片段
+ */
+function parseTextWithLinks(text: string): TextSegment[] {
+  const segments: TextSegment[] = []
+  // URL 正则表达式，匹配 http/https 链接
+  const urlRegex = /(https?:\/\/[^\s<>"{}|\\^`\[\]]+)/g
+
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+
+  while ((match = urlRegex.exec(text)) !== null) {
+    // 添加链接前的普通文本
+    if (match.index > lastIndex) {
+      segments.push({
+        type: 'text',
+        content: text.substring(lastIndex, match.index)
+      })
+    }
+
+    // 添加链接
+    segments.push({
+      type: 'link',
+      content: match[1],
+      url: match[1]
+    })
+
+    lastIndex = match.index + match[0].length
+  }
+
+  // 添加最后的普通文本
+  if (lastIndex < text.length) {
+    segments.push({
+      type: 'text',
+      content: text.substring(lastIndex)
+    })
+  }
+
+  // 如果没有找到链接，返回原始文本
+  if (segments.length === 0) {
+    segments.push({
+      type: 'text',
+      content: text
+    })
+  }
+
+  return segments
+}
+
+/**
+ * 检查文本是否包含链接
+ */
+function containsLink(text: string): boolean {
+  const urlRegex = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/
+  return urlRegex.test(text)
+}
+
+/**
+ * 打开外部链接
+ */
+function openExternalLink(url: string, context: common.UIAbilityContext): void {
+  try {
+    const want: Want = {
+      action: 'ohos.want.action.viewData',
+      uri: url
+    }
+    context.startAbility(want)
+  } catch (error) {
+    logger.error(`${LOG_TAG.NEWS_LIST}打开链接失败: ${JSON.stringify(error)}`)
+  }
+}
 
 /**
  * 代码块预处理工具
@@ -372,8 +455,16 @@ export struct NewsArticleView {
   @Local deviceType: DEVICE_TYPES =
     deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
   @Local processedContent: NewsContentBlock[] = []
+  private context: common.UIAbilityContext | undefined = undefined
 
   async aboutToAppear(): Promise<void> {
+    // 获取上下文
+    try {
+      this.context = getContext(this) as common.UIAbilityContext
+    } catch (e) {
+      logger.error(`${LOG_TAG.NEWS_LIST}获取上下文失败`)
+    }
+
     // 合并连续的代码块
     this.processedContent = mergeConsecutiveCodeBlocks(this.article.content)
 
@@ -385,6 +476,41 @@ export struct NewsArticleView {
       }
     } catch (error) {
       logger.error(`${LOG_TAG.NEWS_LIST}添加浏览历史失败: ${JSON.stringify(error)}`)
+    }
+  }
+
+  /**
+   * 渲染包含链接的文本
+   */
+  @Builder
+  TextWithLinksBuilder(text: string) {
+    if (containsLink(text)) {
+      // 包含链接，需要拆分渲染
+      Text() {
+        ForEach(parseTextWithLinks(`        ${text}`), (segment: TextSegment, idx: number) => {
+          if (segment.type === 'link') {
+            Span(segment.content)
+              .fontColor($r('app.color.brand'))
+              .decoration({ type: TextDecorationType.Underline, color: $r('app.color.brand') })
+              .onClick(() => {
+                if (this.context && segment.url) {
+                  openExternalLink(segment.url, this.context)
+                }
+              })
+          } else {
+            Span(segment.content)
+          }
+        }, (segment: TextSegment, idx: number) => `${segment.type}_${idx}_${segment.content.substring(0, 10)}`)
+      }
+      .fontSize(this.baseFontSize + (this.deviceType === DEVICE_TYPES.PHONE ? 0 : 6))
+      .width('90%')
+      .alignSelf(ItemAlign.Center)
+    } else {
+      // 不包含链接，直接渲染
+      Text(`        ${text}`)
+        .fontSize(this.baseFontSize + (this.deviceType === DEVICE_TYPES.PHONE ? 0 : 6))
+        .width('90%')
+        .alignSelf(ItemAlign.Center)
     }
   }
 
@@ -412,10 +538,7 @@ export struct NewsArticleView {
 
         ForEach(this.processedContent, (item: NewsContentBlock, index: number) => {
           if (item.type === CONTENT_TYPE_ENUM.TEXT) {
-            Text(`        ${item.value}`)
-              .fontSize(this.baseFontSize+ (this.deviceType === DEVICE_TYPES.PHONE ? 0 : 6))
-              .width('90%')
-              .alignSelf(ItemAlign.Center)
+            this.TextWithLinksBuilder(item.value)
           } else if (item.type === CONTENT_TYPE_ENUM.IMAGE) {
             Image(item.value)
               .width('90%')
