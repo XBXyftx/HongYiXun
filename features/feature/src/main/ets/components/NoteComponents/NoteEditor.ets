@@ -315,8 +315,7 @@ export struct NoteEditor {
     }
     .width('100%')
     .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-    .margin({ top: 48 })
-    .backgroundColor($r('app.color.card_bg'))
+    // .backgroundColor($r('app.color.card_bg'))
   }
 
 
@@ -595,12 +594,11 @@ export struct NoteEditor {
           .placeholderColor($r('app.color.text_secondary'))
           .backgroundColor(Color.Transparent)
           .padding({ left: 0, right: 0, top: 8, bottom: 8 })
-          .layoutWeight(1)
+          .constraintSize({ minHeight: 200 })
           .onChange((value: string) => { this.currentText = value })
       }
     }
     .width('100%')
-    .layoutWeight(1)
     .padding(16)
     .backgroundColor($r('app.color.card_bg'))
     .borderRadius(12)

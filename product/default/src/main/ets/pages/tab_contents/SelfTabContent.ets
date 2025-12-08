@@ -182,68 +182,64 @@ export struct SelfTabContent {
         bottom: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20
       })
 
-      // 我的笔记入口 - 横条卡片
-      Row() {
-        Stack() {
-          Circle()
-            .width(this.deviceType === DEVICE_TYPES.PHONE ? 48 : 56)
-            .height(this.deviceType === DEVICE_TYPES.PHONE ? 48 : 56)
-            .fill('#FF9500')
-
-          Image($rawfile('note_icon.svg'))
-            .width(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 28)
-            .height(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 28)
-            .fillColor(Color.White)
-        }
-
-        Column() {
-          Text('我的笔记')
-            .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 22)
-            .fontWeight(600)
-            .fontColor($r('app.color.text_primary'))
-
-          Text(this.noteCount > 0 ? `${this.noteCount}篇笔记` : '记录阅读心得')
-            .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 13 : 16)
-            .fontColor($r('app.color.text_secondary'))
-            .margin({ top: 4 })
-        }
-        .alignItems(HorizontalAlign.Start)
-        .margin({ left: this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18 })
-        .layoutWeight(1)
-
-        Image($rawfile('arrow_right.svg'))
-          .width(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
-          .height(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
-          .fillColor($r('app.color.text_secondary'))
-      }
-      .width('100%')
-      .padding(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20)
-      .margin({
-        left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
-        right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
-        bottom: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16
-      })
-      .backgroundColor($r('app.color.news_list_item_bg'))
-      .borderRadius(16)
-      .onClick(() => {
-        this.navPathStuck.pushPath({ name: NAV_DESTS.NOTE_LIST })
-      })
-
-      // 两列网格布局
+      // 使用 GridRow/GridCol 统一布局
       Scroll() {
-        Column() {
-          GridRow({
-            columns: 2,
-            gutter: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16
-          }) {
-            ForEach(this.getMenuItems(), (item: MenuCardItem) => {
-              GridCol() {
-                this.MenuCardBuilder(item)
+        GridRow({
+          columns: 12,
+          gutter: this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16
+        }) {
+          // 我的笔记 - 占满整行 (12列)
+          GridCol({ span: 12 }) {
+            Row() {
+              Stack() {
+                Circle()
+                  .width(this.deviceType === DEVICE_TYPES.PHONE ? 48 : 56)
+                  .height(this.deviceType === DEVICE_TYPES.PHONE ? 48 : 56)
+                  .fill('#FF9500')
+
+                Image($rawfile('note_icon.svg'))
+                  .width(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 28)
+                  .height(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 28)
+                  .fillColor(Color.White)
               }
+
+              Column() {
+                Text('我的笔记')
+                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 18 : 22)
+                  .fontWeight(600)
+                  .fontColor($r('app.color.text_primary'))
+
+                Text(this.noteCount > 0 ? `${this.noteCount}篇笔记` : '记录阅读心得')
+                  .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 13 : 16)
+                  .fontColor($r('app.color.text_secondary'))
+                  .margin({ top: 4 })
+              }
+              .alignItems(HorizontalAlign.Start)
+              .margin({ left: this.deviceType === DEVICE_TYPES.PHONE ? 14 : 18 })
+              .layoutWeight(1)
+
+              Image($rawfile('arrow_right.svg'))
+                .width(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
+                .height(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
+                .fillColor($r('app.color.text_secondary'))
+            }
+            .width('100%')
+            .padding(this.deviceType === DEVICE_TYPES.PHONE ? 16 : 20)
+            .backgroundColor($r('app.color.news_list_item_bg'))
+            .borderRadius(16)
+            .onClick(() => {
+              this.navPathStuck.pushPath({ name: NAV_DESTS.NOTE_LIST })
             })
           }
-          .width('100%')
+
+          // 其他四个菜单项 - 各占一半 (6列)
+          ForEach(this.getMenuItems(), (item: MenuCardItem) => {
+            GridCol({ span: 6 }) {
+              this.MenuCardBuilder(item)
+            }
+          })
         }
+        .width('100%')
         .padding({
           left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
           right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
