@@ -20,6 +20,74 @@ import { LvMarkdownIn } from '@luvi/lv-markdown-in'
 import { historyManager } from '../../managers/HistoryManager'
 
 /**
+ * 代码块预处理工具
+ * 将原始代码转换为规范的 Markdown 代码块格式
+ */
+function preprocessCodeBlock(code: string): string {
+  // 去除首尾空白
+  let cleanCode = code.trim()
+  
+  // 如果已经是 Markdown 代码块格式，直接返回
+  if (cleanCode.startsWith('```') && cleanCode.endsWith('```')) {
+    return cleanCode
+  }
+  
+  // 尝试检测代码语言
+  const language = detectCodeLanguage(cleanCode)
+  
+  // 包装成 Markdown 代码块
+  return '```' + language + '\n' + cleanCode + '\n```'
+}
+
+/**
+ * 检测代码语言
+ */
+function detectCodeLanguage(code: string): string {
+  // C/C++ 特征
+  if (code.includes('#include') || code.includes('std::') || code.includes('::') ||
+      code.includes('void ') || code.includes('int32_t') || code.includes('nullptr')) {
+    return 'cpp'
+  }
+  // Java 特征
+  if (code.includes('public class') || code.includes('private void') ||
+      code.includes('System.out') || code.includes('import java.')) {
+    return 'java'
+  }
+  // JavaScript/TypeScript 特征
+  if (code.includes('function ') || code.includes('const ') || code.includes('let ') ||
+      code.includes('=>') || code.includes('console.log')) {
+    if (code.includes(': string') || code.includes(': number') || code.includes('interface ')) {
+      return 'typescript'
+    }
+    return 'javascript'
+  }
+  // Python 特征
+  if (code.includes('def ') || code.includes('import ') || code.includes('print(') ||
+      code.includes('self.') || code.includes('__init__')) {
+    return 'python'
+  }
+  // JSON 特征
+  if ((code.startsWith('{') && code.endsWith('}')) || (code.startsWith('[') && code.endsWith(']'))) {
+    try {
+      JSON.parse(code)
+      return 'json'
+    } catch (e) {
+      // 不是有效 JSON
+    }
+  }
+  // XML/HTML 特征
+  if (code.includes('</') && code.includes('>')) {
+    return 'xml'
+  }
+  // Shell 特征
+  if (code.startsWith('#!/') || code.includes('echo ') || code.includes('$ ')) {
+    return 'bash'
+  }
+  // 默认不指定语言
+  return ''
+}
+
+/**
  * 文章内容渲染组件
  * @param article 带渲染文章内容
  * @param baseFontSize 基准字体大小
@@ -90,7 +158,7 @@ export struct NewsArticleView {
               .alignSelf(ItemAlign.Center)
           } else if (item.type === CONTENT_TYPE_ENUM.CODE) {
             LvMarkdownIn({
-              text: `        ${item.value}`
+              text: preprocessCodeBlock(item.value)
             })
               .width('90%')
               .alignSelf(ItemAlign.Center)
