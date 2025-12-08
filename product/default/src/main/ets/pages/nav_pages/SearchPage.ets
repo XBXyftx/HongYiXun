@@ -147,7 +147,6 @@ export struct SearchPage {
     .padding({
       left: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
       right: this.deviceType === DEVICE_TYPES.PHONE ? 16 : 24,
-      top: 48,
       bottom: 12
     })
   }
@@ -344,6 +343,7 @@ export struct SearchPage {
       .height('100%')
       .backgroundColor($r('app.color.page_background'))
     }
+    .expandSafeArea()
     .hideTitleBar(true)
     .hideBackButton(true)
   }

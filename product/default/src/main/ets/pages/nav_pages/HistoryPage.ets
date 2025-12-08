@@ -313,6 +313,7 @@ export struct HistoryPage {
       }
       .width('100%')
       .height('100%')
+      .backgroundColor($r('app.color.page_background'))
       .bindContentCover(this.showClearDialog, this.ClearDialogBuilder(), {
         modalTransition: ModalTransition.DEFAULT
       })
