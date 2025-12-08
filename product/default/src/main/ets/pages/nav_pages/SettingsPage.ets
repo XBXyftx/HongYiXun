@@ -25,11 +25,6 @@ export struct SettingsPage {
   @Local navPathStuck: NavPathStack = AppStorageV2.connect(NavPathStack, APP_STORAGE_KEYS.NAV_PATH_STUCK, () => new NavPathStack())!
   @Local userConfig: UserConfigViewModel = AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!
   @Local showClearDialog: boolean = false
-  @Local noteEditorSheetTypeText: string = '底部弹窗'
-
-  aboutToAppear(): void {
-    this.noteEditorSheetTypeText = this.getNoteEditorSheetTypeText()
-  }
 
   /**
    * 获取颜色模式显示文本
@@ -65,31 +60,6 @@ export struct SettingsPage {
       default:
         return '底部弹窗'
     }
-  }
-
-  /**
-   * 显示笔记编辑器样式选择对话框
-   */
-  showNoteEditorSheetTypeDialog(): void {
-    const options: string[] = ['底部弹窗', '居中弹窗', '跟手弹窗', '侧边弹窗', '全屏弹窗']
-    promptAction.showActionMenu({
-      title: '选择笔记编辑页样式',
-      buttons: [
-        { text: options[0], color: this.userConfig.noteEditorSheetType === 0 ? $r('app.color.brand') : $r('app.color.text_primary') },
-        { text: options[1], color: this.userConfig.noteEditorSheetType === 1 ? $r('app.color.brand') : $r('app.color.text_primary') },
-        { text: options[2], color: this.userConfig.noteEditorSheetType === 2 ? $r('app.color.brand') : $r('app.color.text_primary') },
-        { text: options[3], color: this.userConfig.noteEditorSheetType === 3 ? $r('app.color.brand') : $r('app.color.text_primary') },
-        { text: options[4], color: this.userConfig.noteEditorSheetType === 4 ? $r('app.color.brand') : $r('app.color.text_primary') }
-      ]
-    }).then((result) => {
-      if (result.index >= 0 && result.index <= 4) {
-        this.userConfig.noteEditorSheetType = result.index
-        this.noteEditorSheetTypeText = this.getNoteEditorSheetTypeText()
-        promptAction.openToast({ message: `已切换为${this.noteEditorSheetTypeText}`, duration: 1500 })
-      }
-    }).catch(() => {
-      // 用户取消选择
-    })
   }
 
   /**
@@ -219,9 +189,9 @@ export struct SettingsPage {
             this.SettingItemBuilder(
               $rawfile('note_icon.svg'),
               '笔记编辑页样式',
-              this.noteEditorSheetTypeText,
+              this.getNoteEditorSheetTypeText(),
               () => {
-                this.showNoteEditorSheetTypeDialog()
+                this.navPathStuck.pushPath({ name: NAV_DESTS.NOTE_EDITOR_STYLE_SETTINGS })
               }
             )
 

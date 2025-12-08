@@ -55,7 +55,9 @@ export enum NAV_DESTS {
   /** 搜索页 - 本地新闻搜索 */
   SEARCH = 'Search',
   /** 笔记列表页 - 显示用户的笔记列表 */
-  NOTE_LIST = 'NoteList'
+  NOTE_LIST = 'NoteList',
+  /** 笔记编辑页样式设置 - 配置笔记编辑器的显示方式 */
+  NOTE_EDITOR_STYLE_SETTINGS = 'NoteEditorStyleSettings'
 }
 
 // ==================== 数据库相关枚举 ====================

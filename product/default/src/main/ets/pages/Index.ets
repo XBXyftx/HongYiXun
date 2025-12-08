@@ -38,6 +38,7 @@ import { HeatmapSettingsPage } from './nav_pages/HeatmapSettingsPage'
 import { DateHistoryPage } from './nav_pages/DateHistoryPage'
 import { SearchPage } from './nav_pages/SearchPage'
 import { NotesPage } from './nav_pages/NotesPage'
+import { NoteEditorStyleSettingsPage } from './nav_pages/NoteEditorStyleSettingsPage'
 
 
 @Builder
@@ -154,6 +155,8 @@ struct Main {
       SearchPage()
     } else if (name === NAV_DESTS.NOTE_LIST) {
       NotesPage()
+    } else if (name === NAV_DESTS.NOTE_EDITOR_STYLE_SETTINGS) {
+      NoteEditorStyleSettingsPage()
     }
   }
 
