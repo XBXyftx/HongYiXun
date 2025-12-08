@@ -237,6 +237,30 @@ export class UserConfigViewModel {
    * @default 'green'
    */
   @Trace heatmapColorScheme: string = HeatmapColorScheme.GREEN
+
+  // ==================== 笔记编辑器配置 ====================
+
+  /**
+   * 笔记编辑页半模态显示方式
+   * 
+   * 控制笔记编辑器弹出时的显示样式
+   * 
+   * @remarks
+   * 取值范围（对应 SheetType 枚举）：
+   * - 0: BOTTOM - 底部弹窗（默认）
+   * - 1: CENTER - 居中弹窗
+   * - 2: POPUP - 跟手弹窗
+   * - 3: SIDE - 侧边弹窗（API 20+）
+   * - 4: CONTENT_COVER - 全屏弹窗（API 20+）
+   * 
+   * 注意：不同窗口宽度支持的类型不同
+   * - 宽度 < 600vp: 底部、全屏
+   * - 600vp <= 宽度 < 840vp: 底部、居中、跟手、侧边、全屏
+   * - 宽度 >= 840vp: 底部、居中、跟手、侧边、全屏
+   * 
+   * @default 0 (BOTTOM)
+   */
+  @Trace noteEditorSheetType: number = 0
 }
 
 /**

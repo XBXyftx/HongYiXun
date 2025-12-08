@@ -43,6 +43,50 @@ export struct SettingsPage {
   }
 
   /**
+   * 获取笔记编辑器显示方式文本
+   */
+  getNoteEditorSheetTypeText(): string {
+    switch (this.userConfig.noteEditorSheetType) {
+      case 0:
+        return '底部弹窗'
+      case 1:
+        return '居中弹窗'
+      case 2:
+        return '跟手弹窗'
+      case 3:
+        return '侧边弹窗'
+      case 4:
+        return '全屏弹窗'
+      default:
+        return '底部弹窗'
+    }
+  }
+
+  /**
+   * 显示笔记编辑器样式选择对话框
+   */
+  showNoteEditorSheetTypeDialog(): void {
+    const options: string[] = ['底部弹窗', '居中弹窗', '跟手弹窗', '侧边弹窗', '全屏弹窗']
+    promptAction.showActionMenu({
+      title: '选择笔记编辑页样式',
+      buttons: [
+        { text: options[0], color: this.userConfig.noteEditorSheetType === 0 ? $r('app.color.brand') : $r('app.color.text_primary') },
+        { text: options[1], color: this.userConfig.noteEditorSheetType === 1 ? $r('app.color.brand') : $r('app.color.text_primary') },
+        { text: options[2], color: this.userConfig.noteEditorSheetType === 2 ? $r('app.color.brand') : $r('app.color.text_primary') },
+        { text: options[3], color: this.userConfig.noteEditorSheetType === 3 ? $r('app.color.brand') : $r('app.color.text_primary') },
+        { text: options[4], color: this.userConfig.noteEditorSheetType === 4 ? $r('app.color.brand') : $r('app.color.text_primary') }
+      ]
+    }).then((result) => {
+      if (result.index >= 0 && result.index <= 4) {
+        this.userConfig.noteEditorSheetType = result.index
+        promptAction.openToast({ message: `已切换为${options[result.index]}`, duration: 1500 })
+      }
+    }).catch(() => {
+      // 用户取消选择
+    })
+  }
+
+  /**
    * 清理所有数据
    */
   async clearAllData(): Promise<void> {
@@ -162,6 +206,16 @@ export struct SettingsPage {
               this.getColorModeText(),
               () => {
                 this.navPathStuck.replacePath({ name: NAV_DESTS.COLOR_MODE_SETTINGS })
+              }
+            )
+
+            // 笔记编辑器显示方式
+            this.SettingItemBuilder(
+              $rawfile('note_icon.svg'),
+              '笔记编辑页样式',
+              this.getNoteEditorSheetTypeText(),
+              () => {
+                this.showNoteEditorSheetTypeDialog()
               }
             )
 

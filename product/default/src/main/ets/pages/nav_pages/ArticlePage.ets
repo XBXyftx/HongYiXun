@@ -403,11 +403,11 @@ export struct ArticlePage {
       this.NoteEditorSheetBuilder(),
       {
         height: '100%',
-        width: this.deviceType === DEVICE_TYPES.PHONE ?'95%':'50%',
+        width: this.deviceType === DEVICE_TYPES.PHONE ? '95%' : '50%',
         dragBar: false,
         showClose: false,
         backgroundColor: $r('app.color.page_background'),
-        preferType:SheetType.CONTENT_COVER
+        preferType: this.userConfig.noteEditorSheetType as SheetType
       }
     )
   }

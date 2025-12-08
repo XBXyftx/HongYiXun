@@ -7,7 +7,8 @@ import {
   NoteItem,
   NoteContentType,
   APP_STORAGE_KEYS,
-  NoteUpdateTrigger
+  NoteUpdateTrigger,
+  UserConfigViewModel
 } from "common"
 import { deviceInfo } from "@kit.BasicServicesKit"
 import { noteManager } from '../../managers/NoteManager'
@@ -22,6 +23,8 @@ export struct NoteList {
     deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
   @Local noteUpdateTrigger: NoteUpdateTrigger =
     AppStorageV2.connect(NoteUpdateTrigger, APP_STORAGE_KEYS.NOTE_UPDATE_TRIGGER, () => new NoteUpdateTrigger())!
+  @Local userConfig: UserConfigViewModel =
+    AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!
   @Local notes: NoteItem[] = []
   @Local isLoading: boolean = true
   @Local showEditor: boolean = false
@@ -260,11 +263,11 @@ export struct NoteList {
       this.EditorSheetBuilder(),
       {
         height: '100%',
-        width: this.deviceType === DEVICE_TYPES.PHONE ?'95%':'50%',
+        width: this.deviceType === DEVICE_TYPES.PHONE ? '95%' : '50%',
         dragBar: false,
         showClose: false,
         backgroundColor: $r('app.color.page_background'),
-        preferType:SheetType.CONTENT_COVER
+        preferType: this.userConfig.noteEditorSheetType as SheetType
       }
     )
   }
