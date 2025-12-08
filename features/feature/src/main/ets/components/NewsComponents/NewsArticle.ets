@@ -88,6 +88,49 @@ function detectCodeLanguage(code: string): string {
 }
 
 /**
+ * 合并连续的代码块
+ * 将多个连续的 CODE 类型内容块合并为一个
+ */
+function mergeConsecutiveCodeBlocks(content: NewsContentBlock[]): NewsContentBlock[] {
+  if (!content || content.length === 0) {
+    return []
+  }
+
+  const result: NewsContentBlock[] = []
+  let currentCodeLines: string[] = []
+
+  for (let i = 0; i < content.length; i++) {
+    const item = content[i]
+
+    if (item.type === CONTENT_TYPE_ENUM.CODE) {
+      // 收集代码行
+      currentCodeLines.push(item.value)
+    } else {
+      // 遇到非代码块，先输出之前收集的代码
+      if (currentCodeLines.length > 0) {
+        result.push({
+          type: CONTENT_TYPE_ENUM.CODE,
+          value: currentCodeLines.join('\n')
+        })
+        currentCodeLines = []
+      }
+      // 输出当前非代码内容
+      result.push(item)
+    }
+  }
+
+  // 处理末尾的代码块
+  if (currentCodeLines.length > 0) {
+    result.push({
+      type: CONTENT_TYPE_ENUM.CODE,
+      value: currentCodeLines.join('\n')
+    })
+  }
+
+  return result
+}
+
+/**
  * 文章内容渲染组件
  * @param article 带渲染文章内容
  * @param baseFontSize 基准字体大小
@@ -105,8 +148,12 @@ export struct NewsArticleView {
   @Param baseFontSize: number = 0
   @Local deviceType: DEVICE_TYPES =
     deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
+  @Local processedContent: NewsContentBlock[] = []
 
   async aboutToAppear(): Promise<void> {
+    // 合并连续的代码块
+    this.processedContent = mergeConsecutiveCodeBlocks(this.article.content)
+
     // 添加浏览历史记录
     try {
       const success = await historyManager.addHistory(this.article)
@@ -140,7 +187,7 @@ export struct NewsArticleView {
         // 日期来源行
         this.articleInfoBuilder()
 
-        ForEach(this.article.content, (item: NewsContentBlock, i: number) => {
+        ForEach(this.processedContent, (item: NewsContentBlock, index: number) => {
           if (item.type === CONTENT_TYPE_ENUM.TEXT) {
             Text(`        ${item.value}`)
               .fontSize(this.baseFontSize+ (this.deviceType === DEVICE_TYPES.PHONE ? 0 : 6))
@@ -163,7 +210,7 @@ export struct NewsArticleView {
               .width('90%')
               .alignSelf(ItemAlign.Center)
           }
-        })
+        }, (item: NewsContentBlock, index: number) => `${item.type}_${index}`)
       }
       .padding(5)
       .borderRadius(20)
