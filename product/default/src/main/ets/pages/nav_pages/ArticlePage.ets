@@ -14,8 +14,17 @@
  */
 import { AppStorageV2, promptAction } from '@kit.ArkUI'
 import { DEVICE_TYPES, APP_STORAGE_KEYS, NewsArticle, UserConfigViewModel, logger, LOG_TAG } from 'common'
-import { ColorModChoseButton, FontSizeAdjustButton, NewsArticleView, favoriteManager, likeManager } from 'feature'
+import { NewsArticleView, favoriteManager, likeManager } from 'feature'
 import { deviceInfo, pasteboard } from '@kit.BasicServicesKit'
+import { CircleNavigation, CircleType } from '@abner/circle_navigation'
+
+// 菜单项类型
+interface MenuItemInfo {
+  icon: Resource | string
+  activeIcon?: Resource | string
+  label: string
+  isActive?: boolean
+}
 
 @ComponentV2
 export struct ArticlePage {
@@ -32,6 +41,7 @@ export struct ArticlePage {
     deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
   @Local isFavorite: boolean = false
   @Local isLiked: boolean = false
+  @Local menuExpanded: boolean = false
 
   /**
    * 检查收藏状态
@@ -125,6 +135,114 @@ export struct ArticlePage {
     }
   }
 
+  /**
+   * 获取菜单项配置
+   */
+  getMenuItems(): MenuItemInfo[] {
+    return [
+      {
+        icon: $rawfile('color_mode.svg'),
+        label: '深浅色',
+        isActive: false
+      },
+      {
+        icon: $rawfile('font_size.svg'),
+        label: '字号',
+        isActive: false
+      },
+      {
+        icon: this.isLiked ? $rawfile('like_filled.svg') : $rawfile('like_outline.svg'),
+        label: '点赞',
+        isActive: this.isLiked
+      },
+      {
+        icon: this.isFavorite ? $rawfile('favorite_filled.svg') : $rawfile('favorite_outline.svg'),
+        label: '收藏',
+        isActive: this.isFavorite
+      },
+      {
+        icon: $rawfile('share_icon.svg'),
+        label: '分享',
+        isActive: false
+      }
+    ]
+  }
+
+  /**
+   * 处理菜单项点击
+   */
+  handleMenuClick(position: number): void {
+    switch (position) {
+      case 0: // 深浅色切换
+        // 0=浅色, 1=深色, 2=跟随系统，在浅色和深色之间切换
+        this.userConfig.colorModel = this.userConfig.colorModel === 1 ? 0 : 1
+        break
+      case 1: // 字号调整
+        this.showFontSizeSheet()
+        break
+      case 2: // 点赞
+        this.toggleLike()
+        break
+      case 3: // 收藏
+        this.toggleFavorite()
+        break
+      case 4: // 分享
+        this.shareArticle()
+        break
+    }
+    // 点击后收起菜单
+    this.menuExpanded = false
+  }
+
+  /**
+   * 显示字号调整面板
+   */
+  showFontSizeSheet(): void {
+    this.getUIContext().getPromptAction().openCustomDialog({
+      builder: () => {
+        this.FontSizeDialogBuilder()
+      }
+    })
+  }
+
+  @Builder
+  FontSizeDialogBuilder() {
+    Column({ space: 16 }) {
+      Text('调整字号')
+        .fontSize(18)
+        .fontWeight(FontWeight.Bold)
+        .fontColor($r('app.color.text_primary'))
+
+      Row() {
+        Text('A')
+          .fontSize(14)
+          .fontColor($r('app.color.text_secondary'))
+        Slider({
+          value: this.userConfig.fontSize,
+          min: 14,
+          max: 24,
+          step: 2
+        })
+          .layoutWeight(1)
+          .onChange((value: number) => {
+            this.userConfig.fontSize = value
+          })
+        Text('A')
+          .fontSize(24)
+          .fontColor($r('app.color.text_secondary'))
+      }
+      .width('100%')
+
+      Text(`当前字号: ${this.userConfig.fontSize}`)
+        .fontSize(14)
+        .fontColor($r('app.color.text_secondary'))
+    }
+    .padding(24)
+    .backgroundColor($r('app.color.card_bg'))
+    .borderRadius(16)
+    .width('80%')
+  }
+
   @Builder
   ArticleContentBuilder() {
     Column() {
@@ -138,63 +256,88 @@ export struct ArticlePage {
     .width('100%')
   }
 
+  /**
+   * 圆形导航主按钮
+   */
+  @Builder
+  menuTriggerBuilder() {
+    Stack({ alignContent: Alignment.Center }) {
+      Image(this.menuExpanded ? $rawfile('close.svg') : $rawfile('settings_icon.svg'))
+        .width('50%')
+        .height('50%')
+        .fillColor($r('app.color.color_change_button_font'))
+    }
+    .width(this.deviceType === DEVICE_TYPES.PHONE ? 50 : 60)
+    .height(this.deviceType === DEVICE_TYPES.PHONE ? 50 : 60)
+    .backgroundColor($r('app.color.color_change_button_background'))
+    .borderRadius(99)
+    .shadow({ color: Color.Black, radius: 15, offsetY: 4 })
+    .onClick(() => {
+      this.menuExpanded = !this.menuExpanded
+    })
+  }
+
+  /**
+   * 圆形导航子菜单项
+   */
+  @Builder
+  menuItemBuilder(position: number) {
+    Column() {
+      Stack({ alignContent: Alignment.Center }) {
+        Image(this.getMenuItems()[position].icon)
+          .width('50%')
+          .height('50%')
+          .fillColor(this.getMenuItemColor(position))
+      }
+      .width(this.deviceType === DEVICE_TYPES.PHONE ? 40 : 48)
+      .height(this.deviceType === DEVICE_TYPES.PHONE ? 40 : 48)
+      .backgroundColor($r('app.color.color_change_button_background'))
+      .borderRadius(99)
+      .shadow({ color: Color.Black, radius: 8, offsetY: 2 })
+      .onClick(() => {
+        this.handleMenuClick(position)
+      })
+    }
+  }
+
+  /**
+   * 获取菜单项颜色
+   */
+  getMenuItemColor(position: number): ResourceColor {
+    const items = this.getMenuItems()
+    if (position === 2 && this.isLiked) {
+      return '#FFD700' // 点赞激活色
+    }
+    if (position === 3 && this.isFavorite) {
+      return '#FF0000' // 收藏激活色
+    }
+    return $r('app.color.color_change_button_font')
+  }
+
   build() {
     NavDestination() {
       Stack() {
         this.ArticleContentBuilder()
 
-        // 分享按钮 - 右上角
-        Stack({ alignContent: Alignment.Center }) {
-          Image($rawfile('share_icon.svg'))
-            .width('50%')
-            .height('50%')
-            .fillColor($r('app.color.color_change_button_font'))
-        }
-        .width(this.deviceType === DEVICE_TYPES.PHONE ? 35 : 45)
-        .height(this.deviceType === DEVICE_TYPES.PHONE ? 35 : 45)
-        .shadow({ color: Color.Black, radius: 10 })
-        .backgroundColor($r('app.color.color_change_button_background'))
-        .onClick(() => { this.shareArticle() })
-        .borderRadius(99)
-        .position({ right: this.deviceType === DEVICE_TYPES.PHONE ? 20 : 30, top: 60 })
-
-        // 点赞按钮
-        Stack({ alignContent: Alignment.Center }) {
-          Image(this.isLiked ? $rawfile('like_filled.svg') : $rawfile('like_outline.svg'))
-            .width('50%')
-            .height('50%')
-            .fillColor(this.isLiked ? '#FFD700' : $r('app.color.color_change_button_font'))
-        }
-        .width(this.deviceType === DEVICE_TYPES.PHONE ? 35 : 45)
-        .height(this.deviceType === DEVICE_TYPES.PHONE ? 35 : 45)
-        .shadow({ color: Color.Black, radius: 10 })
-        .backgroundColor($r('app.color.color_change_button_background'))
-        .onClick(() => { this.toggleLike() })
-        .borderRadius(99)
-        .position({ right: this.deviceType === DEVICE_TYPES.PHONE ? 20 : 30, bottom: 280 })
-
-        // 收藏按钮
-        Stack({ alignContent: Alignment.Center }) {
-          Image(this.isFavorite ? $rawfile('favorite_filled.svg') : $rawfile('favorite_outline.svg'))
-            .width('50%')
-            .height('50%')
-            .fillColor(this.isFavorite ? '#FFFF0000' : $r('app.color.color_change_button_font'))
-        }
-        .width(this.deviceType === DEVICE_TYPES.PHONE ? 35 : 45)
-        .height(this.deviceType === DEVICE_TYPES.PHONE ? 35 : 45)
-        .shadow({ color: Color.Black, radius: 10 })
-        .backgroundColor($r('app.color.color_change_button_background'))
-        .onClick(() => { this.toggleFavorite() })
-        .borderRadius(99)
-        .position({ right: this.deviceType === DEVICE_TYPES.PHONE ? 20 : 30, bottom: 220 })
-
-        ColorModChoseButton()
-          .position({ right: this.deviceType === DEVICE_TYPES.PHONE ? 20 : 30, bottom: 160 })
-
-        FontSizeAdjustButton()
-          .position({ right: this.deviceType === DEVICE_TYPES.PHONE ? 20 : 30, bottom: 100 })
+        // 圆形导航菜单 - 右下角
+        CircleNavigation({
+          clickStatus: this.menuExpanded,
+          quantity: 5,
+          radius: this.deviceType === DEVICE_TYPES.PHONE ? 80 : 100,
+          circleType: CircleType.TOP_LEFT_QUARTER,
+          duration: 300,
+          parentLayout: () => {
+            this.menuTriggerBuilder()
+          },
+          childLayout: (position: number) => {
+            this.menuItemBuilder(position)
+          }
+        })
+          .position({
+            right: this.deviceType === DEVICE_TYPES.PHONE ? 20 : 30,
+            bottom: this.deviceType === DEVICE_TYPES.PHONE ? 100 : 120
+          })
       }
-
     }
     .hideTitleBar(true)
     .hideBackButton(true)
