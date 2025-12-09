@@ -19,6 +19,7 @@ import { noteManager } from '../../managers/NoteManager'
 import { promptAction, AppStorageV2 } from "@kit.ArkUI"
 import { photoAccessHelper } from '@kit.MediaLibraryKit'
 import { searchManager, SearchResult } from '../../managers/SearchManager'
+import { ImageViewer } from '../ImageViewer/ImageViewer'
 
 /**
  * 可观察的内容块
@@ -101,6 +102,10 @@ export struct NoteEditor {
   @Local isSearching: boolean = false
   @Local hasSearched: boolean = false
   @Local refreshTrigger: number = 0
+
+  // 大图查看器
+  @Local showImageViewer: boolean = false
+  @Local viewingImageUrl: string = ''
 
 
   async aboutToAppear(): Promise<void> {
@@ -536,6 +541,12 @@ export struct NoteEditor {
                   .objectFit(ImageFit.Cover)
                   .borderRadius(8)
                   .alt($rawfile('image_icon.svg'))
+                  .onClick(() => {
+                    if (this.isReadOnly) {
+                      this.viewingImageUrl = block.value
+                      this.showImageViewer = true
+                    }
+                  })
 
                 if (!this.isReadOnly) {
                   Image($rawfile('close.svg'))
@@ -642,25 +653,36 @@ export struct NoteEditor {
   }
 
   build() {
-    Column() {
-      this.HeaderBuilder()
+    Stack() {
+      Column() {
+        this.HeaderBuilder()
 
-      Scroll() {
-        Column() {
-          this.LinkedArticlesBuilder()
-          this.ImagePreviewBuilder()
-          this.EditorBuilder()
+        Scroll() {
+          Column() {
+            this.LinkedArticlesBuilder()
+            this.ImagePreviewBuilder()
+            this.EditorBuilder()
+          }
+          .padding({ left: 16, right: 16, top: 16, bottom: 16 })
         }
-        .padding({ left: 16, right: 16, top: 16, bottom: 16 })
-      }
-      .layoutWeight(1)
-      .scrollBar(BarState.Off)
+        .layoutWeight(1)
+        .scrollBar(BarState.Off)
 
-      this.ToolbarBuilder()
+        this.ToolbarBuilder()
+      }
+      // .expandSafeArea()
+      .width('100%')
+      .height('100%')
+      .backgroundColor($r('app.color.page_background'))
+
+      // 大图查看器
+      ImageViewer({
+        imageUrl: this.viewingImageUrl,
+        visible: this.showImageViewer,
+        onClose: () => { this.showImageViewer = false }
+      })
     }
-    // .expandSafeArea()
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.page_background'))
   }
 }

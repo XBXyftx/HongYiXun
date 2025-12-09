@@ -19,6 +19,7 @@ import { deviceInfo } from "@kit.BasicServicesKit"
 import { LvMarkdownIn } from '@luvi/lv-markdown-in'
 import { historyManager } from '../../managers/HistoryManager'
 import { common, Want } from '@kit.AbilityKit'
+import { ImageViewer } from '../ImageViewer/ImageViewer'
 
 /**
  * 文本片段类型
@@ -455,6 +456,8 @@ export struct NewsArticleView {
   @Local deviceType: DEVICE_TYPES =
     deviceInfo.deviceType === DEVICE_TYPES.PHONE ? DEVICE_TYPES.PHONE : DEVICE_TYPES.TABLET
   @Local processedContent: NewsContentBlock[] = []
+  @Local showImageViewer: boolean = false
+  @Local viewingImageUrl: string = ''
   private context: common.UIAbilityContext | undefined = undefined
 
   async aboutToAppear(): Promise<void> {
@@ -526,8 +529,9 @@ export struct NewsArticleView {
 
   build() {
     // 根组件
-    Scroll() {
-      Column({space:10+(this.baseFontSize*(this.deviceType === DEVICE_TYPES.PHONE ?0.3:0.5))}) {
+    Stack() {
+      Scroll() {
+        Column({space:10+(this.baseFontSize*(this.deviceType === DEVICE_TYPES.PHONE ?0.3:0.5))}) {
         Text(this.article.title)
           .width('95%')
           .fontSize(this.baseFontSize + (this.deviceType === DEVICE_TYPES.PHONE ? 12 : 16))
@@ -543,6 +547,10 @@ export struct NewsArticleView {
             Image(item.value)
               .width('90%')
               .alignSelf(ItemAlign.Center)
+              .onClick(() => {
+                this.viewingImageUrl = item.value
+                this.showImageViewer = true
+              })
           } else if (item.type === CONTENT_TYPE_ENUM.VIDEO) {
             Video({
               src: item.value
@@ -564,10 +572,19 @@ export struct NewsArticleView {
       .backgroundColor($r('app.color.article_info_builder_bg'))
 
     }
-    .scrollBar(BarState.Off)
-    .borderRadius(20)
+      .scrollBar(BarState.Off)
+      .borderRadius(20)
+      .width('100%')
+      .height('100%')
+
+      // 大图查看器
+      ImageViewer({
+        imageUrl: this.viewingImageUrl,
+        visible: this.showImageViewer,
+        onClose: () => { this.showImageViewer = false }
+      })
+    }
     .width('100%')
     .height('100%')
-
   }
 }
