@@ -168,17 +168,28 @@ export struct NoteEditor {
   }
 
   async selectImage(): Promise<void> {
+    // 计算当前已有图片数量
+    const currentImageCount = this.contentBlocks.filter(b => b.type === NoteContentType.IMAGE).length
+    const maxImages = 10
+    const remainingSlots = maxImages - currentImageCount
+
+    if (remainingSlots <= 0) {
+      promptAction.openToast({ message: '最多添加10张图片', duration: 1500 })
+      return
+    }
+
     try {
       const photoPicker = new photoAccessHelper.PhotoViewPicker()
       const result = await photoPicker.select({
         MIMEType: photoAccessHelper.PhotoViewMIMETypes.IMAGE_TYPE,
-        maxSelectNumber: 1
+        maxSelectNumber: remainingSlots
       })
       if (result.photoUris && result.photoUris.length > 0) {
-        const newBlock = new ObservableContentBlock(NoteContentType.IMAGE, result.photoUris[0])
-        this.contentBlocks = [...this.contentBlocks, newBlock]
+        const newBlocks = result.photoUris.map(uri => new ObservableContentBlock(NoteContentType.IMAGE, uri))
+        this.contentBlocks = [...this.contentBlocks, ...newBlocks]
         this.refreshTrigger++
-        promptAction.openToast({ message: '图片已添加', duration: 1000 })
+        const addedCount = result.photoUris.length
+        promptAction.openToast({ message: `已添加${addedCount}张图片`, duration: 1000 })
       }
     } catch (error) {
       promptAction.openToast({ message: '选择图片失败', duration: 1500 })
