@@ -33,9 +33,12 @@ export struct NoteList {
   // 可拖动浮动窗口相关状态
   @Local showDraggableEditor: boolean = false
   @Local dragOffsetX: number = 20
-  @Local dragOffsetY: number = 80
+  @Local dragOffsetY: number = 60
   @Local dragPositionX: number = 20
-  @Local dragPositionY: number = 80
+  @Local dragPositionY: number = 60
+  // 屏幕尺寸（用于边界限制）
+  @Local screenWidth: number = 360
+  @Local screenHeight: number = 780
 
   async aboutToAppear(): Promise<void> {
     await noteManager.init()
@@ -119,9 +122,27 @@ export struct NoteList {
   closeDraggableEditor(): void {
     this.showDraggableEditor = false
     this.dragOffsetX = 20
-    this.dragOffsetY = 80
+    this.dragOffsetY = 60
     this.dragPositionX = 20
-    this.dragPositionY = 80
+    this.dragPositionY = 60
+  }
+
+  /**
+   * 限制拖动位置在屏幕边界内
+   */
+  clampDragPosition(x: number, y: number): void {
+    // 窗口尺寸（百分比转换为估算值）
+    const windowWidth = this.deviceType === DEVICE_TYPES.PHONE ? this.screenWidth * 0.9 : this.screenWidth * 0.5
+    const windowHeight = this.screenHeight * 0.75
+
+    // 边界限制（留出一些边距）
+    const minX = -windowWidth + 60  // 至少保留60px可见
+    const maxX = this.screenWidth - 60
+    const minY = 0  // 不能超出顶部
+    const maxY = this.screenHeight - 100  // 底部留出100px
+
+    this.dragOffsetX = Math.max(minX, Math.min(maxX, x))
+    this.dragOffsetY = Math.max(minY, Math.min(maxY, y))
   }
 
   @Builder
@@ -287,7 +308,7 @@ export struct NoteList {
       })
     }
     .width(this.deviceType === DEVICE_TYPES.PHONE ? '90%' : '50%')
-    .height('70%')
+    .height('75%')
     .backgroundColor($r('app.color.page_background'))
     .borderRadius(16)
     .shadow({
@@ -351,8 +372,9 @@ export struct NoteList {
           PanGesture()
             .onActionUpdate((event: GestureEvent | undefined) => {
               if (event) {
-                this.dragOffsetX = this.dragPositionX + event.offsetX
-                this.dragOffsetY = this.dragPositionY + event.offsetY
+                const newX = this.dragPositionX + event.offsetX
+                const newY = this.dragPositionY + event.offsetY
+                this.clampDragPosition(newX, newY)
               }
             })
             .onActionEnd(() => {
@@ -364,6 +386,10 @@ export struct NoteList {
     }
     .width('100%')
     .height('100%')
+    .onAreaChange((_oldValue: Area, newValue: Area) => {
+      this.screenWidth = newValue.width as number
+      this.screenHeight = newValue.height as number
+    })
     .bindSheet(
       this.showEditor,
       this.EditorSheetBuilder(),
