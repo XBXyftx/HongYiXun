@@ -11,6 +11,10 @@
     {
       "name": "EntryAbility_label",
       "value": "鸿易讯"
+    },
+    {
+      "name": "permission_write_image_reason",
+      "value": "保存图片到相册"
     }
   ]
 }

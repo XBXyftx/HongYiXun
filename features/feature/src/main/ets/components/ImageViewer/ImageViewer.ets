@@ -7,6 +7,7 @@ import { photoAccessHelper } from '@kit.MediaLibraryKit'
 import { fileIo } from '@kit.CoreFileKit'
 import { http } from '@kit.NetworkKit'
 import { BusinessError } from '@kit.BasicServicesKit'
+import { abilityAccessCtrl, common, Permissions } from '@kit.AbilityKit'
 import { logger, LOG_TAG } from 'common'
 
 const TAG = LOG_TAG.IMAGE_VIEWER || '[ImageViewer]'
@@ -44,6 +45,42 @@ export struct ImageViewer {
     this.onClose()
   }
 
+  async checkAndRequestPermission(): Promise<boolean> {
+    const permission: Permissions = 'ohos.permission.WRITE_IMAGEVIDEO'
+    const atManager = abilityAccessCtrl.createAtManager()
+    const context = getContext(this) as common.UIAbilityContext
+
+    try {
+      // 检查权限状态
+      const grantStatus = await atManager.checkAccessToken(
+        context.applicationInfo.accessTokenId,
+        permission
+      )
+
+      if (grantStatus === abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED) {
+        logger.info(`${TAG} 已有相册写入权限`)
+        return true
+      }
+
+      // 请求权限
+      logger.info(`${TAG} 请求相册写入权限`)
+      const result = await atManager.requestPermissionsFromUser(context, [permission])
+
+      if (result.authResults[0] === abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED) {
+        logger.info(`${TAG} 用户授予相册写入权限`)
+        return true
+      } else {
+        logger.warn(`${TAG} 用户拒绝相册写入权限`)
+        promptAction.openToast({ message: '需要相册权限才能保存图片', duration: 2000 })
+        return false
+      }
+    } catch (error) {
+      const err = error as BusinessError
+      logger.error(`${TAG} 检查/请求权限失败: code=${err.code}, message=${err.message}`)
+      return false
+    }
+  }
+
   async saveImage(): Promise<void> {
     if (this.isSaving) {
       logger.warn(`${TAG} 保存操作正在进行中，忽略重复点击`)
@@ -53,6 +90,13 @@ export struct ImageViewer {
     logger.info(`${TAG} 开始保存图片: ${this.imageUrl}`)
 
     try {
+      // 先检查并请求权限
+      const hasPermission = await this.checkAndRequestPermission()
+      if (!hasPermission) {
+        this.isSaving = false
+        return
+      }
+
       // 判断是网络图片还是本地图片
       if (this.imageUrl.startsWith('http://') || this.imageUrl.startsWith('https://')) {
         logger.info(`${TAG} 检测到网络图片，开始下载`)

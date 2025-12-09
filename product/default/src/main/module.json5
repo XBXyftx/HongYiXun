@@ -20,7 +20,15 @@
     "mainElement": "EntryAbility",
     "requestPermissions": [
       {
-        "name": 'ohos.permission.INTERNET'
+        "name": "ohos.permission.INTERNET"
+      },
+      {
+        "name": "ohos.permission.WRITE_IMAGEVIDEO",
+        "reason": "$string:permission_write_image_reason",
+        "usedScene": {
+          "abilities": ["EntryAbility"],
+          "when": "inuse"
+        }
       }
     ],
     "deviceTypes": [
