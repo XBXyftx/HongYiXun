@@ -157,17 +157,37 @@ export struct ImageViewer {
       const desFileUris = await helper.showAssetsCreationDialog([tempFilePath], photoCreationConfigs)
       logger.info(`${TAG} showAssetsCreationDialog 返回: ${JSON.stringify(desFileUris)}`)
 
-      // 3. 删除临时文件
-      fileIo.unlinkSync(tempFilePath)
-      logger.info(`${TAG} 临时文件已删除`)
-
       if (desFileUris.length === 0) {
-        logger.warn(`${TAG} 用户取消保存`)
+        // 用户取消，删除临时文件
+        fileIo.unlinkSync(tempFilePath)
+        logger.warn(`${TAG} 用户取消保存，临时文件已删除`)
         promptAction.openToast({ message: '已取消保存', duration: 1500 })
         return
       }
 
-      logger.info(`${TAG} 保存完成，目标 URI: ${desFileUris[0]}`)
+      // 3. 将临时文件内容复制到目标 URI
+      const desFileUri = desFileUris[0]
+      logger.info(`${TAG} 目标 URI: ${desFileUri}`)
+
+      // 读取临时文件
+      const srcFile = fileIo.openSync(tempFilePath, fileIo.OpenMode.READ_ONLY)
+      const srcStat = fileIo.statSync(tempFilePath)
+      const srcBuffer = new ArrayBuffer(srcStat.size)
+      fileIo.readSync(srcFile.fd, srcBuffer)
+      fileIo.closeSync(srcFile)
+      logger.info(`${TAG} 读取临时文件成功，大小: ${srcStat.size} 字节`)
+
+      // 写入目标文件
+      const desFile = fileIo.openSync(desFileUri, fileIo.OpenMode.WRITE_ONLY)
+      const writtenBytes = fileIo.writeSync(desFile.fd, srcBuffer)
+      fileIo.closeSync(desFile)
+      logger.info(`${TAG} 写入目标文件成功，写入 ${writtenBytes} 字节`)
+
+      // 4. 删除临时文件
+      fileIo.unlinkSync(tempFilePath)
+      logger.info(`${TAG} 临时文件已删除`)
+
+      logger.info(`${TAG} 保存完成，目标 URI: ${desFileUri}`)
       promptAction.openToast({ message: '已保存到相册', duration: 1500 })
     } catch (error) {
       const err = error as BusinessError
