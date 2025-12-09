@@ -126,13 +126,14 @@ export struct ImageViewer {
                   const newScale = this.lastScale * event.scale
                   this.imageScale = Math.max(this.minScale, Math.min(this.maxScale, newScale))
                 }),
-              // 拖动
-              PanGesture()
+              // 拖动 - 设置较小的触发距离使拖动更跟手
+              PanGesture({ fingers: 1, distance: 1 })
                 .onActionStart(() => {
                   this.lastOffsetX = this.offsetX
                   this.lastOffsetY = this.offsetY
                 })
                 .onActionUpdate((event: GestureEvent) => {
+                  // 直接使用偏移量，不需要除以缩放比例
                   this.offsetX = this.lastOffsetX + event.offsetX
                   this.offsetY = this.lastOffsetY + event.offsetY
                 })
