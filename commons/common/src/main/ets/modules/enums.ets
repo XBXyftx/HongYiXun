@@ -427,5 +427,7 @@ export enum LOG_TAG {
   /** 收藏管理器 - 管理用户收藏 */
   FAVORITE_MANAGER = 'FavoriteManager: ',
   /** 点赞管理器 - 管理用户点赞 */
-  LIKE_MANAGER = 'LikeManager: '
+  LIKE_MANAGER = 'LikeManager: ',
+  /** 大图查看器 - 图片预览和保存 */
+  IMAGE_VIEWER = 'ImageViewer: '
 }

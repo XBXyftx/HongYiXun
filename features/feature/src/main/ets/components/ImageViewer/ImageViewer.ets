@@ -7,6 +7,9 @@ import { photoAccessHelper } from '@kit.MediaLibraryKit'
 import { fileIo } from '@kit.CoreFileKit'
 import { http } from '@kit.NetworkKit'
 import { BusinessError } from '@kit.BasicServicesKit'
+import { logger, LOG_TAG } from 'common'
+
+const TAG = LOG_TAG.IMAGE_VIEWER || '[ImageViewer]'
 
 @ComponentV2
 export struct ImageViewer {
@@ -42,60 +45,112 @@ export struct ImageViewer {
   }
 
   async saveImage(): Promise<void> {
-    if (this.isSaving) return
+    if (this.isSaving) {
+      logger.warn(`${TAG} 保存操作正在进行中，忽略重复点击`)
+      return
+    }
     this.isSaving = true
+    logger.info(`${TAG} 开始保存图片: ${this.imageUrl}`)
 
     try {
       // 判断是网络图片还是本地图片
       if (this.imageUrl.startsWith('http://') || this.imageUrl.startsWith('https://')) {
+        logger.info(`${TAG} 检测到网络图片，开始下载`)
         await this.saveNetworkImage()
       } else {
+        logger.info(`${TAG} 检测到本地图片，开始读取`)
         await this.saveLocalImage()
       }
+      logger.info(`${TAG} 图片保存成功`)
     } catch (error) {
       const err = error as BusinessError
-      promptAction.openToast({ message: `保存失败: ${err.message}`, duration: 1500 })
+      logger.error(`${TAG} 保存图片失败: code=${err.code}, message=${err.message}`)
+      promptAction.openToast({ message: `保存失败: ${err.message}`, duration: 2000 })
     } finally {
       this.isSaving = false
     }
   }
 
   async saveNetworkImage(): Promise<void> {
-    // 下载网络图片
+    logger.info(`${TAG} 创建 HTTP 请求下载图片`)
     const httpRequest = http.createHttp()
-    const response = await httpRequest.request(this.imageUrl, {
-      method: http.RequestMethod.GET,
-      expectDataType: http.HttpDataType.ARRAY_BUFFER
-    })
 
-    if (response.responseCode === 200) {
-      const imageData = response.result as ArrayBuffer
-      await this.saveToGallery(imageData)
-    } else {
-      throw new Error('下载图片失败')
+    try {
+      const response = await httpRequest.request(this.imageUrl, {
+        method: http.RequestMethod.GET,
+        expectDataType: http.HttpDataType.ARRAY_BUFFER
+      })
+
+      logger.info(`${TAG} HTTP 响应码: ${response.responseCode}`)
+
+      if (response.responseCode === 200) {
+        const imageData = response.result as ArrayBuffer
+        logger.info(`${TAG} 图片下载成功，大小: ${imageData.byteLength} 字节`)
+        await this.saveToGallery(imageData)
+      } else {
+        const errorMsg = `HTTP 请求失败，响应码: ${response.responseCode}`
+        logger.error(`${TAG} ${errorMsg}`)
+        throw new Error(errorMsg)
+      }
+    } finally {
+      httpRequest.destroy()
+      logger.info(`${TAG} HTTP 请求已销毁`)
     }
-    httpRequest.destroy()
   }
 
   async saveLocalImage(): Promise<void> {
-    // 读取本地图片
-    const file = fileIo.openSync(this.imageUrl, fileIo.OpenMode.READ_ONLY)
-    const stat = fileIo.statSync(this.imageUrl)
-    const buffer = new ArrayBuffer(stat.size)
-    fileIo.readSync(file.fd, buffer)
-    fileIo.closeSync(file)
-    await this.saveToGallery(buffer)
+    logger.info(`${TAG} 开始读取本地图片: ${this.imageUrl}`)
+
+    try {
+      const stat = fileIo.statSync(this.imageUrl)
+      logger.info(`${TAG} 文件大小: ${stat.size} 字节`)
+
+      const file = fileIo.openSync(this.imageUrl, fileIo.OpenMode.READ_ONLY)
+      logger.info(`${TAG} 文件已打开，fd: ${file.fd}`)
+
+      const buffer = new ArrayBuffer(stat.size)
+      const readBytes = fileIo.readSync(file.fd, buffer)
+      logger.info(`${TAG} 已读取 ${readBytes} 字节`)
+
+      fileIo.closeSync(file)
+      logger.info(`${TAG} 本地文件已关闭`)
+
+      await this.saveToGallery(buffer)
+    } catch (error) {
+      const err = error as BusinessError
+      logger.error(`${TAG} 读取本地图片失败: code=${err.code}, message=${err.message}`)
+      throw err
+    }
   }
 
   async saveToGallery(imageData: ArrayBuffer): Promise<void> {
-    // 获取相册访问权限并保存
-    const context = getContext(this)
-    const helper = photoAccessHelper.getPhotoAccessHelper(context)
-    const uri = await helper.createAsset(photoAccessHelper.PhotoType.IMAGE, 'jpg')
-    const file = fileIo.openSync(uri, fileIo.OpenMode.READ_WRITE)
-    fileIo.writeSync(file.fd, imageData)
-    fileIo.closeSync(file)
-    promptAction.openToast({ message: '已保存到相册', duration: 1500 })
+    logger.info(`${TAG} 开始保存到相册，数据大小: ${imageData.byteLength} 字节`)
+
+    try {
+      const context = getContext(this)
+      logger.info(`${TAG} 获取上下文成功`)
+
+      const helper = photoAccessHelper.getPhotoAccessHelper(context)
+      logger.info(`${TAG} 获取 PhotoAccessHelper 成功`)
+
+      const uri = await helper.createAsset(photoAccessHelper.PhotoType.IMAGE, 'jpg')
+      logger.info(`${TAG} 创建相册资源成功，URI: ${uri}`)
+
+      const file = fileIo.openSync(uri, fileIo.OpenMode.READ_WRITE)
+      logger.info(`${TAG} 打开相册文件成功，fd: ${file.fd}`)
+
+      const writtenBytes = fileIo.writeSync(file.fd, imageData)
+      logger.info(`${TAG} 写入 ${writtenBytes} 字节到相册`)
+
+      fileIo.closeSync(file)
+      logger.info(`${TAG} 相册文件已关闭，保存完成`)
+
+      promptAction.openToast({ message: '已保存到相册', duration: 1500 })
+    } catch (error) {
+      const err = error as BusinessError
+      logger.error(`${TAG} 保存到相册失败: code=${err.code}, message=${err.message}`)
+      throw err
+    }
   }
 
   build() {
