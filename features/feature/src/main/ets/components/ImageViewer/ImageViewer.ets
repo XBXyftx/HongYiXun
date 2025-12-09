@@ -119,7 +119,7 @@ export struct ImageViewer {
     } catch (error) {
       const err = error as BusinessError
       logger.error(`${TAG} 读取本地图片失败: code=${err.code}, message=${err.message}`)
-      throw err
+      throw new Error(`读取本地图片失败: ${err.message}`)
     }
   }
 
@@ -149,7 +149,7 @@ export struct ImageViewer {
     } catch (error) {
       const err = error as BusinessError
       logger.error(`${TAG} 保存到相册失败: code=${err.code}, message=${err.message}`)
-      throw err
+      throw new Error(`保存到相册失败: ${err.message}`)
     }
   }
 
