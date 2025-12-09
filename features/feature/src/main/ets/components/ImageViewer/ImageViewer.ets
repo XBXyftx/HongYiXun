@@ -7,7 +7,7 @@ import { photoAccessHelper } from '@kit.MediaLibraryKit'
 import { fileIo } from '@kit.CoreFileKit'
 import { http } from '@kit.NetworkKit'
 import { BusinessError } from '@kit.BasicServicesKit'
-import { abilityAccessCtrl, common, Permissions } from '@kit.AbilityKit'
+import { common } from '@kit.AbilityKit'
 import { logger, LOG_TAG } from 'common'
 
 const TAG = LOG_TAG.IMAGE_VIEWER || '[ImageViewer]'
@@ -45,42 +45,6 @@ export struct ImageViewer {
     this.onClose()
   }
 
-  async checkAndRequestPermission(): Promise<boolean> {
-    const permission: Permissions = 'ohos.permission.WRITE_IMAGEVIDEO'
-    const atManager = abilityAccessCtrl.createAtManager()
-    const context = getContext(this) as common.UIAbilityContext
-
-    try {
-      // 检查权限状态
-      const grantStatus = await atManager.checkAccessToken(
-        context.applicationInfo.accessTokenId,
-        permission
-      )
-
-      if (grantStatus === abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED) {
-        logger.info(`${TAG} 已有相册写入权限`)
-        return true
-      }
-
-      // 请求权限
-      logger.info(`${TAG} 请求相册写入权限`)
-      const result = await atManager.requestPermissionsFromUser(context, [permission])
-
-      if (result.authResults[0] === abilityAccessCtrl.GrantStatus.PERMISSION_GRANTED) {
-        logger.info(`${TAG} 用户授予相册写入权限`)
-        return true
-      } else {
-        logger.warn(`${TAG} 用户拒绝相册写入权限`)
-        promptAction.openToast({ message: '需要相册权限才能保存图片', duration: 2000 })
-        return false
-      }
-    } catch (error) {
-      const err = error as BusinessError
-      logger.error(`${TAG} 检查/请求权限失败: code=${err.code}, message=${err.message}`)
-      return false
-    }
-  }
-
   async saveImage(): Promise<void> {
     if (this.isSaving) {
       logger.warn(`${TAG} 保存操作正在进行中，忽略重复点击`)
@@ -90,13 +54,6 @@ export struct ImageViewer {
     logger.info(`${TAG} 开始保存图片: ${this.imageUrl}`)
 
     try {
-      // 先检查并请求权限
-      const hasPermission = await this.checkAndRequestPermission()
-      if (!hasPermission) {
-        this.isSaving = false
-        return
-      }
-
       // 判断是网络图片还是本地图片
       if (this.imageUrl.startsWith('http://') || this.imageUrl.startsWith('https://')) {
         logger.info(`${TAG} 检测到网络图片，开始下载`)
@@ -171,24 +128,46 @@ export struct ImageViewer {
     logger.info(`${TAG} 开始保存到相册，数据大小: ${imageData.byteLength} 字节`)
 
     try {
-      const context = getContext(this)
+      const context = getContext(this) as common.UIAbilityContext
       logger.info(`${TAG} 获取上下文成功`)
 
+      // 1. 先将图片保存到应用沙箱临时目录
+      const tempFileName = `temp_image_${Date.now()}.jpg`
+      const tempFilePath = `${context.cacheDir}/${tempFileName}`
+      logger.info(`${TAG} 临时文件路径: ${tempFilePath}`)
+
+      const tempFile = fileIo.openSync(tempFilePath, fileIo.OpenMode.CREATE | fileIo.OpenMode.WRITE_ONLY)
+      fileIo.writeSync(tempFile.fd, imageData)
+      fileIo.closeSync(tempFile)
+      logger.info(`${TAG} 临时文件已创建`)
+
+      // 2. 使用 showAssetsCreationDialog 让用户确认保存到相册
       const helper = photoAccessHelper.getPhotoAccessHelper(context)
       logger.info(`${TAG} 获取 PhotoAccessHelper 成功`)
 
-      const uri = await helper.createAsset(photoAccessHelper.PhotoType.IMAGE, 'jpg')
-      logger.info(`${TAG} 创建相册资源成功，URI: ${uri}`)
+      const photoCreationConfigs: photoAccessHelper.PhotoCreationConfig[] = [{
+        title: `image_${Date.now()}`,
+        fileNameExtension: 'jpg',
+        photoType: photoAccessHelper.PhotoType.IMAGE,
+        subtype: photoAccessHelper.PhotoSubtype.DEFAULT
+      }]
+      logger.info(`${TAG} 准备调用 showAssetsCreationDialog`)
 
-      const file = fileIo.openSync(uri, fileIo.OpenMode.READ_WRITE)
-      logger.info(`${TAG} 打开相册文件成功，fd: ${file.fd}`)
+      // srcFileUris 是源文件 URI 数组，photoCreationConfigs 是创建配置数组
+      const desFileUris = await helper.showAssetsCreationDialog([tempFilePath], photoCreationConfigs)
+      logger.info(`${TAG} showAssetsCreationDialog 返回: ${JSON.stringify(desFileUris)}`)
 
-      const writtenBytes = fileIo.writeSync(file.fd, imageData)
-      logger.info(`${TAG} 写入 ${writtenBytes} 字节到相册`)
+      // 3. 删除临时文件
+      fileIo.unlinkSync(tempFilePath)
+      logger.info(`${TAG} 临时文件已删除`)
 
-      fileIo.closeSync(file)
-      logger.info(`${TAG} 相册文件已关闭，保存完成`)
+      if (desFileUris.length === 0) {
+        logger.warn(`${TAG} 用户取消保存`)
+        promptAction.openToast({ message: '已取消保存', duration: 1500 })
+        return
+      }
 
+      logger.info(`${TAG} 保存完成，目标 URI: ${desFileUris[0]}`)
       promptAction.openToast({ message: '已保存到相册', duration: 1500 })
     } catch (error) {
       const err = error as BusinessError
