@@ -17,7 +17,7 @@ import {
 import { deviceInfo } from "@kit.BasicServicesKit"
 import { noteManager } from '../../managers/NoteManager'
 import { promptAction, AppStorageV2 } from "@kit.ArkUI"
-import { picker } from '@kit.CoreFileKit'
+import { photoAccessHelper } from '@kit.MediaLibraryKit'
 import { searchManager, SearchResult } from '../../managers/SearchManager'
 
 /**
@@ -169,9 +169,9 @@ export struct NoteEditor {
 
   async selectImage(): Promise<void> {
     try {
-      const photoPicker = new picker.PhotoViewPicker()
+      const photoPicker = new photoAccessHelper.PhotoViewPicker()
       const result = await photoPicker.select({
-        MIMEType: picker.PhotoViewMIMETypes.IMAGE_TYPE,
+        MIMEType: photoAccessHelper.PhotoViewMIMETypes.IMAGE_TYPE,
         maxSelectNumber: 1
       })
       if (result.photoUris && result.photoUris.length > 0) {
@@ -623,6 +623,7 @@ export struct NoteEditor {
         .borderRadius(20)
         .onClick(() => this.selectImage())
       }
+      .margin({bottom:30})
       .width('100%')
       .padding(16)
       .justifyContent(FlexAlign.Start)
@@ -646,7 +647,7 @@ export struct NoteEditor {
 
       this.ToolbarBuilder()
     }
-    .expandSafeArea()
+    // .expandSafeArea()
     .width('100%')
     .height('100%')
     .backgroundColor($r('app.color.page_background'))
