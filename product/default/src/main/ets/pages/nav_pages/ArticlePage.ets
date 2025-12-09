@@ -43,6 +43,12 @@ export struct ArticlePage {
   @Local isLiked: boolean = false
   @Local menuExpanded: boolean = false
   @Local showNoteEditor: boolean = false
+  // 可拖动浮动窗口相关状态
+  @Local showDraggableEditor: boolean = false
+  @Local dragOffsetX: number = 50
+  @Local dragOffsetY: number = 100
+  @Local dragPositionX: number = 50
+  @Local dragPositionY: number = 100
 
   /**
    * 检查收藏状态
@@ -206,7 +212,12 @@ export struct ArticlePage {
    * 打开笔记编辑器
    */
   openNoteEditor(): void {
-    this.showNoteEditor = true
+    // 如果是跟手弹窗模式（值为2），使用自定义可拖动窗口
+    if (this.userConfig.noteEditorSheetType === 2) {
+      this.showDraggableEditor = true
+    } else {
+      this.showNoteEditor = true
+    }
   }
 
   /**
@@ -361,6 +372,65 @@ export struct ArticlePage {
     })
   }
 
+  /**
+   * 可拖动浮动笔记编辑器
+   */
+  @Builder
+  DraggableNoteEditorBuilder() {
+    Column() {
+      // 拖动手柄区域
+      Row() {
+        Row() {
+          Image($rawfile('drag_handle.svg'))
+            .width(20)
+            .height(20)
+            .fillColor($r('app.color.text_secondary'))
+          Text('拖动移动窗口')
+            .fontSize(12)
+            .fontColor($r('app.color.text_secondary'))
+            .margin({ left: 8 })
+        }
+        .layoutWeight(1)
+
+        Image($rawfile('close.svg'))
+          .width(24)
+          .height(24)
+          .fillColor($r('app.color.text_primary'))
+          .onClick(() => {
+            this.showDraggableEditor = false
+          })
+      }
+      .width('100%')
+      .height(40)
+      .padding({ left: 16, right: 16 })
+      .backgroundColor($r('app.color.card_bg'))
+      .borderRadius({ topLeft: 16, topRight: 16 })
+
+      // 笔记编辑器内容
+      NoteEditor({
+        note: null,
+        initialArticle: this.article,
+        onClose: () => {
+          this.showDraggableEditor = false
+        },
+        onSaved: () => {
+          promptAction.openToast({ message: '笔记已保存', duration: 1500 })
+        }
+      })
+    }
+    .width(this.deviceType === DEVICE_TYPES.PHONE ? '90%' : '50%')
+    .height('70%')
+    .backgroundColor($r('app.color.page_background'))
+    .borderRadius(16)
+    .shadow({
+      radius: 24,
+      color: 'rgba(0, 0, 0, 0.3)',
+      offsetX: 0,
+      offsetY: 8
+    })
+    .clip(true)
+  }
+
   build() {
     NavDestination() {
       Stack() {
@@ -385,6 +455,37 @@ export struct ArticlePage {
             right: this.deviceType === DEVICE_TYPES.PHONE ? 20 : 30,
             bottom: this.deviceType === DEVICE_TYPES.PHONE ? 100 : 120
           })
+
+        // 可拖动浮动笔记编辑器
+        if (this.showDraggableEditor) {
+          // 半透明遮罩层
+          Column()
+            .width('100%')
+            .height('100%')
+            .backgroundColor('rgba(0, 0, 0, 0.4)')
+            .onClick(() => {
+              // 点击遮罩不关闭，需要点击关闭按钮
+            })
+
+          // 可拖动的编辑器窗口
+          Column() {
+            this.DraggableNoteEditorBuilder()
+          }
+          .translate({ x: this.dragOffsetX, y: this.dragOffsetY })
+          .gesture(
+            PanGesture()
+              .onActionUpdate((event: GestureEvent | undefined) => {
+                if (event) {
+                  this.dragOffsetX = this.dragPositionX + event.offsetX
+                  this.dragOffsetY = this.dragPositionY + event.offsetY
+                }
+              })
+              .onActionEnd(() => {
+                this.dragPositionX = this.dragOffsetX
+                this.dragPositionY = this.dragOffsetY
+              })
+          )
+        }
       }
     }
     .hideTitleBar(true)
