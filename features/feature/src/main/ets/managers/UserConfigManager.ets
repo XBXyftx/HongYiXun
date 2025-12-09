@@ -48,6 +48,9 @@ export class UserConfigManager {
     preferenceDB.pushData(PreferenceEnum.HEATMAP_CLICK_TO_HISTORY, UserConfig.heatmapClickToHistory)
     preferenceDB.pushData(PreferenceEnum.HEATMAP_COLOR_SCHEME, UserConfig.heatmapColorScheme)
     
+    // 笔记编辑器配置持久化
+    preferenceDB.pushData(PreferenceEnum.NOTE_EDITOR_SHEET_TYPE, UserConfig.noteEditorSheetType)
+    
     if (preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE) === colorMode &&
       preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE) === fontSize) {
       logger.warn(`${LOG_TAG.USER_CONFIG_MANAGER}数据持久化成功,colorMode=${preferenceDB.getData<0 | 1 | 2>(PreferenceEnum.COLOR_MODE)},fontSize=${preferenceDB.getData<number>(PreferenceEnum.FONT_SIZE)}`)
@@ -84,6 +87,12 @@ export class UserConfigManager {
     }
     if (preferenceDB.hasData(PreferenceEnum.HEATMAP_COLOR_SCHEME)) {
       userConfig.heatmapColorScheme = preferenceDB.getData<string>(PreferenceEnum.HEATMAP_COLOR_SCHEME)!
+    }
+    
+    // 笔记编辑器配置恢复
+    if (preferenceDB.hasData(PreferenceEnum.NOTE_EDITOR_SHEET_TYPE)) {
+      userConfig.noteEditorSheetType = preferenceDB.getData<number>(PreferenceEnum.NOTE_EDITOR_SHEET_TYPE)!
+      logger.info(`${LOG_TAG.USER_CONFIG_MANAGER}检测到NOTE_EDITOR_SHEET_TYPE = ${userConfig.noteEditorSheetType}`)
     }
     
     if (!preferenceDB.hasData(PreferenceEnum.FONT_SIZE) || !preferenceDB.hasData(PreferenceEnum.COLOR_MODE)) {

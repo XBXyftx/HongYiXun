@@ -173,7 +173,22 @@ export enum PreferenceEnum {
    * 热力日历颜色系
    * @default 'blue'
    */
-  HEATMAP_COLOR_SCHEME = 'HeatmapColorScheme'
+  HEATMAP_COLOR_SCHEME = 'HeatmapColorScheme',
+  
+  /**
+   * 笔记编辑页半模态显示方式
+   * 
+   * @remarks
+   * 取值类型：number（对应 SheetType 枚举）
+   * - 0: BOTTOM - 底部弹窗
+   * - 1: CENTER - 居中弹窗
+   * - 2: POPUP - 跟手弹窗（自定义可拖动窗口）
+   * - 3: SIDE - 侧边弹窗
+   * - 4: CONTENT_COVER - 全屏弹窗
+   * 
+   * @default 0
+   */
+  NOTE_EDITOR_SHEET_TYPE = 'NoteEditorSheetType'
 }
 
 // ==================== 设备相关枚举 ====================
