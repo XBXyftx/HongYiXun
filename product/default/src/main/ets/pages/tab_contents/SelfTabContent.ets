@@ -228,7 +228,7 @@ export struct SelfTabContent {
             .backgroundColor($r('app.color.news_list_item_bg'))
             .borderRadius(16)
             .onClick(() => {
-              this.navPathStuck.pushPath({ name: NAV_DESTS.NOTE_LIST })
+              this.navPathStuck.replacePath({ name: NAV_DESTS.NOTE_LIST })
             })
           }
 

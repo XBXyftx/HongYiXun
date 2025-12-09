@@ -612,7 +612,7 @@ export struct NoteEditor {
     .width('100%')
     .padding(16)
     .backgroundColor($r('app.color.card_bg'))
-    .borderRadius(12)
+    // .borderRadius(12)
   }
 
   @Builder
