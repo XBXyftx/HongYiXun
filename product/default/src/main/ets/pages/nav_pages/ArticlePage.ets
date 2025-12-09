@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Copyright (c) 2025 XBXyftx
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ import { NewsArticleView, favoriteManager, likeManager, colorModManager, NoteEdi
 import { deviceInfo, pasteboard } from '@kit.BasicServicesKit'
 import { CircleNavigation, CircleType } from '@abner/circle_navigation'
 
-// 菜单项类�?
+// 菜单项类型
 interface MenuItemInfo {
   icon: Resource | string
   activeIcon?: Resource | string
@@ -43,32 +43,31 @@ export struct ArticlePage {
   @Local isLiked: boolean = false
   @Local menuExpanded: boolean = false
   @Local showNoteEditor: boolean = false
-  // 可拖动浮动窗口相关状�?
+  // 可拖动浮动窗口相关状态
   @Local showDraggableEditor: boolean = false
   @Local dragOffsetX: number = 20
   @Local dragOffsetY: number = 60
   @Local dragPositionX: number = 20
   @Local dragPositionY: number = 60
-  // 屏幕尺寸（用于边界限制）
   @Local screenWidth: number = 360
   @Local screenHeight: number = 780
 
   /**
-   * 检查收藏状�?
+   * 检查收藏状态
    */
   async checkFavoriteStatus(): Promise<void> {
     this.isFavorite = await favoriteManager.isFavorite(this.article.id)
   }
 
   /**
-   * 检查点赞状�?
+   * 检查点赞状态
    */
   async checkLikeStatus(): Promise<void> {
     this.isLiked = await likeManager.isLiked(this.article.id)
   }
 
   /**
-   * 切换收藏状�?
+   * 切换收藏状态
    */
   async toggleFavorite(): Promise<void> {
     if (this.isFavorite) {
@@ -76,9 +75,9 @@ export struct ArticlePage {
       if (success) {
         this.isFavorite = false
         try {
-          promptAction.openToast({ message: '已取消收�?, duration: 1500 })
+          promptAction.openToast({ message: '已取消收藏', duration: 1500 })
         } catch (error) {
-          promptAction.openToast({ message: '已取消收�?, duration: 1500 })
+          promptAction.openToast({ message: '已取消收藏', duration: 1500 })
         }
       }
     } else {
@@ -101,20 +100,20 @@ export struct ArticlePage {
   }
 
   /**
-   * 切换点赞状�?
+   * 切换点赞状态
    */
   async toggleLike(): Promise<void> {
     if (this.isLiked) {
       const success = await likeManager.removeLike(this.article.id)
       if (success) {
         this.isLiked = false
-        promptAction.openToast({ message: '已取消点�?, duration: 1500 })
+        promptAction.openToast({ message: '已取消点赞', duration: 1500 })
       }
     } else {
       const success = await likeManager.addLike(this.article)
       if (success) {
         this.isLiked = true
-        promptAction.openToast({ message: '已点�?, duration: 1500 })
+        promptAction.openToast({ message: '已点赞', duration: 1500 })
       } else {
         promptAction.openToast({ message: '该文章已点赞', duration: 1500 })
       }
@@ -125,7 +124,7 @@ export struct ArticlePage {
    * 分享文章 - 复制链接到剪贴板
    */
   shareArticle(): void {
-    const shareText = `�?{this.article.title}】\n${this.article.url}\n\n来自鸿易讯`
+    const shareText = `【${this.article.title}】\n${this.article.url}\n\n来自鸿易讯`
     logger.info(`${LOG_TAG.MAIN_PAGE}分享文章: ${this.article.title}`)
 
     try {
@@ -134,7 +133,7 @@ export struct ArticlePage {
 
       systemPasteboard.setData(pasteData).then(() => {
         logger.info(`${LOG_TAG.MAIN_PAGE}已复制到剪贴板`)
-        promptAction.openToast({ message: '链接已复制，可粘贴分�?, duration: 2000 })
+        promptAction.openToast({ message: '链接已复制，可粘贴分享', duration: 2000 })
       }).catch((err: Error) => {
         logger.error(`${LOG_TAG.MAIN_PAGE}复制失败: ${err.message}`)
         promptAction.openToast({ message: '复制失败', duration: 1500 })
@@ -146,7 +145,7 @@ export struct ArticlePage {
   }
 
   /**
-   * 获取菜单项配�?
+   * 获取菜单项配置
    */
   getMenuItems(): MenuItemInfo[] {
     return [
@@ -157,7 +156,7 @@ export struct ArticlePage {
       },
       {
         icon: $rawfile('color_mode.svg'),
-        label: '深浅�?,
+        label: '深浅色',
         isActive: false
       },
       {
@@ -184,14 +183,14 @@ export struct ArticlePage {
   }
 
   /**
-   * 处理菜单项点�?
+   * 处理菜单项点击
    */
   handleMenuClick(position: number): void {
     switch (position) {
       case 0: // 笔记
         this.openNoteEditor()
         break
-      case 1: // 深浅色切�?
+      case 1: // 深浅色切换
         this.toggleColorMode()
         break
       case 2: // 字号调整
@@ -207,12 +206,12 @@ export struct ArticlePage {
         this.shareArticle()
         break
     }
-    // 点击后收起菜�?
+    // 点击后收起菜单
     this.menuExpanded = false
   }
 
   /**
-   * 打开笔记编辑�?
+   * 打开笔记编辑器
    */
   openNoteEditor(): void {
     // 如果是跟手弹窗模式（值为2），使用自定义可拖动窗口
@@ -229,21 +228,19 @@ export struct ArticlePage {
   clampDragPosition(x: number, y: number): void {
     const windowWidth = this.deviceType === DEVICE_TYPES.PHONE ? this.screenWidth * 0.9 : this.screenWidth * 0.5
     const windowHeight = this.screenHeight * 0.75
-
     const minX = -windowWidth + 60
     const maxX = this.screenWidth - 60
     const minY = 0
     const maxY = this.screenHeight - 100
-
     this.dragOffsetX = Math.max(minX, Math.min(maxX, x))
     this.dragOffsetY = Math.max(minY, Math.min(maxY, y))
   }
 
   /**
-   * 切换深浅色模�?
+   * 切换深浅色模式
    */
   toggleColorMode(): void {
-    // 0=浅色, 1=深色, 2=跟随系统，在浅色和深色之间切�?
+    // 0=浅色, 1=深色, 2=跟随系统，在浅色和深色之间切换
     if (this.userConfig.colorModel === 1) {
       this.userConfig.colorModel = 0
       colorModManager.setLightMod()
@@ -318,7 +315,7 @@ export struct ArticlePage {
   }
 
   /**
-   * 圆形导航主按�?
+   * 圆形导航主按钮
    */
   @Builder
   menuTriggerBuilder() {
@@ -362,7 +359,7 @@ export struct ArticlePage {
   }
 
   /**
-   * 获取菜单项颜�?
+   * 获取菜单项颜色
    */
   getMenuItemColor(position: number): ResourceColor {
     if (position === 0) {
@@ -386,7 +383,7 @@ export struct ArticlePage {
         this.showNoteEditor = false
       },
       onSaved: () => {
-        promptAction.openToast({ message: '笔记已保�?, duration: 1500 })
+        promptAction.openToast({ message: '笔记已保存', duration: 1500 })
       }
     })
   }
@@ -425,7 +422,7 @@ export struct ArticlePage {
       .backgroundColor($r('app.color.card_bg'))
       .borderRadius({ topLeft: 16, topRight: 16 })
 
-      // 笔记编辑器内�?
+      // 笔记编辑器内容
       NoteEditor({
         note: null,
         initialArticle: this.article,
@@ -433,7 +430,7 @@ export struct ArticlePage {
           this.showDraggableEditor = false
         },
         onSaved: () => {
-          promptAction.openToast({ message: '笔记已保�?, duration: 1500 })
+          promptAction.openToast({ message: '笔记已保存', duration: 1500 })
         }
       })
     }
@@ -455,7 +452,7 @@ export struct ArticlePage {
       Stack() {
         this.ArticleContentBuilder()
 
-        // 圆形导航菜单 - 右下�?
+        // 圆形导航菜单 - 右下角
         CircleNavigation({
           clickStatus: this.menuExpanded,
           quantity: 6,
@@ -477,13 +474,16 @@ export struct ArticlePage {
 
         // 可拖动浮动笔记编辑器
         if (this.showDraggableEditor) {
-          // 半透明遮罩�?
+          // 半透明遮罩层
           Column()
             .width('100%')
             .height('100%')
             .backgroundColor('rgba(0, 0, 0, 0.4)')
+            .onClick(() => {
+              // 点击遮罩不关闭，需要点击关闭按钮
+            })
 
-          // 可拖动的编辑器窗�?
+          // 可拖动的编辑器窗口
           Column() {
             this.DraggableNoteEditorBuilder()
           }
@@ -521,7 +521,7 @@ export struct ArticlePage {
     .width('100%')
     .height('100%')
     .bindSheet(
-      $this.showNoteEditor,
+      this.showNoteEditor,
       this.NoteEditorSheetBuilder(),
       {
         height: '100%',
