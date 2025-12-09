@@ -30,6 +30,12 @@ export struct NoteList {
   @Local showEditor: boolean = false
   @Local editingNote: NoteItem | null = null
   @Local isReadOnlyMode: boolean = false
+  // 可拖动浮动窗口相关状态
+  @Local showDraggableEditor: boolean = false
+  @Local dragOffsetX: number = 20
+  @Local dragOffsetY: number = 80
+  @Local dragPositionX: number = 20
+  @Local dragPositionY: number = 80
 
   async aboutToAppear(): Promise<void> {
     await noteManager.init()
@@ -50,19 +56,26 @@ export struct NoteList {
   createNewNote(): void {
     this.editingNote = null
     this.isReadOnlyMode = false
-    this.showEditor = true
+    if (this.userConfig.noteEditorSheetType === 2) {
+      this.showDraggableEditor = true
+    } else {
+      this.showEditor = true
+    }
   }
 
   viewNote(note: NoteItem): void {
     this.editingNote = note
     this.isReadOnlyMode = true
-    this.showEditor = true
+    if (this.userConfig.noteEditorSheetType === 2) {
+      this.showDraggableEditor = true
+    } else {
+      this.showEditor = true
+    }
   }
 
   editNote(): void {
     this.isReadOnlyMode = false
   }
-
 
   async deleteNote(note: NoteItem): Promise<void> {
     promptAction.showDialog({
@@ -103,21 +116,23 @@ export struct NoteList {
     return '暂无内容'
   }
 
+  closeDraggableEditor(): void {
+    this.showDraggableEditor = false
+    this.dragOffsetX = 20
+    this.dragOffsetY = 80
+    this.dragPositionX = 20
+    this.dragPositionY = 80
+  }
+
   @Builder
   HeaderBuilder() {
     Row() {
-      Image($rawfile('back.svg'))
-        .width(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 28)
-        .height(this.deviceType === DEVICE_TYPES.PHONE ? 24 : 28)
-        .fillColor($r('app.color.text_primary'))
-        .onClick(() => this.onClose())
-
       Text('我的笔记')
         .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 20 : 24)
         .fontWeight(FontWeight.Bold)
         .fontColor($r('app.color.text_primary'))
-        .margin({ left: 12 })
-        .layoutWeight(1)
+
+      Blank()
 
       Button('新建')
         .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 16)
@@ -129,9 +144,7 @@ export struct NoteList {
     }
     .width('100%')
     .padding({ left: 16, right: 16, top: 12, bottom: 12 })
-    .backgroundColor($r('app.color.card_bg'))
   }
-
 
   @Builder
   NoteItemBuilder(note: NoteItem) {
@@ -152,7 +165,7 @@ export struct NoteList {
       .width('100%')
 
       Text(this.getPreviewText(note))
-        .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 13 : 15)
+        .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 16)
         .fontColor($r('app.color.text_secondary'))
         .maxLines(2)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -165,9 +178,8 @@ export struct NoteList {
             .width(14)
             .height(14)
             .fillColor($r('app.color.text_secondary'))
-
           Text(`关联${note.linkedArticles.length}篇文章`)
-            .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 11 : 13)
+            .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 12 : 14)
             .fontColor($r('app.color.text_secondary'))
             .margin({ left: 4 })
         }
@@ -178,14 +190,20 @@ export struct NoteList {
     .padding(16)
     .backgroundColor($r('app.color.card_bg'))
     .borderRadius(12)
+    .margin({ bottom: 12 })
     .onClick(() => this.viewNote(note))
-    .gesture(LongPressGesture().onAction(() => this.deleteNote(note)))
+    .gesture(
+      LongPressGesture()
+        .onAction(() => {
+          this.deleteNote(note)
+        })
+    )
   }
 
   @Builder
   EmptyBuilder() {
     Column() {
-      Image($rawfile('note_empty.svg'))
+      Image($rawfile('note_icon.svg'))
         .width(80)
         .height(80)
         .fillColor($r('app.color.text_secondary'))
@@ -196,8 +214,8 @@ export struct NoteList {
         .fontColor($r('app.color.text_secondary'))
         .margin({ top: 16 })
 
-      Text('点击右上角"新建"创建第一篇笔记')
-        .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 13 : 15)
+      Text('点击右上角"新建"按钮创建第一篇笔记')
+        .fontSize(this.deviceType === DEVICE_TYPES.PHONE ? 14 : 16)
         .fontColor($r('app.color.text_secondary'))
         .opacity(0.7)
         .margin({ top: 8 })
@@ -207,59 +225,147 @@ export struct NoteList {
     .justifyContent(FlexAlign.Center)
   }
 
-
   @Builder
   EditorSheetBuilder() {
     NoteEditor({
       note: this.editingNote,
-      initialArticle: null,
       isReadOnly: this.isReadOnlyMode,
       onClose: () => {
         this.showEditor = false
-        this.editingNote = null
-        this.isReadOnlyMode = false
       },
       onSaved: () => {
-        this.loadNotes()
+        promptAction.openToast({ message: '笔记已保存', duration: 1500 })
       },
       onEdit: () => {
-        this.isReadOnlyMode = false
+        this.editNote()
       }
     })
   }
 
-  build() {
+  @Builder
+  DraggableEditorBuilder() {
     Column() {
-      this.HeaderBuilder()
+      Row() {
+        Row() {
+          Image($rawfile('drag_handle.svg'))
+            .width(20)
+            .height(20)
+            .fillColor($r('app.color.text_secondary'))
+          Text('拖动移动窗口')
+            .fontSize(12)
+            .fontColor($r('app.color.text_secondary'))
+            .margin({ left: 8 })
+        }
+        .layoutWeight(1)
 
-      if (this.isLoading) {
+        Image($rawfile('close.svg'))
+          .width(24)
+          .height(24)
+          .fillColor($r('app.color.text_primary'))
+          .onClick(() => {
+            this.closeDraggableEditor()
+          })
+      }
+      .width('100%')
+      .height(40)
+      .padding({ left: 16, right: 16 })
+      .backgroundColor($r('app.color.card_bg'))
+      .borderRadius({ topLeft: 16, topRight: 16 })
+
+      NoteEditor({
+        note: this.editingNote,
+        isReadOnly: this.isReadOnlyMode,
+        onClose: () => {
+          this.closeDraggableEditor()
+        },
+        onSaved: () => {
+          promptAction.openToast({ message: '笔记已保存', duration: 1500 })
+        },
+        onEdit: () => {
+          this.editNote()
+        }
+      })
+    }
+    .width(this.deviceType === DEVICE_TYPES.PHONE ? '90%' : '50%')
+    .height('70%')
+    .backgroundColor($r('app.color.page_background'))
+    .borderRadius(16)
+    .shadow({
+      radius: 24,
+      color: 'rgba(0, 0, 0, 0.3)',
+      offsetX: 0,
+      offsetY: 8
+    })
+    .clip(true)
+  }
+
+  build() {
+    Stack() {
+      Column() {
+        this.HeaderBuilder()
+
+        if (this.isLoading) {
+          Column() {
+            LoadingProgress()
+              .width(40)
+              .height(40)
+            Text('加载中...')
+              .fontSize(14)
+              .fontColor($r('app.color.text_secondary'))
+              .margin({ top: 12 })
+          }
+          .width('100%')
+          .layoutWeight(1)
+          .justifyContent(FlexAlign.Center)
+        } else if (this.notes.length === 0) {
+          this.EmptyBuilder()
+        } else {
+          List() {
+            ForEach(this.notes, (note: NoteItem) => {
+              ListItem() {
+                this.NoteItemBuilder(note)
+              }
+            }, (note: NoteItem) => note.id)
+          }
+          .width('100%')
+          .layoutWeight(1)
+          .padding({ left: 16, right: 16 })
+          .scrollBar(BarState.Off)
+        }
+      }
+      .width('100%')
+      .height('100%')
+      .backgroundColor($r('app.color.page_background'))
+
+      if (this.showDraggableEditor) {
+        Column()
+          .width('100%')
+          .height('100%')
+          .backgroundColor('rgba(0, 0, 0, 0.4)')
+
         Column() {
-          LoadingProgress().width(40).height(40)
-          Text('加载中...').fontSize(14).fontColor($r('app.color.text_secondary')).margin({ top: 12 })
+          this.DraggableEditorBuilder()
         }
-        .layoutWeight(1)
-        .justifyContent(FlexAlign.Center)
-      } else if (this.notes.length === 0) {
-        this.EmptyBuilder()
-      } else {
-        List({ space: 12 }) {
-          ForEach(this.notes, (note: NoteItem) => {
-            ListItem() {
-              this.NoteItemBuilder(note)
-            }
-          }, (note: NoteItem) => note.id)
-        }
-        .width('100%')
-        .layoutWeight(1)
-        .padding({ left: 16, right: 16, top: 16, bottom: 16 })
+        .translate({ x: this.dragOffsetX, y: this.dragOffsetY })
+        .gesture(
+          PanGesture()
+            .onActionUpdate((event: GestureEvent | undefined) => {
+              if (event) {
+                this.dragOffsetX = this.dragPositionX + event.offsetX
+                this.dragOffsetY = this.dragPositionY + event.offsetY
+              }
+            })
+            .onActionEnd(() => {
+              this.dragPositionX = this.dragOffsetX
+              this.dragPositionY = this.dragOffsetY
+            })
+        )
       }
     }
-    .padding({ top: 48 })
     .width('100%')
     .height('100%')
-    .backgroundColor($r('app.color.page_background'))
     .bindSheet(
-      $$this.showEditor,
+      this.showEditor,
       this.EditorSheetBuilder(),
       {
         height: '100%',
@@ -267,7 +373,10 @@ export struct NoteList {
         dragBar: false,
         showClose: false,
         backgroundColor: $r('app.color.page_background'),
-        preferType: this.userConfig.noteEditorSheetType as SheetType
+        preferType: this.userConfig.noteEditorSheetType as SheetType,
+        onDisappear: () => {
+          this.showEditor = false
+        }
       }
     )
   }
