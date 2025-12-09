@@ -11,7 +11,7 @@ import { BusinessError } from '@kit.BasicServicesKit'
 @ComponentV2
 export struct ImageViewer {
   @Param imageUrl: string = ''
-  @Param @Once visible: boolean = false
+  @Param visible: boolean = false
   @Event onClose: () => void = () => {}
 
   // 缩放和位置状态
@@ -99,96 +99,96 @@ export struct ImageViewer {
   }
 
   build() {
-    if (this.visible) {
-      Stack() {
-        // 半透明背景
-        Column()
+    Stack() {
+      // 半透明背景
+      Column()
+        .width('100%')
+        .height('100%')
+        .backgroundColor('rgba(0, 0, 0, 0.9)')
+        .onClick(() => this.close())
+
+      // 图片容器
+      Column() {
+        Image(this.imageUrl)
+          .objectFit(ImageFit.Contain)
           .width('100%')
           .height('100%')
-          .backgroundColor('rgba(0, 0, 0, 0.9)')
-          .onClick(() => this.close())
-
-        // 图片容器
-        Column() {
-          Image(this.imageUrl)
-            .objectFit(ImageFit.Contain)
-            .width('100%')
-            .height('100%')
-            .scale({ x: this.imageScale, y: this.imageScale })
-            .translate({ x: this.offsetX, y: this.offsetY })
-            .gesture(
-              GestureGroup(GestureMode.Parallel,
-                // 双指缩放
-                PinchGesture({ fingers: 2 })
-                  .onActionStart(() => {
-                    this.lastScale = this.imageScale
-                  })
-                  .onActionUpdate((event: GestureEvent) => {
-                    const newScale = this.lastScale * event.scale
-                    this.imageScale = Math.max(this.minScale, Math.min(this.maxScale, newScale))
-                  }),
-                // 拖动
-                PanGesture()
-                  .onActionStart(() => {
-                    this.lastOffsetX = this.offsetX
-                    this.lastOffsetY = this.offsetY
-                  })
-                  .onActionUpdate((event: GestureEvent) => {
-                    this.offsetX = this.lastOffsetX + event.offsetX
-                    this.offsetY = this.lastOffsetY + event.offsetY
-                  })
-              )
+          .scale({ x: this.imageScale, y: this.imageScale })
+          .translate({ x: this.offsetX, y: this.offsetY })
+          .gesture(
+            GestureGroup(GestureMode.Parallel,
+              // 双指缩放
+              PinchGesture({ fingers: 2 })
+                .onActionStart(() => {
+                  this.lastScale = this.imageScale
+                })
+                .onActionUpdate((event: GestureEvent) => {
+                  const newScale = this.lastScale * event.scale
+                  this.imageScale = Math.max(this.minScale, Math.min(this.maxScale, newScale))
+                }),
+              // 拖动
+              PanGesture()
+                .onActionStart(() => {
+                  this.lastOffsetX = this.offsetX
+                  this.lastOffsetY = this.offsetY
+                })
+                .onActionUpdate((event: GestureEvent) => {
+                  this.offsetX = this.lastOffsetX + event.offsetX
+                  this.offsetY = this.lastOffsetY + event.offsetY
+                })
             )
-        }
-        .width('100%')
-        .height('80%')
-
-        // 顶部工具栏
-        Row() {
-          // 关闭按钮
-          Image($rawfile('close.svg'))
-            .width(28)
-            .height(28)
-            .fillColor(Color.White)
-            .onClick(() => this.close())
-
-          Blank()
-
-          // 保存按钮
-          Row() {
-            if (this.isSaving) {
-              LoadingProgress()
-                .width(20)
-                .height(20)
-                .color(Color.White)
-            } else {
-              Image($rawfile('download_icon.svg'))
-                .width(24)
-                .height(24)
-                .fillColor(Color.White)
-            }
-            Text(this.isSaving ? '保存中...' : '保存')
-              .fontSize(14)
-              .fontColor(Color.White)
-              .margin({ left: 6 })
-          }
-          .padding({ left: 12, right: 12, top: 8, bottom: 8 })
-          .backgroundColor('rgba(255, 255, 255, 0.2)')
-          .borderRadius(20)
-          .onClick(() => this.saveImage())
-        }
-        .width('100%')
-        .padding({ left: 16, right: 16, top: 48, bottom: 16 })
-        .position({ top: 0 })
-
-        // 底部提示
-        Text('双指缩放 · 单指拖动 · 点击背景关闭')
-          .fontSize(12)
-          .fontColor('rgba(255, 255, 255, 0.6)')
-          .position({ bottom: 40 })
+          )
       }
       .width('100%')
-      .height('100%')
+      .height('80%')
+
+      // 顶部工具栏
+      Row() {
+        // 关闭按钮
+        Image($rawfile('close.svg'))
+          .width(28)
+          .height(28)
+          .fillColor(Color.White)
+          .onClick(() => this.close())
+
+        Blank()
+
+        // 保存按钮
+        Row() {
+          if (this.isSaving) {
+            LoadingProgress()
+              .width(20)
+              .height(20)
+              .color(Color.White)
+          } else {
+            Image($rawfile('download_icon.svg'))
+              .width(24)
+              .height(24)
+              .fillColor(Color.White)
+          }
+          Text(this.isSaving ? '保存中...' : '保存')
+            .fontSize(14)
+            .fontColor(Color.White)
+            .margin({ left: 6 })
+        }
+        .padding({ left: 12, right: 12, top: 8, bottom: 8 })
+        .backgroundColor('rgba(255, 255, 255, 0.2)')
+        .borderRadius(20)
+        .onClick(() => this.saveImage())
+      }
+      .width('100%')
+      .padding({ left: 16, right: 16, top: 48, bottom: 16 })
+      .position({ top: 0 })
+
+      // 底部提示
+      Text('双指缩放 · 单指拖动 · 点击背景关闭')
+        .fontSize(12)
+        .fontColor('rgba(255, 255, 255, 0.6)')
+        .position({ bottom: 40 })
     }
+    .width('100%')
+    .height('100%')
+    .visibility(this.visible ? Visibility.Visible : Visibility.None)
+    .position({ top: 0, left: 0 })
   }
 }
