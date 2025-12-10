@@ -71,7 +71,7 @@
 ## 运行环境
 
 - DevEco Studio 5.0+
-- HarmonyOS SDK API 18+
+- HarmonyOS SDK API 20+
 - 支持设备：手机、平板
 
 ## 开发说明
