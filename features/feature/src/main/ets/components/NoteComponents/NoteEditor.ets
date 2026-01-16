@@ -604,6 +604,7 @@ export struct NoteEditor {
           .padding({ left: 0, right: 0, top: 8, bottom: 8 })
           .height(this.deviceType === DEVICE_TYPES.PHONE ? 48 : 56)
           .onChange((value: string) => { this.title = value })
+          .borderRadius(0)
 
         Divider()
           .color($r('app.color.text_secondary'))
@@ -618,6 +619,7 @@ export struct NoteEditor {
           .padding({ left: 0, right: 0, top: 8, bottom: 8 })
           .constraintSize({ minHeight: 200 })
           .onChange((value: string) => { this.currentText = value })
+          .borderRadius(0)
       }
     }
     .width('100%')
@@ -672,7 +674,7 @@ export struct NoteEditor {
       }
       // .expandSafeArea()
       .width('100%')
-      .height('100%')
+      .height('98%')
       .backgroundColor($r('app.color.page_background'))
 
       // 大图查看器
