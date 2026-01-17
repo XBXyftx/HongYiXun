@@ -526,7 +526,7 @@ export struct ArticlePage {
       {
         height: '100%',
         width: this.deviceType === DEVICE_TYPES.PHONE ? '95%' : '50%',
-        dragBar: false,
+        dragBar: true,
         showClose: false,
         backgroundColor: $r('app.color.page_background'),
         preferType: this.userConfig.noteEditorSheetType as SheetType

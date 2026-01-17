@@ -63,7 +63,6 @@ export struct CalenderTabContent {
     AppStorageV2.connect(UserConfigViewModel, APP_STORAGE_KEYS.USER_CONFIG, () => new UserConfigViewModel())!
   @Local historyUpdateTrigger: HistoryUpdateTrigger =
     AppStorageV2.connect(HistoryUpdateTrigger, APP_STORAGE_KEYS.HISTORY_UPDATE_TRIGGER, () => new HistoryUpdateTrigger())!
-  @Local dailyStats: DailyReadingStats[] = []
   @Local heatmapCells: HeatmapCell[] = []
   @Local isLoading: boolean = false
   @Local totalReadCount: number = 0
@@ -74,6 +73,7 @@ export struct CalenderTabContent {
   @Local currentYear: number = new Date().getFullYear()
   @Local currentMonth: number = new Date().getMonth() + 1
   @Local calendarDays: CalendarDayCell[] = []
+  // 优化：直接使用 Map 存储阅读数量，避免数组转换
   @Local statsMap: Map<string, number> = new Map()
   async aboutToAppear(): Promise<void> {
     await this.loadDailyStats()
@@ -93,6 +93,7 @@ export struct CalenderTabContent {
   @Monitor('historyUpdateTrigger.trigger')
   async onHistoryUpdate(): Promise<void> {
     await this.loadDailyStats()
+    this.generateHeatmapCells()
     this.generateCalendarDays()
   }
 
@@ -126,23 +127,25 @@ export struct CalenderTabContent {
   async loadDailyStats(): Promise<void> {
     this.isLoading = true
     try {
-      // 加载365天的数据用于月历显示
-      this.dailyStats = await historyManager.getDailyStatsInRange(365)
-      this.statsMap.clear()
-      this.dailyStats.forEach(stat => {
-        if (stat.count > 0) {
-          this.statsMap.set(stat.dateStr, stat.count)
+      // 优化：直接加载 Map，避免数组转换
+      const timeRange = this.userConfig.heatmapTimeRange
+      const newStatsMap = await historyManager.getDailyCountMapInRange(365)
+      
+      // 强制触发 Map 更新（重新赋值以触发响应式）
+      this.statsMap = newStatsMap
+      
+      this.generateHeatmapCells()
+      
+      // 计算总阅读数
+      this.totalReadCount = 0
+      const today = new Date()
+      this.statsMap.forEach((count, dateStr) => {
+        const date = new Date(dateStr)
+        const diffDays = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
+        if (diffDays < timeRange) {
+          this.totalReadCount += count
         }
       })
-      this.generateHeatmapCells()
-      this.totalReadCount = this.dailyStats
-        .filter(stat => {
-          const date = new Date(stat.dateStr)
-          const today = new Date()
-          const diffDays = Math.floor((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24))
-          return diffDays < this.userConfig.heatmapTimeRange
-        })
-        .reduce((sum, stat) => sum + stat.count, 0)
     } catch (error) {
       console.error('加载每日统计失败:', JSON.stringify(error))
     } finally {
@@ -151,9 +154,9 @@ export struct CalenderTabContent {
   }
 
   generateHeatmapCells(): void {
-    const newCells: HeatmapCell[] = []
     const today = new Date()
     const timeRange = this.userConfig.heatmapTimeRange
+    const newCells: HeatmapCell[] = []
 
     for (let i = timeRange - 1; i >= 0; i--) {
       const date = new Date(today)
@@ -170,6 +173,8 @@ export struct CalenderTabContent {
         month: date.getMonth() + 1
       })
     }
+    
+    // 强制触发数组更新
     this.heatmapCells = newCells
   }
 
@@ -544,9 +549,9 @@ export struct CalenderTabContent {
                             Column() {
                               ForEach(weekCells, (cell: HeatmapCell, dayIndex: number) => {
                                 this.HeatmapCellBuilder(cell, weekIndex * 7 + dayIndex)
-                              }, (cell: HeatmapCell, dayIdx: number) => `fs_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}`)
+                              }, (cell: HeatmapCell, dayIdx: number) => `fs_${this.historyUpdateTrigger.trigger}_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}_${cell.color}`)
                             }
-                          }, (weekCells: HeatmapCell[], idx: number) => `fs_week_${idx}`)
+                          }, (weekCells: HeatmapCell[], idx: number) => `fs_week_${this.historyUpdateTrigger.trigger}_${idx}_${weekCells.length}`)
                         }
                       }
                       .scrollable(ScrollDirection.Horizontal)
@@ -625,7 +630,7 @@ export struct CalenderTabContent {
                       GridItem() {
                         this.CalendarDayCellBuilder(cell)
                       }
-                    }, (cell: CalendarDayCell, idx: number) => `cal_${cell.dateStr}_${idx}`)
+                    }, (cell: CalendarDayCell, idx: number) => `cal_${this.historyUpdateTrigger.trigger}_${cell.dateStr}_${cell.count}_${cell.color}`)
                   }
                   .columnsTemplate('1fr 1fr 1fr 1fr 1fr 1fr 1fr')
                   .rowsGap(this.deviceType === DEVICE_TYPES.PHONE ? 4 : 8)
@@ -763,9 +768,9 @@ export struct CalenderTabContent {
                           Column() {
                             ForEach(weekCells, (cell: HeatmapCell, dayIndex: number) => {
                               this.HeatmapCellBuilder(cell, weekIndex * 7 + dayIndex)
-                            }, (cell: HeatmapCell, dayIdx: number) => `${this.userConfig.heatmapTimeRange}_${this.userConfig.heatmapColorRange}_${this.userConfig.heatmapColorScheme}_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}_${cell.color}`)
+                            }, (cell: HeatmapCell, dayIdx: number) => `main_${this.historyUpdateTrigger.trigger}_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}_${cell.color}`)
                           }
-                        }, (weekCells: HeatmapCell[], idx: number) => `${this.userConfig.heatmapTimeRange}_${this.userConfig.heatmapColorRange}_${this.userConfig.heatmapColorScheme}_week_${idx}_${weekCells.length}`)
+                        }, (weekCells: HeatmapCell[], idx: number) => `main_week_${this.historyUpdateTrigger.trigger}_${idx}_${weekCells.length}`)
                       }
                     }
                     .scrollable(ScrollDirection.Horizontal)

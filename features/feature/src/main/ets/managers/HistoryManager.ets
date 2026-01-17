@@ -373,6 +373,32 @@ export class HistoryManager {
   }
 
   /**
+   * 获取指定日期范围内的阅读数量 Map（优化版）
+   * 直接返回 Map<dateStr, count>，避免不必要的数组转换
+   * 
+   * @param days - 天数范围
+   * @returns 日期到阅读数量的 Map
+   */
+  async getDailyCountMapInRange(days: number): Promise<Map<string, number>> {
+    const statsMap = await this.getDailyStatsMap()
+    const result = new Map<string, number>()
+    const today = new Date()
+
+    for (let i = 0; i < days; i++) {
+      const date = new Date(today)
+      date.setDate(today.getDate() - i)
+      const dateStr = this.formatDate(date)
+      
+      const stats = statsMap.get(dateStr)
+      if (stats && stats.count > 0) {
+        result.set(dateStr, stats.count)
+      }
+    }
+
+    return result
+  }
+
+  /**
    * 获取指定日期的历史记录
    * 
    * @param dateStr - 日期字符串 (YYYY-MM-DD)
