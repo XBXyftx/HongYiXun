@@ -298,7 +298,7 @@ export struct ArticlePage {
   }
 
   /**
-   * 限制拖动位置在屏幕边界内（带弹性动画）
+   * 限制拖动位置在屏幕边界内
    */
   clampDragPosition(x: number, y: number): void {
     // 首次计算或缓存失效时重新计算边界
@@ -306,23 +306,8 @@ export struct ArticlePage {
       this.calculateBounds()
     }
 
-    const clampedX = Math.max(this.bounds!.minX, Math.min(this.bounds!.maxX, x))
-    const clampedY = Math.max(this.bounds!.minY, Math.min(this.bounds!.maxY, y))
-
-    // 如果触碰边界，添加弹性动画效果
-    if (x !== clampedX || y !== clampedY) {
-      // 使用 UIContext.animateTo (API 10+推荐方式)
-      this.getUIContext().animateTo({
-        duration: 200,
-        curve: Curve.FastOutSlowIn
-      }, () => {
-        this.dragOffsetX = clampedX
-        this.dragOffsetY = clampedY
-      })
-    } else {
-      this.dragOffsetX = clampedX
-      this.dragOffsetY = clampedY
-    }
+    this.dragOffsetX = Math.max(this.bounds!.minX, Math.min(this.bounds!.maxX, x))
+    this.dragOffsetY = Math.max(this.bounds!.minY, Math.min(this.bounds!.maxY, y))
   }
 
   /**
