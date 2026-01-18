@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AppStorageV2, promptAction } from '@kit.ArkUI'
+import { AppStorageV2, promptAction, window } from '@kit.ArkUI'
 import { DEVICE_TYPES, APP_STORAGE_KEYS, NewsArticle, UserConfigViewModel, logger, LOG_TAG } from 'common'
 import { NewsArticleView, favoriteManager, likeManager, colorModManager, NoteEditor } from 'feature'
 import { deviceInfo, pasteboard } from '@kit.BasicServicesKit'
@@ -24,6 +24,14 @@ interface MenuItemInfo {
   activeIcon?: Resource | string
   label: string
   isActive?: boolean
+}
+
+// 边界值类型
+interface BoundsInfo {
+  minX: number
+  maxX: number
+  minY: number
+  maxY: number
 }
 
 @ComponentV2
@@ -51,6 +59,11 @@ export struct ArticlePage {
   @Local dragPositionY: number = 60
   @Local screenWidth: number = 360
   @Local screenHeight: number = 780
+  // 边界缓存
+  private bounds: BoundsInfo | null = null
+  // 安全区域
+  private safeAreaTop: number = 0
+  private safeAreaBottom: number = 0
 
   /**
    * 检查收藏状态
@@ -213,9 +226,13 @@ export struct ArticlePage {
   /**
    * 打开笔记编辑器
    */
-  openNoteEditor(): void {
+  async openNoteEditor(): Promise<void> {
     // 如果是跟手弹窗模式（值为2），使用自定义可拖动窗口
     if (this.userConfig.noteEditorSheetType === 2) {
+      // 获取安全区域信息
+      await this.getSafeAreaInsets()
+      // 清除边界缓存，强制重新计算
+      this.bounds = null
       this.showDraggableEditor = true
     } else {
       this.showNoteEditor = true
@@ -223,17 +240,89 @@ export struct ArticlePage {
   }
 
   /**
-   * 限制拖动位置在屏幕边界内
+   * 获取安全区域信息（避开刘海屏、挖孔屏等）
    */
-  clampDragPosition(x: number, y: number): void {
+  async getSafeAreaInsets(): Promise<void> {
+    try {
+      const context = this.getUIContext().getHostContext()
+      if (!context) {
+        logger.warn(`${LOG_TAG.MAIN_PAGE}无法获取 context，使用默认安全区域`)
+        this.safeAreaTop = 0
+        this.safeAreaBottom = 0
+        return
+      }
+
+      window.getLastWindow(context).then((win: window.Window) => {
+        const avoidArea = win.getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM)
+        this.safeAreaTop = 0
+        this.safeAreaBottom = avoidArea.bottomRect.height
+        logger.info(`${LOG_TAG.MAIN_PAGE}安全区域 - 顶部: ${this.safeAreaTop}, 底部: ${this.safeAreaBottom}`)
+      }).catch((error: Error) => {
+        logger.error(`${LOG_TAG.MAIN_PAGE}获取窗口失败: ${error.message}`)
+        this.safeAreaTop = 0
+        this.safeAreaBottom = 0
+      })
+    } catch (error) {
+      logger.error(`${LOG_TAG.MAIN_PAGE}获取安全区域失败: ${JSON.stringify(error)}`)
+      // 使用默认值
+      this.safeAreaTop = 0
+      this.safeAreaBottom = 0
+    }
+  }
+
+  /**
+   * 计算边界值（响应式，考虑设备类型和安全区域）
+   */
+  private calculateBounds(): void {
     const windowWidth = this.deviceType === DEVICE_TYPES.PHONE ? this.screenWidth * 0.9 : this.screenWidth * 0.5
     const windowHeight = this.screenHeight * 0.75
-    const minX = -windowWidth + 60
-    const maxX = this.screenWidth - 60
-    const minY = 0
-    const maxY = this.screenHeight - 100
-    this.dragOffsetX = Math.max(minX, Math.min(maxX, x))
-    this.dragOffsetY = Math.max(minY, Math.min(maxY, y))
+
+    // 左侧可以隐藏较多，右侧和底部需要保留更多可见区域
+    const leftMargin = this.deviceType === DEVICE_TYPES.PHONE ? 60 : 80  // 左侧最小可见宽度
+    const rightVisibleRatio = this.deviceType === DEVICE_TYPES.PHONE ? 0.4 : 0.9  // 右侧至少保留 90% 可见
+    const bottomVisibleRatio = 0.5  // 底部至少保留 60% 可见
+
+    this.bounds = {
+      // 左侧：允许窗口几乎完全隐藏，只露出 leftMargin 的宽度
+      minX: -windowWidth + leftMargin,
+      // 右侧：窗口左上角最多到 (屏幕宽度 - 窗口宽度 * 60%)，确保右侧至少 60% 可见
+      maxX: this.screenWidth - windowWidth * rightVisibleRatio,
+      // 顶部：避开状态栏
+      minY: Math.max(0, this.safeAreaTop),
+      // 底部：窗口左上角最多到 (屏幕高度 - 窗口高度 * 60%)，确保底部至少 60% 可见
+      maxY: this.screenHeight - this.safeAreaBottom - windowHeight * bottomVisibleRatio
+    }
+
+    logger.info(`${LOG_TAG.MAIN_PAGE}边界计算完成: ${JSON.stringify(this.bounds)}`)
+    logger.info(`${LOG_TAG.MAIN_PAGE}窗口尺寸: ${windowWidth}x${windowHeight}, 屏幕尺寸: ${this.screenWidth}x${this.screenHeight}`)
+  }
+
+  /**
+   * 限制拖动位置在屏幕边界内（带弹性动画）
+   */
+  clampDragPosition(x: number, y: number): void {
+    // 首次计算或缓存失效时重新计算边界
+    if (!this.bounds) {
+      this.calculateBounds()
+    }
+
+    const clampedX = Math.max(this.bounds!.minX, Math.min(this.bounds!.maxX, x))
+    const clampedY = Math.max(this.bounds!.minY, Math.min(this.bounds!.maxY, y))
+
+    // 如果触碰边界，添加弹性动画效果
+    if (x !== clampedX || y !== clampedY) {
+      // 使用 UIContext.animateTo (API 10+推荐方式)
+      this.getUIContext().animateTo({
+        duration: 200,
+        curve: Curve.FastOutSlowIn
+      }, () => {
+        this.dragOffsetX = clampedX
+        this.dragOffsetY = clampedY
+      })
+    } else {
+      this.dragOffsetX = clampedX
+      this.dragOffsetY = clampedY
+    }
   }
 
   /**
@@ -507,6 +596,9 @@ export struct ArticlePage {
       .onAreaChange((_oldValue: Area, newValue: Area) => {
         this.screenWidth = newValue.width as number
         this.screenHeight = newValue.height as number
+        // 屏幕尺寸变化时清除边界缓存，下次拖拽时重新计算
+        this.bounds = null
+        logger.info(`${LOG_TAG.MAIN_PAGE}屏幕尺寸变化: ${this.screenWidth}x${this.screenHeight}`)
       })
     }
     .hideTitleBar(true)
