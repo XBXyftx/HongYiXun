@@ -17,4 +17,6 @@ export * from './NewsListHeaderIsSticky'
 export * from './HistoryUpdateTrigger'
 export * from './FavoriteUpdateTrigger'
 export * from './LikeUpdateTrigger'
+export * from './MenuItemInfo'
+export * from './BoundsInfo'
 

@@ -13,26 +13,11 @@
  * limitations under the License.
  */
 import { AppStorageV2, promptAction, window } from '@kit.ArkUI'
-import { DEVICE_TYPES, APP_STORAGE_KEYS, NewsArticle, UserConfigViewModel, logger, LOG_TAG } from 'common'
+import { DEVICE_TYPES, APP_STORAGE_KEYS, NewsArticle, UserConfigViewModel, logger, LOG_TAG, MenuItemInfo,
+  BoundsInfo } from 'common'
 import { NewsArticleView, favoriteManager, likeManager, colorModManager, NoteEditor } from 'feature'
 import { deviceInfo, pasteboard } from '@kit.BasicServicesKit'
 import { CircleNavigation, CircleType } from '@abner/circle_navigation'
-
-// 菜单项类型
-interface MenuItemInfo {
-  icon: Resource | string
-  activeIcon?: Resource | string
-  label: string
-  isActive?: boolean
-}
-
-// 边界值类型
-interface BoundsInfo {
-  minX: number
-  maxX: number
-  minY: number
-  maxY: number
-}
 
 @ComponentV2
 export struct ArticlePage {
