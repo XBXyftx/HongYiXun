@@ -104,12 +104,14 @@ export struct CalenderTabContent {
 
   @Monitor('userConfig.heatmapColorRange')
   onColorRangeChange(): void {
+    // 颜色范围变化时，需要重新计算所有格子的颜色
     this.generateHeatmapCells()
     this.generateCalendarDays()
   }
 
   @Monitor('userConfig.heatmapColorScheme')
   onColorSchemeChange(): void {
+    // 颜色系变化时，需要重新计算所有格子的颜色
     this.generateHeatmapCells()
     this.generateCalendarDays()
   }
@@ -158,6 +160,7 @@ export struct CalenderTabContent {
     const timeRange = this.userConfig.heatmapTimeRange
     const newCells: HeatmapCell[] = []
 
+    // 从最早的日期开始计算（timeRange - 1 天前）
     for (let i = timeRange - 1; i >= 0; i--) {
       const date = new Date(today)
       date.setDate(today.getDate() - i)
@@ -167,14 +170,14 @@ export struct CalenderTabContent {
       newCells.push({
         dateStr: dateStr,
         count: count,
-        color: this.getColorForCount(count),
+        color: this.getColorForCount(count), // 每次都重新计算颜色
         dayOfWeek: date.getDay(),
         dayOfMonth: date.getDate(),
         month: date.getMonth() + 1
       })
     }
     
-    // 强制触发数组更新
+    // 强制触发数组更新（重新赋值以触发响应式）
     this.heatmapCells = newCells
   }
 
@@ -319,9 +322,11 @@ export struct CalenderTabContent {
     const weeks: HeatmapCell[][] = []
     if (this.heatmapCells.length === 0) return weeks
 
+    // 获取第一天是星期几（0=周日, 1=周一, ..., 6=周六）
     const firstDayOfWeek = this.heatmapCells[0].dayOfWeek
     let currentWeek: HeatmapCell[] = []
 
+    // 在第一周前面填充空白格子，对齐星期
     for (let i = 0; i < firstDayOfWeek; i++) {
       currentWeek.push({
         dateStr: '',
@@ -333,14 +338,17 @@ export struct CalenderTabContent {
       })
     }
 
+    // 遍历所有热力格子
     for (const cell of this.heatmapCells) {
       currentWeek.push(cell)
+      // 当一周满7天时，保存这一周并开始新的一周
       if (currentWeek.length === 7) {
         weeks.push(currentWeek)
         currentWeek = []
       }
     }
 
+    // 处理最后一周：如果不足7天，在后面填充空白格子
     if (currentWeek.length > 0) {
       while (currentWeek.length < 7) {
         currentWeek.push({
@@ -354,6 +362,7 @@ export struct CalenderTabContent {
       }
       weeks.push(currentWeek)
     }
+    
     return weeks
   }
 
@@ -549,9 +558,9 @@ export struct CalenderTabContent {
                             Column() {
                               ForEach(weekCells, (cell: HeatmapCell, dayIndex: number) => {
                                 this.HeatmapCellBuilder(cell, weekIndex * 7 + dayIndex)
-                              }, (cell: HeatmapCell, dayIdx: number) => `fs_${this.historyUpdateTrigger.trigger}_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}_${cell.color}`)
+                              }, (cell: HeatmapCell, dayIdx: number) => `fs_${this.userConfig.heatmapTimeRange}_${this.userConfig.heatmapColorRange}_${this.userConfig.heatmapColorScheme}_${this.historyUpdateTrigger.trigger}_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}_${cell.color}`)
                             }
-                          }, (weekCells: HeatmapCell[], idx: number) => `fs_week_${this.historyUpdateTrigger.trigger}_${idx}_${weekCells.length}`)
+                          }, (weekCells: HeatmapCell[], idx: number) => `fs_week_${this.userConfig.heatmapTimeRange}_${this.userConfig.heatmapColorRange}_${this.userConfig.heatmapColorScheme}_${this.historyUpdateTrigger.trigger}_${idx}_${weekCells.length}`)
                         }
                       }
                       .scrollable(ScrollDirection.Horizontal)
@@ -768,9 +777,9 @@ export struct CalenderTabContent {
                           Column() {
                             ForEach(weekCells, (cell: HeatmapCell, dayIndex: number) => {
                               this.HeatmapCellBuilder(cell, weekIndex * 7 + dayIndex)
-                            }, (cell: HeatmapCell, dayIdx: number) => `main_${this.historyUpdateTrigger.trigger}_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}_${cell.color}`)
+                            }, (cell: HeatmapCell, dayIdx: number) => `main_${this.userConfig.heatmapTimeRange}_${this.userConfig.heatmapColorRange}_${this.userConfig.heatmapColorScheme}_${this.historyUpdateTrigger.trigger}_${cell.dateStr || 'empty'}_${dayIdx}_${cell.count}_${cell.color}`)
                           }
-                        }, (weekCells: HeatmapCell[], idx: number) => `main_week_${this.historyUpdateTrigger.trigger}_${idx}_${weekCells.length}`)
+                        }, (weekCells: HeatmapCell[], idx: number) => `main_week_${this.userConfig.heatmapTimeRange}_${this.userConfig.heatmapColorRange}_${this.userConfig.heatmapColorScheme}_${this.historyUpdateTrigger.trigger}_${idx}_${weekCells.length}`)
                       }
                     }
                     .scrollable(ScrollDirection.Horizontal)
