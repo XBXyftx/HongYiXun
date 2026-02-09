@@ -7,11 +7,11 @@
         "material": {
           "certpath": "C:\\Users\\ASUS\\.ohos\\config\\default_HongYiXun_zBkXs_UaeBh1WiCxFpWOIfYMVEz3Y-I55x8d7A8x514=.cer",
           "keyAlias": "debugKey",
-          "keyPassword": "0000001BDDB2F7377E3A229270A7318DFE0DE44BD77C7675DB059516B0FB35BD3BC58B6A90EFFEB3DAE3C3",
+          "keyPassword": "0000001BF827F9C368FB578B55C4D87621D5E43B653F54226B6FC3068E13CB97A3C938FC3883BD0CD6B832",
           "profile": "C:\\Users\\ASUS\\.ohos\\config\\default_HongYiXun_zBkXs_UaeBh1WiCxFpWOIfYMVEz3Y-I55x8d7A8x514=.p7b",
           "signAlg": "SHA256withECDSA",
           "storeFile": "C:\\Users\\ASUS\\.ohos\\config\\default_HongYiXun_zBkXs_UaeBh1WiCxFpWOIfYMVEz3Y-I55x8d7A8x514=.p12",
-          "storePassword": "0000001B3C6A7499BC5CD0A2859093649C911F82879EEF9C82577A039745D700D699CA0239119FE2F703C2"
+          "storePassword": "0000001BC11BAE738E60B8FE264DD9B1FF81B23F26BB5ED10C622913BFF5CAF5876E91299C2B640247C598"
         }
       }
     ],
@@ -19,8 +19,8 @@
       {
         "name": "default",
         "signingConfig": "default",
-        "targetSdkVersion": "6.0.0(20)",
-        "compatibleSdkVersion": "6.0.0(20)",
+        "targetSdkVersion": "6.0.2(22)",
+        "compatibleSdkVersion": "6.0.2(22)",
         "runtimeOS": "HarmonyOS",
         "buildOption": {
           "strictMode": {
