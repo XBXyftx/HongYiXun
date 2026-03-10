@@ -12,3 +12,7 @@
 /.appanalyzer
 # MegaLLM Configuration
 .claude/settings.local.json
+
+# DevEco Studio generated
+.arts/
+.bitfun/
