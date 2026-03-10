@@ -3,16 +3,16 @@
     "signingConfigs": [
       {
         "name": "default",
-        "type": "HarmonyOS",
         "material": {
-          "certpath": "C:\\Users\\ASUS\\.ohos\\config\\default_HongYiXun_zBkXs_UaeBh1WiCxFpWOIfYMVEz3Y-I55x8d7A8x514=.cer",
+          "storePassword": "0000002074CC783AACF1A7DF4233A8C14D1B137DEEE43C00BADE94ACD3271D3AF303E24AFCC824BD01688C9A2C39FC58",
+          "certpath": "/storage/Users/currentUser/appdata/el2/base/com.huawei.devecostudio/files/ohos/config/default_HongYiXun7rCWTs3Eb87kOFUZ0O2UT6lb8sSmVEe-9GCR8y4t3Qw.cer",
           "keyAlias": "debugKey",
-          "keyPassword": "0000001BF827F9C368FB578B55C4D87621D5E43B653F54226B6FC3068E13CB97A3C938FC3883BD0CD6B832",
-          "profile": "C:\\Users\\ASUS\\.ohos\\config\\default_HongYiXun_zBkXs_UaeBh1WiCxFpWOIfYMVEz3Y-I55x8d7A8x514=.p7b",
+          "keyPassword": "0000002074CC783AACF1A7DF4233A8C14D1B137DEEE43C00BADE94ACD3271D3AF303E24AFCC824BD01688C9A2C39FC58",
+          "profile": "/storage/Users/currentUser/appdata/el2/base/com.huawei.devecostudio/files/ohos/config/default_HongYiXun7rCWTs3Eb87kOFUZ0O2UT6lb8sSmVEe-9GCR8y4t3Qw.p7b",
           "signAlg": "SHA256withECDSA",
-          "storeFile": "C:\\Users\\ASUS\\.ohos\\config\\default_HongYiXun_zBkXs_UaeBh1WiCxFpWOIfYMVEz3Y-I55x8d7A8x514=.p12",
-          "storePassword": "0000001BC11BAE738E60B8FE264DD9B1FF81B23F26BB5ED10C622913BFF5CAF5876E91299C2B640247C598"
-        }
+          "storeFile": "/storage/Users/currentUser/appdata/el2/base/com.huawei.devecostudio/files/ohos/config/default_HongYiXun7rCWTs3Eb87kOFUZ0O2UT6lb8sSmVEe-9GCR8y4t3Qw.p12"
+        },
+        "type": "HarmonyOS"
       }
     ],
     "products": [
