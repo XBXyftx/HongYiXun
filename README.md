@@ -1,6 +1,6 @@
 # 鸿易讯 (HongYiXun)
 
-基于 [NowInOpenHarmony](https://github.com/ifLabVibe/NowInOpenHarmony) 演进开发的 HarmonyOS 新闻资讯应用。
+基于 [NowInOpenHarmony](https://github.com/ifLabVibe/NowInOpenHarmony) 演进开发的 HarmonyOS 新闻资讯应用。欢迎大家去[HAP store](https://hdc.osbdf.com/detail.php?id=351)下载使用
 
 <img width="2048" height="2048" alt="logo" src="https://github.com/user-attachments/assets/1e5c1ecf-5f97-47f2-a746-e74d41da861b" />
 
